@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://b7iqxbe03rq0c"]
+
+[ext_resource type="Script" uid="uid://da02eap0sliy6" path="res://persistance_manager/PersistanceManager.cs" id="1_uqfrk"]
+
+[node name="TestPersistance" type="Node3D"]
+script = ExtResource("1_uqfrk")
