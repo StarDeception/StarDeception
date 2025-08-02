@@ -38,7 +38,10 @@ const uuid_util = preload('res://addons/uuid/uuid.gd')
 
 func _ready() -> void:
 	if OS.has_feature("dedicated_server"):
+		print("OS has dedicated_server")
 		_start_server()
+	else:
+		print("OS doesn't have dedicated_server")
 
 
 

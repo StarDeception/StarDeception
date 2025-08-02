@@ -160,7 +160,8 @@ func _physics_process(delta: float) -> void:
 	
 	move_and_slide()
 	#print(global_position)
-	Server.send_to_server_position(global_position)
+	if Globals.onlineMode:
+		Server.send_to_server_position(global_position)
 	labelx.text = str(global_position[0])
 	labely.text = str(global_position[1])
 	labelz.text = str(global_position[2])

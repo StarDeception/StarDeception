@@ -1,13 +1,17 @@
-extends CanvasLayer
+extends Control
 
 func _on_ready() -> void:
 	BackgrounMusic.play_music_level()
 	pass
 
 
-func _on_button_pressed() -> void:
+func _on_button_pressed(button_id: String) -> void:
 #	TODO Call HTTP request to auth server to authenticate
-	Globals.playerName = $Username.get_text()
-	if Globals.playerName == "":
-		Globals.playerName = "I am an idiot !"
-	get_tree().change_scene_to_file("res://2_main_page/main_page.tscn")
+	Globals.playerName = $FormPlacer/FormContainer/UserName.get_text()
+	match button_id:
+		"Online":
+			Globals.onlineMode = true
+			get_tree().change_scene_to_file("res://2_main_page/main_page.tscn")
+		"Local":
+			Globals.onlineMode = false
+			get_tree().change_scene_to_file("res://example_scene/sandbox.tscn")

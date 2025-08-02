@@ -1,3 +1,4 @@
 extends Node
 
-var playerName
+var playerName: String = "I am an idiot !"
+var onlineMode: bool = false

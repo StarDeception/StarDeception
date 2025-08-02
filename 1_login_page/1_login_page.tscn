@@ -1,81 +1,122 @@
-[gd_scene load_steps=7 format=3 uid="uid://b7aajb2l3gvg5"]
+[gd_scene load_steps=5 format=3 uid="uid://b7aajb2l3gvg5"]
 
 [ext_resource type="Script" uid="uid://ck5cjdbjngm6a" path="res://1_login_page/1_login_page.gd" id="1_al056"]
 [ext_resource type="Texture2D" uid="uid://trpcoqhuryo0" path="res://Assets/Menu/Background_1920x1080.png" id="2_5ta56"]
 [ext_resource type="Texture2D" uid="uid://dq2e8gaxm2dkp" path="res://icon.svg" id="2_vxyvi"]
-[ext_resource type="Texture2D" uid="uid://df3kr0kkxccul" path="res://Assets/Menu/Background_LogIn_Form.svg" id="4_6x3n2"]
-[ext_resource type="Texture2D" uid="uid://0yw6o1aoe6pj" path="res://Assets/Menu/Title_StarDeception.svg" id="5_lkmrr"]
-[ext_resource type="Texture2D" uid="uid://chb0g31v1ufik" path="res://Assets/Menu/MainMenu-LogIn/Btn_SeConnecter.svg" id="6_r1snc"]
 
-[node name="CanvasLayer" type="CanvasLayer"]
-script = ExtResource("1_al056")
+[sub_resource type="LabelSettings" id="LabelSettings_5ta56"]
+font_size = 100
 
-[node name="Control" type="Control" parent="."]
+[node name="LoginUI" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("1_al056")
 
-[node name="Background1920x1080" type="Sprite2D" parent="Control"]
-position = Vector2(960, 540)
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 texture = ExtResource("2_5ta56")
+stretch_mode = 3
+
+[node name="Title" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Star Deception"
+label_settings = SubResource("LabelSettings_5ta56")
+horizontal_alignment = 1
+
+[node name="FormPlacer" type="Control" parent="."]
+layout_mode = 1
+anchor_left = 0.25
+anchor_top = 0.25
+anchor_right = 0.75
+anchor_bottom = 0.9
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_vertical = 3
+
+[node name="FormContainer" type="VBoxContainer" parent="FormPlacer"]
+clip_contents = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="UserName" type="LineEdit" parent="FormPlacer/FormContainer"]
+layout_mode = 2
+size_flags_vertical = 10
+theme_override_colors/font_placeholder_color = Color(1, 0, 0, 1)
+theme_override_font_sizes/font_size = 24
+placeholder_text = "User Name"
+
+[node name="ButtonContainer" type="HBoxContainer" parent="FormPlacer/FormContainer"]
+clip_contents = true
+layout_mode = 2
+size_flags_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="OnlineButton" type="Button" parent="FormPlacer/FormContainer/ButtonContainer"]
+clip_contents = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 0
+theme_override_font_sizes/font_size = 24
+text = "Se Connecter"
+
+[node name="LocalButton" type="Button" parent="FormPlacer/FormContainer/ButtonContainer"]
+clip_contents = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 0
+theme_override_font_sizes/font_size = 24
+text = "Hors ligne"
+
+[node name="LogoPlacer" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -120.0
+offset_top = -120.0
+grow_horizontal = 0
+grow_vertical = 0
+pivot_offset = Vector2(60, 60)
+
+[node name="Logo" type="TextureRect" parent="LogoPlacer"]
+self_modulate = Color(1, 1, 1, 0.392157)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 880.0
+offset_bottom = 880.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(0.1, 0.1)
+pivot_offset = Vector2(10, 10)
+texture = ExtResource("2_vxyvi")
+stretch_mode = 3
 
 [node name="HTTPRequest" type="HTTPRequest" parent="."]
 
-[node name="Icon" type="Sprite2D" parent="."]
-position = Vector2(1353, 47)
-scale = Vector2(0.348, 0.348)
-texture = ExtResource("2_vxyvi")
-
-[node name="BackgroundLogInForm" type="Sprite2D" parent="."]
-position = Vector2(569, 315)
-texture = ExtResource("4_6x3n2")
-
-[node name="TitleStarDeception" type="Sprite2D" parent="."]
-position = Vector2(391, 89)
-texture = ExtResource("5_lkmrr")
-
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
-anchors_preset = 9
-anchor_bottom = 1.0
-offset_left = 411.0
-offset_top = 193.0
-offset_right = 735.0
-offset_bottom = -275.0
-grow_vertical = 2
-
-[node name="Password" type="TextEdit" parent="VBoxContainer"]
-visible = false
-custom_minimum_size = Vector2(0, 40)
-layout_mode = 2
-placeholder_text = "password"
-
-[node name="Username" type="LineEdit" parent="."]
-custom_minimum_size = Vector2(0, 40)
-offset_left = 411.0
-offset_top = 193.0
-offset_right = 732.0
-offset_bottom = 255.0
-size_flags_stretch_ratio = 0.57
-theme_override_font_sizes/font_size = 30
-placeholder_text = "Username"
-emoji_menu_enabled = false
-virtual_keyboard_enabled = false
-shortcut_keys_enabled = false
-
-[node name="BtnSeConnecter" type="Sprite2D" parent="."]
-position = Vector2(573, 550)
-texture = ExtResource("6_r1snc")
-
-[node name="Button" type="Button" parent="BtnSeConnecter"]
-custom_minimum_size = Vector2(0, 40)
-offset_left = -176.0
-offset_top = -50.0
-offset_right = 176.0
-offset_bottom = 40.0
-flat = true
-
 [connection signal="ready" from="." to="." method="_on_ready"]
-[connection signal="pressed" from="BtnSeConnecter/Button" to="." method="_on_button_pressed"]
+[connection signal="pressed" from="FormPlacer/FormContainer/ButtonContainer/OnlineButton" to="." method="_on_button_pressed" binds= ["Online"]]
+[connection signal="pressed" from="FormPlacer/FormContainer/ButtonContainer/LocalButton" to="." method="_on_button_pressed" binds= ["Local"]]
