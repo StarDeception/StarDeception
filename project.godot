@@ -29,6 +29,8 @@ ErrorManager="*res://ui/error_message/error_message.tscn"
 [debug]
 
 gdscript/warnings/native_method_override=1
+ErrorManager="*res://ui/error_message/error_message.tscn"
+PersistanceManager="*res://server/persistance_manager/PersistanceManager.cs"
 
 [display]
 
@@ -40,6 +42,11 @@ window/stretch/aspect="expand"
 [dotnet]
 
 project/assembly_name="StarDeception"
+
+[editor]
+
+version_control/plugin_name="GitPlugin"
+version_control/autoload_on_startup=true
 
 [editor_plugins]
 
