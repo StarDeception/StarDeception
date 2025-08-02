@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://ddvwmqo31n6e3"]
+
+[ext_resource type="Script" uid="uid://cx34st7wtgiwl" path="res://Server/pipe_http_sendplayers.gd" id="1_g5s8s"]
+
+[node name="PipeHttpSendplayers" type="Node3D"]
+script = ExtResource("1_g5s8s")
+
+[node name="HTTPRequest" type="HTTPRequest" parent="."]

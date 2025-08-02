@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://besrn7f8r5qxy"]
+
+[ext_resource type="Script" uid="uid://c3dv882ndwwdj" path="res://Server/pipe_http_getservers.gd" id="1_pcpsf"]
+
+[node name="PipeHttpGetservers" type="Node3D"]
+script = ExtResource("1_pcpsf")
+
+[node name="HTTPRequest" type="HTTPRequest" parent="."]

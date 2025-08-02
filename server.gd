@@ -132,12 +132,7 @@ func _is_server_has_no_players():
 	else:
 		var thisServerPlayers = _get_players_of_this_server()
 		if thisServerPlayers.size() == 0:
-			var headers = ["Content-Type: application/x-www-form-urlencoded"]
-			var resp := await async_request('http://' + SDOServerUrl + '/sdo/servers/' + str(SDOServerId) + '/free', headers, HTTPClient.METHOD_POST)
-			if resp.success() and resp.status_ok():
-				#print(resp.status)
-				#print(resp.body_as_string())
-				ServerTickZeroPlayers = 30
+			PipeHttpFree.do_request(SDOServerUrl, SDOServerId)
 		ServerTickZeroPlayers = 30
 
 func _get_players_of_this_server():
@@ -194,31 +189,21 @@ func getRefreshZone():
 	if ServerTickGetZone > 0:
 		ServerTickGetZone -= 1
 	else:
-		var headers = ["Content-Type: application/x-www-form-urlencoded"]
-		var resp := await async_request('http://' + SDOServerUrl + '/sdo/servers/' + str(SDOServerId), headers, HTTPClient.METHOD_GET)
-		if resp.success() and resp.status_ok():
-			#print(resp.status)
-			var json = resp.body_as_json()
-			#print("Re98+freshZone")
-			#print(json)
-			ServerSDOInfo = json
-			# update zone (x, y, z) this server manage
+		PipeHttpGetzone.do_request(SDOServerUrl, SDOServerId)
 		ServerTickGetZone = 30
 
 func getServersList():
 	if ServerTickServers > 0:
 		ServerTickServers -= 1
 	else:
-		var headers = ["Content-Type: application/x-www-form-urlencoded"]
-		var resp := await async_request('http://' + SDOServerUrl + '/sdo/servers/onlyactive', headers, HTTPClient.METHOD_GET)
-		if resp.success() and resp.status_ok():
-			#print(resp.status)
-			var json = resp.body_as_json()
-			print("List of all servers")
-			print(json)
-			ServersSDOList = json
-			rpc("client_receive_nbservers", json.size())
+		PipeHttpGetservers.do_request(SDOServerUrl, SDOServerId)
 		ServerTickServers = 30
+
+func updateServersList(servers):
+	print("List of all servers")
+	ServersSDOList = servers
+	rpc("client_receive_nbservers", servers.size())
+	
 
 func _send_players_to_sdo():
 	if ServerTickSendPlayersToSDO > 0:
@@ -231,27 +216,19 @@ func _send_players_to_sdo():
 			if value.server_id == SDOServerId:
 				playersData.append({"client_uuid": puuid, "name": value.name, "x": value.x, "y": value.y, "z": value.z})
 		var playersDataJson = JSON.new().stringify(playersData)
-		var headers = ["Content-Type: application/x-www-form-urlencoded"]
-		var resp := await async_request('http://' + SDOServerUrl + '/sdo/servers/' + str(SDOServerId) + '/players', headers, HTTPClient.METHOD_POST, 'players=' + playersDataJson)
-		if resp.success() and resp.status_ok():
-			#print(resp.body_as_string())
-			var json = resp.body_as_json()
-			#print(json)
+		PipeHttpSendplayers.do_request(playersDataJson, SDOServerUrl, SDOServerId)
 		ServerTickSendPlayersToSDO = 15
 
 func _get_players_from_sdo():
 	if ServerTickGetAllPlayersFromSDO > 0:
 		ServerTickGetAllPlayersFromSDO -= 1
 	else:
-		var headers = ["Content-Type: application/x-www-form-urlencoded"]
-		var resp := await async_request('http://' + SDOServerUrl + '/sdo/players', headers, HTTPClient.METHOD_GET)
-		if resp.success() and resp.status_ok():
-			#print(resp.status)
-			var json = resp.body_as_json()
-			#print(json)
-			rpc("client_receive_nbplayers", json.size())
-			_dispatch_all_players_of_sdo(json)
+		PipeHttpGetplayers.do_request(SDOServerUrl, SDOServerId)
 		ServerTickGetAllPlayersFromSDO = 16
+
+func updatePlayersList(json):
+	rpc("client_receive_nbplayers", json.size())
+	_dispatch_all_players_of_sdo(json)
 
 func _dispatch_all_players_of_sdo(playerList):
 	# we receive all players of all the universe (each 15 tickrates)
@@ -266,7 +243,6 @@ func _dispatch_all_players_of_sdo(playerList):
 		if myplayer.server_id == SDOServerId:
 			# case for players of this server
 			pass
-			
 		else:
 			# case for players of other servers
 			players[myplayer.client_uuid] = myplayer

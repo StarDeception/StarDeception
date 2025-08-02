@@ -3,7 +3,6 @@ extends Node3D
 func _ready() -> void:
 	$HTTPRequest.request_completed.connect(_my_reponse)
 	
-
 func do_request(playersDataJson, SDOServerUrl, SDOServerId):
 	var headers = ["Content-Type: application/x-www-form-urlencoded"]
 	print("send HTTP request HEAVY")
