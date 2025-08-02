@@ -1,7 +1,8 @@
-[gd_scene load_steps=27 format=3 uid="uid://dlbkch6iuy8gn"]
+[gd_scene load_steps=26 format=3 uid="uid://dlbkch6iuy8gn"]
 
 [ext_resource type="Script" uid="uid://dvpsr7ogx4jae" path="res://addons/fp_controller/scripts/player.gd" id="1_5ras8"]
 [ext_resource type="Script" uid="uid://df1l1fnp23q4r" path="res://addons/fp_controller/scripts/smooth_camera.gd" id="2_1py82"]
+[ext_resource type="PackedScene" uid="uid://vv063vdbl0aa" path="res://Models/astronaut/astronaut.res" id="2_a8wmt"]
 [ext_resource type="Script" uid="uid://darw4ktv3brra" path="res://addons/fp_controller/scripts/player_state_machine.gd" id="2_wwa58"]
 [ext_resource type="Script" uid="uid://7klatkjm163l" path="res://addons/fp_controller/scripts/player_move_state/idle.gd" id="3_xe000"]
 [ext_resource type="Script" uid="uid://caj18woq6mfis" path="res://addons/fp_controller/scripts/player_move_state/jump.gd" id="4_1lr3q"]
@@ -13,7 +14,6 @@
 [ext_resource type="Script" uid="uid://bk35bswvdxf86" path="res://addons/fp_controller/scripts/player_move_state/grab.gd" id="11_gkc45"]
 [ext_resource type="Script" uid="uid://dlylungjo3kdv" path="res://addons/fp_controller/scripts/player_move_state/slide.gd" id="12_bqyfq"]
 [ext_resource type="Script" uid="uid://cfwy76dpxuvoj" path="res://addons/fp_controller/scripts/player_ui.gd" id="12_d7xi0"]
-[ext_resource type="ArrayMesh" uid="uid://v721mhcqkdjk" path="res://Models/astronaut/uploads_files_2954422_astronaut_3d_model.obj" id="14_njw88"]
 [ext_resource type="Script" uid="uid://c62vv4kkvwuk1" path="res://addons/fp_controller/label_game_server_name.gd" id="14_ttf0e"]
 [ext_resource type="Script" uid="uid://du8smr1o81j1c" path="res://addons/fp_controller/label_game_server_number_players.gd" id="15_vfxpb"]
 [ext_resource type="Script" uid="uid://cp4hqc0wqd0l0" path="res://addons/fp_controller/label_game_server_number.gd" id="16_mkvci"]
@@ -36,70 +36,46 @@ tracks/0/keys = {
 tracks/1/type = "value"
 tracks/1/imported = false
 tracks/1/enabled = true
-tracks/1/path = NodePath("Placeholder_Collider/Placeholder_BodyMesh:mesh:height")
+tracks/1/path = NodePath("Placeholder_Collider:position")
 tracks/1/interp = 1
 tracks/1/loop_wrap = true
 tracks/1/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [1.8]
+"values": [Vector3(2.08165e-12, 0.9, 2.08165e-12)]
 }
 tracks/2/type = "value"
 tracks/2/imported = false
 tracks/2/enabled = true
-tracks/2/path = NodePath("Placeholder_Collider:position")
+tracks/2/path = NodePath("Placeholder_Collider:shape:radius")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
 tracks/2/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Vector3(2.08165e-12, 0.9, 2.08165e-12)]
+"values": [0.5]
 }
 tracks/3/type = "value"
 tracks/3/imported = false
 tracks/3/enabled = true
-tracks/3/path = NodePath("Placeholder_Collider/Placeholder_BodyMesh:mesh:radius")
+tracks/3/path = NodePath("CameraPivot:position")
 tracks/3/interp = 1
 tracks/3/loop_wrap = true
 tracks/3/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [0.5]
+"values": [Vector3(0, 1.65, 0)]
 }
 tracks/4/type = "value"
 tracks/4/imported = false
 tracks/4/enabled = true
-tracks/4/path = NodePath("Placeholder_Collider:shape:radius")
+tracks/4/path = NodePath("CrouchRaycast:position")
 tracks/4/interp = 1
 tracks/4/loop_wrap = true
 tracks/4/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [0.5]
-}
-tracks/5/type = "value"
-tracks/5/imported = false
-tracks/5/enabled = true
-tracks/5/path = NodePath("CameraPivot:position")
-tracks/5/interp = 1
-tracks/5/loop_wrap = true
-tracks/5/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Vector3(2.08165e-12, 1.5, 2.08165e-12)]
-}
-tracks/6/type = "value"
-tracks/6/imported = false
-tracks/6/enabled = true
-tracks/6/path = NodePath("CrouchRaycast:position")
-tracks/6/interp = 1
-tracks/6/loop_wrap = true
-tracks/6/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
@@ -124,70 +100,46 @@ tracks/0/keys = {
 tracks/1/type = "value"
 tracks/1/imported = false
 tracks/1/enabled = true
-tracks/1/path = NodePath("Placeholder_Collider/Placeholder_BodyMesh:mesh:height")
+tracks/1/path = NodePath("Placeholder_Collider:position")
 tracks/1/interp = 1
 tracks/1/loop_wrap = true
 tracks/1/keys = {
 "times": PackedFloat32Array(0, 0.2),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
-"values": [1.8, 0.9]
+"values": [Vector3(2.08165e-12, 0.9, 2.08165e-12), Vector3(2.08165e-12, 0.45, 2.08165e-12)]
 }
 tracks/2/type = "value"
 tracks/2/imported = false
 tracks/2/enabled = true
-tracks/2/path = NodePath("Placeholder_Collider:position")
+tracks/2/path = NodePath("Placeholder_Collider:shape:radius")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
 tracks/2/keys = {
 "times": PackedFloat32Array(0, 0.2),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
-"values": [Vector3(2.08165e-12, 0.9, 2.08165e-12), Vector3(2.08165e-12, 0.45, 2.08165e-12)]
+"values": [0.5, 0.45]
 }
 tracks/3/type = "value"
 tracks/3/imported = false
 tracks/3/enabled = true
-tracks/3/path = NodePath("Placeholder_Collider/Placeholder_BodyMesh:mesh:radius")
+tracks/3/path = NodePath("CameraPivot:position")
 tracks/3/interp = 1
 tracks/3/loop_wrap = true
 tracks/3/keys = {
 "times": PackedFloat32Array(0, 0.2),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
-"values": [0.5, 0.45]
+"values": [Vector3(0, 1.65, 0), Vector3(2.08165e-12, 0.6, 2.08165e-12)]
 }
 tracks/4/type = "value"
 tracks/4/imported = false
 tracks/4/enabled = true
-tracks/4/path = NodePath("Placeholder_Collider:shape:radius")
+tracks/4/path = NodePath("CrouchRaycast:position")
 tracks/4/interp = 1
 tracks/4/loop_wrap = true
 tracks/4/keys = {
-"times": PackedFloat32Array(0, 0.2),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [0.5, 0.45]
-}
-tracks/5/type = "value"
-tracks/5/imported = false
-tracks/5/enabled = true
-tracks/5/path = NodePath("CameraPivot:position")
-tracks/5/interp = 1
-tracks/5/loop_wrap = true
-tracks/5/keys = {
-"times": PackedFloat32Array(0, 0.2),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [Vector3(2.08165e-12, 1.5, 2.08165e-12), Vector3(2.08165e-12, 0.6, 2.08165e-12)]
-}
-tracks/6/type = "value"
-tracks/6/imported = false
-tracks/6/enabled = true
-tracks/6/path = NodePath("CrouchRaycast:position")
-tracks/6/interp = 1
-tracks/6/loop_wrap = true
-tracks/6/keys = {
 "times": PackedFloat32Array(0, 0.2),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
@@ -239,9 +191,6 @@ _data = {
 }
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_irl70"]
-height = 1.8
-
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_aufvi"]
 height = 1.8
 
 [node name="Player" type="CharacterBody3D"]
@@ -312,17 +261,15 @@ target_position = Vector3(0.4, 2.08165e-12, 2.08165e-12)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.08165e-12, 0.9, 2.08165e-12)
 shape = SubResource("CapsuleShape3D_irl70")
 
-[node name="Placeholder_BodyMesh" type="MeshInstance3D" parent="Placeholder_Collider"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.10745, 0)
-visible = false
-mesh = SubResource("CapsuleMesh_aufvi")
-skeleton = NodePath("../..")
+[node name="Astronaut" parent="Placeholder_Collider" instance=ExtResource("2_a8wmt")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.9, 0)
 
 [node name="CameraPivot" type="Node3D" parent="."]
 unique_name_in_owner = true
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.08165e-12, 1.5, 2.08165e-12)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.65, 0)
 
 [node name="SmoothCamera" type="Camera3D" parent="CameraPivot"]
+cull_mask = 1048573
 script = ExtResource("2_1py82")
 
 [node name="ReflectionProbe" type="ReflectionProbe" parent="CameraPivot/SmoothCamera"]
@@ -501,10 +448,6 @@ offset_left = 393.0
 offset_top = 80.0
 offset_right = 553.0
 offset_bottom = 103.0
-
-[node name="UploadsFiles2954422Astronaut3dModel" type="MeshInstance3D" parent="."]
-transform = Transform3D(-0.999969, 0, -0.00790627, 0, 1, 0, 0.00790627, 0, -0.999969, 0.00354815, 0, 0.305197)
-mesh = ExtResource("14_njw88")
 
 [connection signal="transitioned" from="StateMachine" to="." method="_on_state_machine_transitioned"]
 [connection signal="draw" from="UserInterface/CrosshairContainer/Crosshair" to="UserInterface" method="_on_crosshair_draw"]

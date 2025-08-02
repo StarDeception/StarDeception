@@ -78,6 +78,8 @@ var can_crouch: bool = true
 var can_sprint: bool = true
 var can_pause: bool = true
 
+@onready var game_is_paused: bool = false
+
 @onready var labelx: Label = $UserInterface/LabelXValue
 @onready var labely: Label = $UserInterface/LabelYValue
 @onready var labelz: Label = $UserInterface/LabelZValue
@@ -134,6 +136,11 @@ func _unhandled_input(event: InputEvent) -> void:
 	if can_pause:
 		if event.is_action_pressed(PAUSE):
 			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+			game_is_paused = true
+	
+	if game_is_paused and event is InputEventMouseButton:
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		game_is_paused = false
 
 
 func _physics_process(delta: float) -> void:
