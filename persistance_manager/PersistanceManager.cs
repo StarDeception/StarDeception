@@ -1,11 +1,14 @@
+using FluentResults;
 using Godot;
+using Pb;
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 public partial class PersistanceManager : Node
 {
-    private IPersistenceProvider _persistenceProvider;
+    private static IPersistenceProvider _persistenceProvider;
     private ConfigFile _configFile = new ConfigFile();
     private bool _enabled = false;
 
@@ -14,39 +17,59 @@ public partial class PersistanceManager : Node
 	// Called when the node enters the scene tree for the first time.
 	public override async void _Ready()
 	{
-		try
-        {
-            GD.Print("Start Abstracted Persistence Manager");
-            _configFile.Load("res://server.ini");
-
-            if (_configFile.GetValue(SECTION_CONF, "enabled").AsBool())
+        if (_persistenceProvider != null) {
+            GD.PrintErr("Client Is already start");
+        } else {
+            try
             {
-                _enabled = true;
-                
-                // Créer le provider selon la configuration
-                var dbType = _configFile.GetValue(SECTION_CONF, "type", "dgraph").AsString();
-                var dbHost = _configFile.GetValue(SECTION_CONF, "DBHost").AsString();
+                GD.Print("Start Abstracted Persistence Manager");
+                _configFile.Load("res://server.ini");
 
-                _persistenceProvider = CreateProvider(dbType, dbHost);
+                if (_configFile.GetValue(SECTION_CONF, "enabled").AsBool())
+                {
+                    _enabled = true;
+                    
+                    // Créer le provider selon la configuration
+                    var dbType = _configFile.GetValue(SECTION_CONF, "type", "dgraph").AsString();
+                    var dbHost = _configFile.GetValue(SECTION_CONF, "DBHost").AsString();
 
-                if (await _persistenceProvider.InitializeAsync())
-                {
-                    GD.Print("✅ Database connection established");
-                    await RunTests();
-                }
-                else
-                {
-                    GD.PrintErr("❌ Failed to initialize database connection");
-                    _enabled = false;
+                    _persistenceProvider = CreateProvider(dbType, dbHost);
+
+                    if (await _persistenceProvider.InitializeAsync())
+                    {
+                        GD.Print("✅ Database connection established");
+                    }
+                    else
+                    {
+                        GD.PrintErr("❌ Failed to initialize database connection");
+                        _enabled = false;
+                    }
+
+                    //await RunTests();
                 }
             }
+            catch (Exception ex)
+            {
+                GD.PrintErr($"An error occurred in _Ready: {ex.Message}");
+                _enabled = false;
+            }
         }
-        catch (Exception ex)
-        {
-            GD.PrintErr($"An error occurred in _Ready: {ex.Message}");
-            _enabled = false;
-        }
+		
 	}
+
+    public string  SaveObj(string obj)
+    {
+        var result = SaveAsync(obj).GetAwaiter().GetResult();
+        if (result.IsSuccess)
+        {
+            GD.Print("✅ Save executed successfully");
+        }
+        else
+        {
+            GD.PrintErr($"❌ Save failed: {result.ErrorMessage}");
+        }
+        return result.Uid;
+    }
 
 	private IPersistenceProvider CreateProvider(string dbType, string connectionString)
     {
@@ -56,7 +79,9 @@ public partial class PersistanceManager : Node
             _ => throw new NotSupportedException($"Database type '{dbType}' is not supported")
         };
     }
-	    private async Task RunTests()
+
+    
+	public async Task RunTests()
     {
         // Test du schéma
         var schema = @"
@@ -69,6 +94,7 @@ public partial class PersistanceManager : Node
         {
             GD.Print("✅ Schema applied successfully");
         }
+
 
         var user = new
         {   
@@ -83,17 +109,17 @@ public partial class PersistanceManager : Node
         await TestMutation(user);
 
         // Test de requête
-        await TestQuery();
+       // await TestQuery();
 
         // Test delete
-        await TestDelete(user);
+        //await TestDelete(user);
     }   
 
     private async Task TestMutation(object user)
     {
         using var transaction = await _persistenceProvider.BeginTransactionAsync();
-
-        var mutateResult = await transaction.MutateAsync(user);
+        var json = JsonSerializer.Serialize(user);
+        var mutateResult = await transaction.MutateAsync(json);
         GD.Print(mutateResult.Uid);
         if (mutateResult.IsSuccess)
         {
@@ -112,7 +138,7 @@ public partial class PersistanceManager : Node
             GD.PrintErr($"❌ Mutation failed: {mutateResult.ErrorMessage}");
         }
     }
-
+/*
         private async Task TestDelete(object user)
     {
         using var transaction = await _persistenceProvider.BeginTransactionAsync();
@@ -162,47 +188,48 @@ public partial class PersistanceManager : Node
             GD.PrintErr($"❌ Query failed: {result.ErrorMessage}");
         }
     }
-
+*/
     public override void _ExitTree()
     {
         _persistenceProvider?.Dispose();
     }
 
     // API publique pour le reste de votre application
-    public async Task<IOperationResult<T>> FindByIdAsync<T>(string id) where T : class
+    public async Task<IOperationResultData> FindByIdAsync(string id)
     {
-        if (!_enabled) return OperationResult<T>.Failure("Database not enabled");
+        if (!_enabled) return OperationResultData.Failure("Database not enabled");
 
         using var transaction = await _persistenceProvider.BeginReadOnlyTransactionAsync();
         var query = $"{{ entity(func: uid({id})) {{ expand(_all_) }} }}";
-        return await transaction.QuerySingleAsync<T>(query);
+        return await transaction.QueryAsync(query);
     }
 
-    public async Task<IOperationResult<List<T>>> FindAllAsync<T>(string type) where T : class
+    public async Task<IOperationResultData> FindAllAsync(string type)
     {
-        if (!_enabled) return OperationResult<List<T>>.Failure("Database not enabled");
+        if (!_enabled) return OperationResultData.Failure("Database not enabled");
 
         using var transaction = await _persistenceProvider.BeginReadOnlyTransactionAsync();
         var query = $"{{ all(func: type({type})) {{ expand(_all_) }} }}";
-        return await transaction.QueryListAsync<T>(query);
+        return await transaction.QueryAsync(query);
     }
 
-    public async Task<IOperationResult<string>> SaveAsync<T>(T entity) where T : class
-    {
-        if (!_enabled) return OperationResult<string>.Failure("Database not enabled");
+    public async Task<OperationResultWithUid> SaveAsync(string entity)
+    {       
+        if (!_enabled) return OperationResultWithUid.Failure("Database not enabled");
 
         using var transaction = await _persistenceProvider.BeginTransactionAsync();
         var mutateResult = await transaction.MutateAsync(entity);
         
+        var uid = mutateResult.Uid;
         if (mutateResult.IsSuccess)
         {
             var commitResult = await transaction.CommitAsync();
             return commitResult.IsSuccess 
-                ? OperationResult<string>.Success("Entity saved successfully")
-                : OperationResult<string>.Failure(commitResult.ErrorMessage);
+                ? OperationResultWithUid.Success("Entity saved successfully",uid)
+                : OperationResultWithUid.Failure(commitResult.ErrorMessage);
         }
-
-        return OperationResult<string>.Failure(mutateResult.ErrorMessage);
+        //return OperationResultWithUid.Failure(mutateResult.ErrorMessage);
+        return OperationResultWithUid.Failure("Try Async");
     }
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.

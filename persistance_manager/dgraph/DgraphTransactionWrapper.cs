@@ -14,7 +14,7 @@ public class DgraphTransactionWrapper : ITransaction
         _dgraphTransaction = dgraphTransaction;
     }
 
-    public async Task<IOperationResultWithUid<string>> MutateAsync(string json)
+    public async Task<IOperationResultWithUid> MutateAsync(string json)
     {
         try
         {
@@ -25,30 +25,24 @@ public class DgraphTransactionWrapper : ITransaction
             {
                 if (result.Value.Uids.Count > 0)
                 {
-                    return OperationResultWithUid<string>.Success(json,result.Value.Uids);
+                    return OperationResultWithUid.Success(json,result.Value.Uids);
                 } else {
-                    return OperationResultWithUid<string>.Success(json,"");
+                    return OperationResultWithUid.Success(json,"");
                 }
             }
             else
             {
-                return OperationResultWithUid<string>.Failure(result.Errors[0].Message);
+                return OperationResultWithUid.Failure(result.Errors[0].Message);
             }
         }
         catch (Exception ex)
         {
-            return OperationResultWithUid<string>.Failure(ex.Message, ex);
+            return OperationResultWithUid.Failure(ex.Message, ex);
         }
     }
 
-    public async Task<IOperationResultWithUid<string>> MutateAsync(object entity)
-    {
-        var json = JsonSerializer.Serialize(entity);
-        return await MutateAsync(json);
-    }
 
-
-    public async Task<IOperationResult<string>> DeleteAsync(string json)
+    public async Task<IOperationResult> DeleteAsync(string json)
     {
         try
         {
@@ -58,23 +52,17 @@ public class DgraphTransactionWrapper : ITransaction
             
             if (result.IsSuccess)
             {
-                return OperationResult<string>.Success(json);
+                return OperationResult.Success();
             }
             else
             {
-                return OperationResult<string>.Failure(result.Errors[0].Message);
+                return OperationResult.Failure(result.Errors[0].Message);
             }
         }
         catch (Exception ex)
         {
-            return OperationResult<string>.Failure(ex.Message, ex);
+            return OperationResult.Failure(ex.Message, ex);
         }
-    }
-
-    public async Task<IOperationResult<string>> DeleteAsync(object entity)
-    {
-        var json = JsonSerializer.Serialize(entity);
-        return await DeleteAsync(json);
     }
 
     public async Task<IOperationResult> CommitAsync()
