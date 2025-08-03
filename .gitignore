@@ -23,4 +23,3 @@ mono_crash.*.json
 # specific for this project (build versions)
 /.vs
 /build
-# StarDeception.* / block for add c# 

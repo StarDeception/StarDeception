@@ -1,16 +1,13 @@
-using Dgraph;
 using Godot;
-using Grpc.Net.Client;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 public partial class PersistanceManager : Node
 {
-	ConfigFile configFile = new ConfigFile();
-	DgraphClient persistanceClient;
-	GrpcChannel channel; // Stocker la référence du channel
-
-	bool enabled = false;
+    private IPersistenceProvider _persistenceProvider;
+    private ConfigFile _configFile = new ConfigFile();
+    private bool _enabled = false;
 
 	const string SECTION_CONF = "persistance";
 
@@ -18,216 +15,167 @@ public partial class PersistanceManager : Node
 	public override async void _Ready()
 	{
 		try
-		{
-			GD.Print("Start C# Persistent manager");
-			configFile.Load("res://server.ini");
+        {
+            GD.Print("Start Abstracted Persistence Manager");
+            _configFile.Load("res://server.ini");
 
-			if (configFile.GetValue(SECTION_CONF, "enabled").AsBool())
-			{
-				enabled = true;
+            if (_configFile.GetValue(SECTION_CONF, "enabled").AsBool())
+            {
+                _enabled = true;
+                
+                // Créer le provider selon la configuration
+                var dbType = _configFile.GetValue(SECTION_CONF, "type", "dgraph").AsString();
+                var dbHost = _configFile.GetValue(SECTION_CONF, "DBHost").AsString();
 
-				// This switch must be set before creating the GrpcChannel/HttpClient.
-				//AppContext.SetSwitch(
-				//	"System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
+                _persistenceProvider = CreateProvider(dbType, dbHost);
 
-				// Read host from configuration
-				var hostStr = configFile.GetValue(SECTION_CONF, "DBHost").AsString();
-				GD.Print($"Connecting to: {hostStr}");
-
-				var options = new GrpcChannelOptions
-				{
-					MaxReceiveMessageSize = 4 * 1024 * 1024, // 4MB
-					MaxSendMessageSize = 4 * 1024 * 1024,    // 4MB
-				};
-
-				// Create the gRPC channel
-				channel = GrpcChannel.ForAddress(hostStr, options);
-
-				// Create the Dgraph client using the channel
-				persistanceClient = new DgraphClient(channel);
-
-				// Test de connexion simple d'abord
-				await TestConnection();
-
-				if (enabled) // Si la connexion réussit
-				{
-					await TestFirstSchema();
-				}
-			}
-		}
-		catch (Exception ex)
-		{
-			GD.PrintErr($"An error occurred in _Ready: {ex.Message}");
-			GD.PrintErr($"Stack trace: {ex.StackTrace}");
-			enabled = false;
-		}
-	}
-
-	private async Task TestConnection()
-	{
-		try
-		{
-			GD.Print("Testing connection to Dgraph...");
-
-			// Test simple de connexion avec une requête basique
-			var readOnlyTransaction = persistanceClient.NewReadOnlyTransaction();
-
-			var simpleQuery = @"{
-                test(func: has(dgraph.type)) {
-                    count(uid)
+                if (await _persistenceProvider.InitializeAsync())
+                {
+                    GD.Print("✅ Database connection established");
+                    await RunTests();
                 }
-            }";
-
-			var response = await readOnlyTransaction.Query(simpleQuery);
-
-			if (response.IsSuccess)
-			{
-				GD.Print("✅ Connection to Dgraph successful!");
-			}
-			else
-			{
-				GD.PrintErr($"❌ Connection test failed: {response.Errors[0].Message}");
-				enabled = false;
-			}
-		}
-		catch (Exception ex)
-		{
-			GD.PrintErr($"❌ Connection test exception: {ex.Message}");
-			enabled = false;
-			throw;
-		}
-	}
-
-	private async Task TestFirstSchema()
-	{
-		try
-		{
-			GD.Print("Applying schema...");
-
-			// 1️⃣ Appliquer un schéma
-			var operation = new Api.Operation
-			{
-				Schema = @"
-                    name: string @index(exact) .
-                    email: string @index(exact) .  
-                    age: int .
-                    dgraph.type: [string] @index(exact) .
-                "
-			};
-
-			var applySchema = await persistanceClient.Alter(operation);
-			if (applySchema.IsFailed)
-			{
-				GD.PrintErr($"Schema application failed: {applySchema.Errors[0].Message}");
-				return;
-			}
-			GD.Print("✅ Schéma appliqué");
-
-			// 2️⃣ Mutation avec gestion d'erreur améliorée
-			await PerformTestMutation();
-
-			// 3️⃣ Query pour vérifier les données
-			await PerformTestQuery();
-		}
-		catch (Exception ex)
-		{
-			GD.PrintErr($"Error in TestFirstSchema: {ex.Message}");
-		}
-	}
-
-	private async Task PerformTestMutation()
-	{
-		var transaction = persistanceClient.NewTransaction();
-
-		try
-		{
-			var mutationJson = @"{
-                ""dgraph.type"": ""User"",
-                ""name"": ""Alice"",
-                ""email"": ""alice@example.com"",
-                ""age"": 29
-            }";
-
-			GD.Print("Applying mutation...");
-			var transactionResponse = await transaction.Mutate(mutationJson);
-
-			if (transactionResponse.IsFailed)
-			{
-				GD.PrintErr($"Mutation failed: {transactionResponse.Errors[0].Message}");
-				return;
-			}
-
-			var commitResponse = await transaction.Commit();
-			if (commitResponse.IsFailed)
-			{
-				GD.PrintErr($"Commit failed: {commitResponse.Errors[0].Message}");
-				return;
-			}
-
-			GD.Print("✅ Mutation committed successfully");
-		}
-		catch (Exception ex)
-		{
-			GD.PrintErr($"Exception during mutation: {ex.Message}");
-			// Essayer de discard la transaction en cas d'erreur
-			if (transaction != null)
-			{
-				try
-				{
-					await transaction.Discard();
-				}
-				catch (Exception discardEx)
-				{
-					GD.PrintErr($"Error discarding transaction: {discardEx.Message}");
-				}
-			}
-		}
-	}
-
-	private async Task PerformTestQuery()
-	{
-		try
-		{
-			var readOnlyTransaction = persistanceClient.NewReadOnlyTransaction();
-
-			var query = @"{
-                all(func: type(User)) {
-                    uid
-                    name
-                    email
-                    age
+                else
+                {
+                    GD.PrintErr("❌ Failed to initialize database connection");
+                    _enabled = false;
                 }
-            }";
-
-			var responseQuery = await readOnlyTransaction.Query(query);
-			if (responseQuery.IsFailed)
-			{
-				GD.PrintErr($"Query failed: {responseQuery.Errors[0].Message}");
-				return;
-			}
-
-			GD.Print("✅ Query executed successfully");
-			GD.Print($"Response JSON: {responseQuery.Value.Json}");
-		}
-		catch (Exception ex)
-		{
-			GD.PrintErr($"Exception during query: {ex.Message}");
-		}
+            }
+        }
+        catch (Exception ex)
+        {
+            GD.PrintErr($"An error occurred in _Ready: {ex.Message}");
+            _enabled = false;
+        }
 	}
 
-	public override void _ExitTree()
-	{
-		// Nettoyer les ressources
-		try
-		{
-			persistanceClient?.Dispose();
-			channel?.Dispose();
-		}
-		catch (Exception ex)
-		{
-			GD.PrintErr($"Error disposing resources: {ex.Message}");
-		}
-	}
+	private IPersistenceProvider CreateProvider(string dbType, string connectionString)
+    {
+        return dbType.ToLower() switch
+        {
+            "dgraph" => new DgraphPersistenceProvider(connectionString),
+            _ => throw new NotSupportedException($"Database type '{dbType}' is not supported")
+        };
+    }
+	    private async Task RunTests()
+    {
+        // Test du schéma
+        var schema = @"
+            name: string @index(exact) .
+            email: string @index(exact) .  
+            age: int .
+            dgraph.type: [string] @index(exact) .
+        ";
+
+        if (await _persistenceProvider.ApplySchemaAsync(schema))
+        {
+            GD.Print("✅ Schema applied successfully");
+        }
+
+        // Test de mutation
+        await TestMutation();
+
+        // Test de requête
+        await TestQuery();
+    }
+
+    private async Task TestMutation()
+    {
+        using var transaction = await _persistenceProvider.BeginTransactionAsync();
+
+        var user = new
+        {
+            uid = "0x1",
+            name = "Alice",
+            email = "alice@example.com",
+            age = 30,
+            dgraph_type = "User"
+        };
+
+        var mutateResult = await transaction.MutateAsync(user);
+        if (mutateResult.IsSuccess)
+        {
+            var commitResult = await transaction.CommitAsync();
+            if (commitResult.IsSuccess)
+            {
+                GD.Print("✅ Mutation and commit successful");
+            }
+            else
+            {
+                GD.PrintErr($"❌ Commit failed: {commitResult.ErrorMessage}");
+            }
+        }
+        else
+        {
+            GD.PrintErr($"❌ Mutation failed: {mutateResult.ErrorMessage}");
+        }
+    }
+
+    private async Task TestQuery()
+    {
+        using var transaction = await _persistenceProvider.BeginReadOnlyTransactionAsync();
+
+        var query = @"{
+            all(func: type(User)) {
+                uid
+                name
+                email
+                age
+            }
+        }";
+
+        var result = await transaction.QueryAsync(query);
+        if (result.IsSuccess)
+        {
+            GD.Print("✅ Query executed successfully");
+            GD.Print($"Response JSON: {result.Data.Json}");
+        }
+        else
+        {
+            GD.PrintErr($"❌ Query failed: {result.ErrorMessage}");
+        }
+    }
+
+    public override void _ExitTree()
+    {
+        _persistenceProvider?.Dispose();
+    }
+
+    // API publique pour le reste de votre application
+    public async Task<IOperationResult<T>> FindByIdAsync<T>(string id) where T : class
+    {
+        if (!_enabled) return OperationResult<T>.Failure("Database not enabled");
+
+        using var transaction = await _persistenceProvider.BeginReadOnlyTransactionAsync();
+        var query = $"{{ entity(func: uid({id})) {{ expand(_all_) }} }}";
+        return await transaction.QuerySingleAsync<T>(query);
+    }
+
+    public async Task<IOperationResult<List<T>>> FindAllAsync<T>(string type) where T : class
+    {
+        if (!_enabled) return OperationResult<List<T>>.Failure("Database not enabled");
+
+        using var transaction = await _persistenceProvider.BeginReadOnlyTransactionAsync();
+        var query = $"{{ all(func: type({type})) {{ expand(_all_) }} }}";
+        return await transaction.QueryListAsync<T>(query);
+    }
+
+    public async Task<IOperationResult<string>> SaveAsync<T>(T entity) where T : class
+    {
+        if (!_enabled) return OperationResult<string>.Failure("Database not enabled");
+
+        using var transaction = await _persistenceProvider.BeginTransactionAsync();
+        var mutateResult = await transaction.MutateAsync(entity);
+        
+        if (mutateResult.IsSuccess)
+        {
+            var commitResult = await transaction.CommitAsync();
+            return commitResult.IsSuccess 
+                ? OperationResult<string>.Success("Entity saved successfully")
+                : OperationResult<string>.Failure(commitResult.ErrorMessage);
+        }
+
+        return OperationResult<string>.Failure(mutateResult.ErrorMessage);
+    }
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta)
