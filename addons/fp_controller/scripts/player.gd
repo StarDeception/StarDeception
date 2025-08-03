@@ -87,7 +87,7 @@ var can_pause: bool = true
 func _ready() -> void:
 	default_view_bobbing_amount = view_bobbing_amount
 	# TODO FOR THE RELEASE
-	global_position = Vector3(RandomNumberGenerator.new().randf_range(-4000.0, -200.0), 1707, RandomNumberGenerator.new().randf_range(-2000.0, 2000.0))
+	global_position = Vector3(RandomNumberGenerator.new().randf_range(-2000.0, 2000.0), 1300, RandomNumberGenerator.new().randf_range(-2000.0, 2000.0))
 	check_controls()
 	if can_pause:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -169,9 +169,9 @@ func _physics_process(delta: float) -> void:
 	#print(global_position)
 	if Globals.onlineMode:
 		Server.send_to_server_position(global_position)
-	labelx.text = str(global_position[0])
-	labely.text = str(global_position[1])
-	labelz.text = str(global_position[2])
+	labelx.text = str("%0.2f" % global_position[0])
+	labely.text = str("%0.2f" % global_position[1])
+	labelz.text = str("%0.2f" % global_position[2])
 
 func _process(_delta: float):
 	if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:

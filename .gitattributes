@@ -2,4 +2,5 @@
 * text=auto eol=lf
 *.mp3 filter=lfs diff=lfs merge=lfs -text
 Models/Mountain/Jungle[[:space:]]Mountain.obj filter=lfs diff=lfs merge=lfs -text
-example_scene/sandbox.tscn filter=lfs diff=lfs merge=lfs -text
+Models/Mountain/Mountain.mesh filter=lfs diff=lfs merge=lfs -text
+Models/Mountain/MountainDecimate.shape filter=lfs diff=lfs merge=lfs -text
