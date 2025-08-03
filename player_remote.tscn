@@ -1,12 +1,7 @@
-[gd_scene load_steps=6 format=3 uid="uid://cu2jncdgxjipn"]
+[gd_scene load_steps=3 format=3 uid="uid://cu2jncdgxjipn"]
 
 [ext_resource type="Script" uid="uid://deluofxu0cadt" path="res://player_remote.gd" id="1_a7uas"]
-[ext_resource type="ArrayMesh" uid="uid://v721mhcqkdjk" path="res://Models/astronaut/uploads_files_2954422_astronaut_3d_model.obj" id="1_kcfk1"]
 [ext_resource type="PackedScene" uid="uid://vv063vdbl0aa" path="res://Models/astronaut/astronaut.res" id="2_32r28"]
-[ext_resource type="Texture2D" uid="uid://cvxuejp6cvr6y" path="res://Models/astronaut/textures/body_BaseColor.png" id="2_u44t3"]
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_32r28"]
-albedo_texture = ExtResource("2_u44t3")
 
 [node name="PlayerRemote" type="Node3D"]
 script = ExtResource("1_a7uas")
@@ -17,9 +12,3 @@ script = ExtResource("1_a7uas")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, 0)
 billboard = 1
 text = "Dummy"
-
-[node name="UploadsFiles2954422Astronaut3dModel" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.039421, 0, 0.153466)
-visible = false
-material_override = SubResource("StandardMaterial3D_32r28")
-mesh = ExtResource("1_kcfk1")

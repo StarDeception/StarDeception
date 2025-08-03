@@ -14,5 +14,8 @@ export_presets.cfg
 data_*/
 mono_crash.*.json
 
+# Blender-specific ignores
+*.blend1
+
 # specific for this project (build versions)
 StarDeception.*
