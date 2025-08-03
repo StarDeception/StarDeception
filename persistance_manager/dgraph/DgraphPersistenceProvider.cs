@@ -43,7 +43,6 @@ public class DgraphPersistenceProvider : IPersistenceProvider
                 MaxSendMessageSize = 4 * 1024 * 1024,
                 ThrowOperationCanceledOnCancellation = true,
             };
-            GD.Print(_connectionString);
             _channel = GrpcChannel.ForAddress(_connectionString, options);
             _client = new DgraphClient(_channel);
             
@@ -61,7 +60,6 @@ public class DgraphPersistenceProvider : IPersistenceProvider
         {
             using var transaction = await BeginReadOnlyTransactionAsync();
             var result = await transaction.QueryAsync("{ test(func: has(dgraph.type)) { count(uid) } }");
-            GD.Print(result.ErrorMessage);
             return result.IsSuccess;
         }
         catch

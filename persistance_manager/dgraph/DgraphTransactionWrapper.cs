@@ -1,5 +1,6 @@
 // Wrapper pour les transactions Dgraph
 using System;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Godot;
@@ -13,13 +14,47 @@ public class DgraphTransactionWrapper : ITransaction
         _dgraphTransaction = dgraphTransaction;
     }
 
-    public async Task<IOperationResult<string>> MutateAsync(string json)
+    public async Task<IOperationResultWithUid<string>> MutateAsync(string json)
     {
         try
         {
             // Cast vers le type Dgraph réel
             var transaction = _dgraphTransaction;
             var result = await transaction.Mutate(json);
+            if (result.IsSuccess)
+            {
+                if (result.Value.Uids.Count > 0)
+                {
+                    return OperationResultWithUid<string>.Success(json,result.Value.Uids);
+                } else {
+                    return OperationResultWithUid<string>.Success(json,"");
+                }
+            }
+            else
+            {
+                return OperationResultWithUid<string>.Failure(result.Errors[0].Message);
+            }
+        }
+        catch (Exception ex)
+        {
+            return OperationResultWithUid<string>.Failure(ex.Message, ex);
+        }
+    }
+
+    public async Task<IOperationResultWithUid<string>> MutateAsync(object entity)
+    {
+        var json = JsonSerializer.Serialize(entity);
+        return await MutateAsync(json);
+    }
+
+
+    public async Task<IOperationResult<string>> DeleteAsync(string json)
+    {
+        try
+        {
+            // Cast vers le type Dgraph réel
+            var transaction = _dgraphTransaction;
+            var result = await transaction.Mutate(null,json);
             
             if (result.IsSuccess)
             {
@@ -36,11 +71,10 @@ public class DgraphTransactionWrapper : ITransaction
         }
     }
 
-    public async Task<IOperationResult<string>> MutateAsync(object entity)
+    public async Task<IOperationResult<string>> DeleteAsync(object entity)
     {
         var json = JsonSerializer.Serialize(entity);
-        GD.Print(json);
-        return await MutateAsync(json);
+        return await DeleteAsync(json);
     }
 
     public async Task<IOperationResult> CommitAsync()
@@ -49,13 +83,12 @@ public class DgraphTransactionWrapper : ITransaction
         {
             var transaction = _dgraphTransaction ;
             var result = await transaction.Commit();
-            
             if (result.IsSuccess)
             {
                 return OperationResult.Success();
             }
             else
-            {
+            {   
                 return OperationResult.Failure(result.Errors[0].Message);
             }
         }

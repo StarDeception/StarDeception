@@ -63,7 +63,6 @@ public partial class PersistanceManager : Node
             name: string @index(exact) .
             email: string @index(exact) .  
             age: int .
-            dgraph.type: [string] @index(exact) .
         ";
 
         if (await _persistenceProvider.ApplySchemaAsync(schema))
@@ -71,27 +70,31 @@ public partial class PersistanceManager : Node
             GD.Print("✅ Schema applied successfully");
         }
 
-        // Test de mutation
-        await TestMutation();
-
-        // Test de requête
-        await TestQuery();
-    }
-
-    private async Task TestMutation()
-    {
-        using var transaction = await _persistenceProvider.BeginTransactionAsync();
-
         var user = new
-        {
-            uid = "0x1",
+        {   
+            uid = "_:user1",
+            //uid  = "0x4e26",
             name = "Alice",
             email = "alice@example.com",
             age = 30,
-            dgraph_type = "User"
         };
+        
+        // Test de mutation
+        await TestMutation(user);
+
+        // Test de requête
+        await TestQuery();
+
+        // Test delete
+        await TestDelete(user);
+    }   
+
+    private async Task TestMutation(object user)
+    {
+        using var transaction = await _persistenceProvider.BeginTransactionAsync();
 
         var mutateResult = await transaction.MutateAsync(user);
+        GD.Print(mutateResult.Uid);
         if (mutateResult.IsSuccess)
         {
             var commitResult = await transaction.CommitAsync();
@@ -110,18 +113,43 @@ public partial class PersistanceManager : Node
         }
     }
 
+        private async Task TestDelete(object user)
+    {
+        using var transaction = await _persistenceProvider.BeginTransactionAsync();
+
+        var mutateResult = await transaction.DeleteAsync(user);
+        if (mutateResult.IsSuccess)
+        {
+            var commitResult = await transaction.CommitAsync();
+            if (commitResult.IsSuccess)
+            {
+                GD.Print("✅ Delte and commit successful");
+            }
+            else
+            {
+                GD.PrintErr($"❌ Commit failed: {commitResult.ErrorMessage}");
+            }
+        }
+        else
+        {
+            GD.PrintErr($"❌ Delete failed: {mutateResult.ErrorMessage}");
+        }
+    }
+
     private async Task TestQuery()
     {
         using var transaction = await _persistenceProvider.BeginReadOnlyTransactionAsync();
 
         var query = @"{
-            all(func: type(User)) {
-                uid
-                name
-                email
-                age
-            }
-        }";
+  all(func: has(name)) {
+    uid
+    name
+    email
+    age
+    dgraph.type
+    dgraph_type
+  }
+}";
 
         var result = await transaction.QueryAsync(query);
         if (result.IsSuccess)
