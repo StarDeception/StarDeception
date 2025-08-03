@@ -21,4 +21,4 @@ mono_crash.*.json
 *.blend1
 
 # specific for this project (build versions)
-# StarDeception.* / block for add c# 
+build/StarDeception.*
