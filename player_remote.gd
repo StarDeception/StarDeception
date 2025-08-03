@@ -1,5 +1,6 @@
 extends Node3D
 
+@onready var displayName: String = $Astronaut/LabelPlayerName.text
+
 func set_player_name(name):
-	var label = $UploadsFiles2954422Astronaut3dModel/LabelPlayerName
-	label.text = name
+	displayName = name
