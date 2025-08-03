@@ -10,12 +10,12 @@ public interface IOperationResult
     Exception Exception { get; }
 }
 
-public interface IOperationResult<T> : IOperationResult
+public interface IOperationResultData: IOperationResult
 {
-    T Data { get; }
+    string Data { get; }
 }
 
-public interface IOperationResultWithUid<T> : IOperationResult<T>
+public interface IOperationResultWithUid : IOperationResultData
 {
     string Uid { get; } 
 }
@@ -31,35 +31,36 @@ public class OperationResult : IOperationResult
         new OperationResult { IsSuccess = false, ErrorMessage = error, Exception = ex };
 }
 
-public class OperationResult<T> : OperationResult, IOperationResult<T>
+public class OperationResultData : OperationResult, IOperationResult,IOperationResultData
 {
-    public T Data { get; set; }
+    public string Data { get; set; }
 
-    public static OperationResult<T> Success(T data) => 
-        new OperationResult<T> { IsSuccess = true, Data = data };
+    public static OperationResultData Success(string data) => 
+        new OperationResultData { IsSuccess = true, Data = data };
     
-    public static new OperationResult<T> Failure(string error, Exception ex = null) => 
-        new OperationResult<T> { IsSuccess = false, ErrorMessage = error, Exception = ex };
+    public static new OperationResultData Failure(string error, Exception ex = null) => 
+        new OperationResultData { IsSuccess = false, ErrorMessage = error, Exception = ex };
 }
 
 
-public class OperationResultWithUid<U> : OperationResult<U>, IOperationResultWithUid<U>
+public class OperationResultWithUid : OperationResult, IOperationResultWithUid, IOperationResultData
 {
     public string Uid { get; set; }
+    public string Data { get; set; }
     
     // Pour les mutations multiples, Dgraph peut retourner plusieurs UIDs
     public Dictionary<string, string> Uids { get; set; }
 
-    public static OperationResultWithUid<U> Success(U data, string uid) =>
-        new OperationResultWithUid<U> { IsSuccess = true, Data = data, Uid = uid };
+    public static OperationResultWithUid Success(string data, string uid) =>
+        new OperationResultWithUid { IsSuccess = true, Data = data, Uid = uid };
         
     // Pour les mutations multiples avec plusieurs UIDs
-    public static OperationResultWithUid<U> Success(U data, Dictionary<string, string> uids) =>
-        new OperationResultWithUid<U> { IsSuccess = true, Data = data, Uids = uids, Uid = uids.First().Value };
+    public static OperationResultWithUid Success(string data, Dictionary<string, string> uids) =>
+        new OperationResultWithUid { IsSuccess = true, Data = data, Uids = uids, Uid = uids.First().Value };
 
-    public static OperationResultWithUid<U> Failure(string error, Exception ex = null) =>
-        new OperationResultWithUid<U> { IsSuccess = false, ErrorMessage = error, Exception = ex };
+    public static OperationResultWithUid Failure(string error, Exception ex = null) =>
+        new OperationResultWithUid { IsSuccess = false, ErrorMessage = error, Exception = ex };
         
-    public static OperationResultWithUid<U> Failure(string error, string uid, Exception ex = null) =>
-        new OperationResultWithUid<U> { IsSuccess = false, ErrorMessage = error, Uid = uid, Exception = ex };
+    public static OperationResultWithUid Failure(string error, string uid, Exception ex = null) =>
+        new OperationResultWithUid { IsSuccess = false, ErrorMessage = error, Uid = uid, Exception = ex };
 }
