@@ -24,6 +24,11 @@ BackgrounMusic="*res://backgroun_music.tscn"
 Globals="*res://globals.gd"
 PipeHttpHeavy="*res://Server/pipe_http_heavy.tscn"
 uuid="*res://addons/uuid/uuid.gd"
+PipeHttpFree="*res://Server/pipe_http_free.tscn"
+PipeHttpGetzone="*res://Server/pipe_http_getzone.tscn"
+PipeHttpGetservers="*res://Server/pipe_http_getservers.tscn"
+PipeHttpGetplayers="*res://Server/pipe_http_getplayers.tscn"
+PipeHttpSendplayers="*res://Server/pipe_http_sendplayers.tscn"
 
 [editor_plugins]
 

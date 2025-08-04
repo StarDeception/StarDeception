@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://bax3uy2qxuqxa"]
+
+[ext_resource type="Script" uid="uid://cocvivbt3djui" path="res://Server/pipe_http_getzone.gd" id="1_f3hc7"]
+
+[node name="PipeHttpGetzone" type="Node3D"]
+script = ExtResource("1_f3hc7")
+
+[node name="HTTPRequest" type="HTTPRequest" parent="."]
