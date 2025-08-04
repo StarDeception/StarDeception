@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://dl1rdu0nlyf2n"]
-
-[ext_resource type="Script" uid="uid://l7lqoe86jhj8" path="res://backgroun_music.gd" id="1_ip1jf"]
-
-[node name="BackgrounMusic" type="AudioStreamPlayer"]
-script = ExtResource("1_ip1jf")

@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://v721mhcqkdjk"
+path="res://.godot/imported/uploads_files_2954422_astronaut_3d_model.obj-d28e2e1e4fc23cf1989a8e5674096d7a.mesh"
+
+[deps]
+
+files=["res://.godot/imported/uploads_files_2954422_astronaut_3d_model.obj-d28e2e1e4fc23cf1989a8e5674096d7a.mesh"]
+
+source_file="res://Models/astronaut/uploads_files_2954422_astronaut_3d_model.obj"
+dest_files=["res://.godot/imported/uploads_files_2954422_astronaut_3d_model.obj-d28e2e1e4fc23cf1989a8e5674096d7a.mesh", "res://.godot/imported/uploads_files_2954422_astronaut_3d_model.obj-d28e2e1e4fc23cf1989a8e5674096d7a.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

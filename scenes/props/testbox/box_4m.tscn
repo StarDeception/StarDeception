@@ -1,0 +1,48 @@
+[gd_scene load_steps=9 format=3 uid="uid://cptjp55tlikyl"]
+
+[ext_resource type="ArrayMesh" uid="uid://jg1qr0355r1d" path="res://assets/models/Testbox/Box4m.mesh" id="1_82nol"]
+[ext_resource type="Script" uid="uid://d01f76c0qpc0d" path="res://scenes/props/testbox/box_4m.gd" id="1_ealuu"]
+[ext_resource type="Material" uid="uid://bxvng5yhb4rki" path="res://assets/models/Testbox/box_4m.material" id="3_3xnib"]
+[ext_resource type="Shape3D" uid="uid://csg45728c5gy4" path="res://scenes/props/testbox/Box4mInsideCollider2.shape" id="3_ealuu"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_0fj0l"]
+size = Vector3(4, 4, 4)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_3xnib"]
+size = Vector3(3.8, 3.8, 0.2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ealuu"]
+albedo_color = Color(1, 0, 1, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_3xnib"]
+material = SubResource("StandardMaterial3D_ealuu")
+size = Vector3(4, 0.1, 4)
+
+[node name="RigidBody3D" type="RigidBody3D"]
+script = ExtResource("1_ealuu")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = ExtResource("1_82nol")
+surface_material_override/0 = ExtResource("3_3xnib")
+
+[node name="CollisionShapeOutside" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_0fj0l")
+
+[node name="Area3D" type="Area3D" parent="."]
+collision_mask = 3
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2)
+shape = SubResource("BoxShape3D_3xnib")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="."]
+collision_layer = 2
+collision_mask = 2
+
+[node name="CollisionShapeInside" type="CollisionShape3D" parent="StaticBody3D"]
+shape = ExtResource("3_ealuu")
+
+[node name="DummyFloorStatic" type="MeshInstance3D" parent="StaticBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.8, 0)
+visible = false
+mesh = SubResource("BoxMesh_3xnib")

@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://h02nelqdqrri"
+path="res://.godot/imported/Jungle Mountain.obj-88b64e6548261d3cc0d97fd002d51086.mesh"
+
+[deps]
+
+files=["res://.godot/imported/Jungle Mountain.obj-88b64e6548261d3cc0d97fd002d51086.mesh"]
+
+source_file="res://assets/models/Mountain/Jungle Mountain.obj"
+dest_files=["res://.godot/imported/Jungle Mountain.obj-88b64e6548261d3cc0d97fd002d51086.mesh", "res://.godot/imported/Jungle Mountain.obj-88b64e6548261d3cc0d97fd002d51086.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

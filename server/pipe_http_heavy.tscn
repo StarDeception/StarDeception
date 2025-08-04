@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://7rbmbg14chj"]
+
+[ext_resource type="Script" uid="uid://bluk04cabcbsd" path="res://server/pipe_http_heavy.gd" id="1_m7qoc"]
+
+[node name="PipeHttpHeavy" type="Node3D"]
+script = ExtResource("1_m7qoc")
+
+[node name="HTTPRequest" type="HTTPRequest" parent="."]

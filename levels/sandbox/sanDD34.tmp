@@ -1,0 +1,77 @@
+[gd_scene load_steps=10 format=3 uid="uid://d1mhk3prnqywk"]
+
+[ext_resource type="Material" uid="uid://brpu7xylrg2l2" path="res://example_scene/materials/material_basic_blue.tres" id="1_fb2x7"]
+[ext_resource type="PackedScene" uid="uid://dlbkch6iuy8gn" path="res://addons/fp_controller/player.tscn" id="2_l16tt"]
+[ext_resource type="PackedScene" uid="uid://nswkrnyepieq" path="res://example_scene/scenes/basic_block.tscn" id="3_nm1m6"]
+[ext_resource type="PackedScene" uid="uid://kqmbae0l4ewu" path="res://example_scene/scenes/basic_block_2.tscn" id="4_1esxm"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_r6mis"]
+sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+ground_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+
+[sub_resource type="Sky" id="Sky_aavk3"]
+sky_material = SubResource("ProceduralSkyMaterial_r6mis")
+
+[sub_resource type="Environment" id="Environment_aaj73"]
+background_mode = 2
+sky = SubResource("Sky_aavk3")
+tonemap_mode = 2
+glow_enabled = true
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_n6tjd"]
+material = ExtResource("1_fb2x7")
+size = Vector2(100, 100)
+
+[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_h1lgg"]
+points = PackedVector3Array(-50, 0, -50, -50, 0, 50, 50, 0, -50, 50, 0, 50)
+
+[node name="Sandbox" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_aaj73")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.866023, -0.433016, 0.250001, 0, 0.499998, 0.866027, -0.500003, 0.749999, -0.43301, 0, 0, 0)
+shadow_enabled = true
+
+[node name="Floor" type="StaticBody3D" parent="."]
+
+[node name="FloorMesh" type="MeshInstance3D" parent="Floor"]
+mesh = SubResource("PlaneMesh_n6tjd")
+skeleton = NodePath("../..")
+
+[node name="FloorCollision" type="CollisionShape3D" parent="Floor"]
+shape = SubResource("ConvexPolygonShape3D_h1lgg")
+
+[node name="Player" parent="." instance=ExtResource("2_l16tt")]
+
+[node name="Obstacles" type="Node" parent="."]
+
+[node name="BasicBlock" parent="Obstacles" instance=ExtResource("3_nm1m6")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.08165e-12, 2.08165e-12, -8)
+
+[node name="BasicBlock2" parent="Obstacles" instance=ExtResource("3_nm1m6")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, -8)
+
+[node name="BasicBlock3" parent="Obstacles" instance=ExtResource("4_1esxm")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 2, -8)
+
+[node name="BasicBlock8" parent="Obstacles" instance=ExtResource("4_1esxm")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 6, -8)
+
+[node name="BasicBlock5" parent="Obstacles" instance=ExtResource("4_1esxm")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, -8)
+
+[node name="BasicBlock6" parent="Obstacles" instance=ExtResource("4_1esxm")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, -7)
+
+[node name="BasicBlock7" parent="Obstacles" instance=ExtResource("4_1esxm")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, -6)
+
+[node name="BasicBlock4" parent="Obstacles" instance=ExtResource("4_1esxm")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 2, -12)
+
+[node name="CSGPolygon3D" type="CSGPolygon3D" parent="Obstacles"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, 2)
+use_collision = true
+polygon = PackedVector2Array(0, 0, 2.08165e-12, 2, 6, 2, 10, 2.08165e-12)

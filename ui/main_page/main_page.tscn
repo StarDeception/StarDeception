@@ -1,0 +1,56 @@
+[gd_scene load_steps=4 format=3 uid="uid://c2iig1r7l0cbb"]
+
+[ext_resource type="Script" uid="uid://1l14ge8hbbo1" path="res://ui/main_page/main_page.gd" id="1_o7ao7"]
+[ext_resource type="Texture2D" uid="uid://trpcoqhuryo0" path="res://assets/Menu/Background_1920x1080.png" id="2_b1ygv"]
+[ext_resource type="Texture2D" uid="uid://0yw6o1aoe6pj" path="res://assets/Menu/Title_StarDeception.svg" id="3_wrgf5"]
+
+[node name="MainPage" type="CanvasLayer"]
+script = ExtResource("1_o7ao7")
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Background" type="TextureRect" parent="Control"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_b1ygv")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Control"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -364.0
+offset_top = -88.5
+offset_right = 364.0
+offset_bottom = 88.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="TextureRect" type="TextureRect" parent="Control/VBoxContainer"]
+layout_mode = 2
+texture = ExtResource("3_wrgf5")
+
+[node name="EnterButton" type="Button" parent="Control/VBoxContainer"]
+clip_contents = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 0
+theme_override_font_sizes/font_size = 32
+text = "Enter Universe"
+
+[connection signal="pressed" from="Control/VBoxContainer/EnterButton" to="." method="_on_button_pressed"]

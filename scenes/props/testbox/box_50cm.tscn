@@ -1,0 +1,19 @@
+[gd_scene load_steps=5 format=3 uid="uid://d37hc6ybk8fsj"]
+
+[ext_resource type="Script" uid="uid://cbg5vhdodbobh" path="res://scenes/props/testbox/box_50_cm.gd" id="1_o2evt"]
+[ext_resource type="ArrayMesh" uid="uid://cqspqet04e0fj" path="res://assets/models/Testbox/Box50cm.mesh" id="1_xngen"]
+[ext_resource type="Material" uid="uid://cc7amvqxedibt" path="res://assets/models/Testbox/box_50cm.material" id="3_ovsim"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_urcx6"]
+size = Vector3(0.5, 0.5, 0.5)
+
+[node name="box_50cm" type="RigidBody3D"]
+mass = 0.25
+script = ExtResource("1_o2evt")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = ExtResource("1_xngen")
+surface_material_override/0 = ExtResource("3_ovsim")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_urcx6")

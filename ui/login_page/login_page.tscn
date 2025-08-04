@@ -1,0 +1,111 @@
+[gd_scene load_steps=5 format=3 uid="uid://b7aajb2l3gvg5"]
+
+[ext_resource type="Script" uid="uid://ck5cjdbjngm6a" path="res://ui/login_page/login_page.gd" id="1_ihlnx"]
+[ext_resource type="Texture2D" uid="uid://trpcoqhuryo0" path="res://assets/Menu/Background_1920x1080.png" id="2_rpukb"]
+[ext_resource type="Texture2D" uid="uid://0yw6o1aoe6pj" path="res://assets/Menu/Title_StarDeception.svg" id="3_11evp"]
+[ext_resource type="Texture2D" uid="uid://dq2e8gaxm2dkp" path="res://icon.svg" id="4_fk6tm"]
+
+[node name="LoginUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_ihlnx")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_rpukb")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="FormPlacer" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_vertical = 3
+
+[node name="FormContainer" type="VBoxContainer" parent="FormPlacer"]
+clip_contents = true
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -47.0
+offset_right = 200.0
+offset_bottom = 47.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="TextureRect" type="TextureRect" parent="FormPlacer/FormContainer"]
+layout_mode = 2
+texture = ExtResource("3_11evp")
+
+[node name="UserName" type="LineEdit" parent="FormPlacer/FormContainer"]
+layout_mode = 2
+size_flags_vertical = 10
+theme_override_colors/font_placeholder_color = Color(1, 0, 0, 1)
+theme_override_font_sizes/font_size = 24
+placeholder_text = "User Name"
+
+[node name="ButtonContainer" type="HBoxContainer" parent="FormPlacer/FormContainer"]
+clip_contents = true
+layout_mode = 2
+size_flags_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="OnlineButton" type="Button" parent="FormPlacer/FormContainer/ButtonContainer"]
+clip_contents = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 0
+theme_override_font_sizes/font_size = 24
+text = "Se Connecter"
+
+[node name="LocalButton" type="Button" parent="FormPlacer/FormContainer/ButtonContainer"]
+clip_contents = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 0
+theme_override_font_sizes/font_size = 24
+text = "Hors ligne"
+
+[node name="Logo" type="TextureRect" parent="."]
+self_modulate = Color(1, 1, 1, 0.392157)
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -145.0
+offset_top = -160.0
+offset_right = -17.0
+offset_bottom = -25.0
+grow_horizontal = 0
+grow_vertical = 0
+texture = ExtResource("4_fk6tm")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HTTPRequest" type="HTTPRequest" parent="."]
+
+[connection signal="ready" from="." to="." method="_on_ready"]
+[connection signal="pressed" from="FormPlacer/FormContainer/ButtonContainer/OnlineButton" to="." method="_on_button_pressed" binds= ["Online"]]
+[connection signal="pressed" from="FormPlacer/FormContainer/ButtonContainer/LocalButton" to="." method="_on_button_pressed" binds= ["Local"]]
