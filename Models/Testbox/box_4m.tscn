@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3 uid="uid://cptjp55tlikyl"]
+
+[ext_resource type="ArrayMesh" uid="uid://jg1qr0355r1d" path="res://Models/Testbox/Box4m.mesh" id="1_82nol"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_0fj0l"]
+size = Vector3(4, 4, 4)
+
+[node name="RigidBody3D" type="RigidBody3D"]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = ExtResource("1_82nol")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_0fj0l")

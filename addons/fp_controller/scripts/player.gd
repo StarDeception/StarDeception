@@ -84,6 +84,8 @@ var can_pause: bool = true
 @onready var labely: Label = $UserInterface/LabelYValue
 @onready var labelz: Label = $UserInterface/LabelZValue
 
+@onready var box4m: PackedScene = preload("res://Models/Testbox/box_4m.tscn")
+
 func _ready() -> void:
 	default_view_bobbing_amount = view_bobbing_amount
 	# TODO FOR THE RELEASE
@@ -141,6 +143,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	if game_is_paused and event is InputEventMouseButton:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		game_is_paused = false
+	
+	if event.is_action_pressed("spawn_4mbox"):
+		call_deferred("spawn_box4m")
 
 
 func _physics_process(delta: float) -> void:
@@ -181,6 +186,12 @@ func _process(_delta: float):
 	if Input.get_connected_joypads().size() != 0:
 		_handle_joy_camera_motion()
 
+func spawn_box4m() -> void:
+	var box4m_instance = box4m.instantiate()
+	var spawn_position: Vector3 = global_position + (-transform.basis.z * 1.0) + Vector3.UP * 6.0
+	get_tree().current_scene.add_child(box4m_instance)
+	box4m_instance.global_position = spawn_position
+	print("Je veux spawn une caisse dans " + get_tree().current_scene.name +" à la position " + str(spawn_position))
 
 func _handle_camera_motion() -> void:
 	rotate_y(mouse_motion.x * camera_sensitivity)
