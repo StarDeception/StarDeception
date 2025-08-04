@@ -35,8 +35,12 @@ public partial class PersistanceManager : Node
 
     public override void _Ready()
     {
-        Instance = this;
-        InitializeAsync();
+        if (Godot.OS.HasFeature("dedicated_server"))
+        {
+          Instance = this;
+          InitializeAsync();
+        }
+       
     }
 
     private async void InitializeAsync()
@@ -102,10 +106,11 @@ public partial class PersistanceManager : Node
         return requestId;
     }
 
-    public void StartSaveAsync(string obj)
+    public string StartSaveAsync(string obj)
     {
         var requestId = System.Guid.NewGuid().ToString();
         SaveObjAsync(obj, requestId);
+        return requestId;
     }
 
     private void EmitSaveCompleted(bool success, string uid, string errorMessage, string requestId)
@@ -149,10 +154,11 @@ public partial class PersistanceManager : Node
         return requestId;
     }
 
-    public void StartDeleteAsync(string uid)
+    public string StartDeleteAsync(string uid)
     {
         var requestId = System.Guid.NewGuid().ToString();
         DeleteObjAsync(uid, requestId);
+        return requestId;
     }
 
     private void EmitDeleteCompleted(bool success, string errorMessage, string requestId)
@@ -196,10 +202,11 @@ public partial class PersistanceManager : Node
         return requestId;
     }
 
-    public void StartQueryAsync(string queryString)
+    public string StartQueryAsync(string queryString)
     {
         var requestId = System.Guid.NewGuid().ToString();
         QueryAsync(queryString, requestId);
+        return requestId;
     }
 
     private void EmitQueryCompleted(bool success, string jsonData, string errorMessage, string requestId)
@@ -217,7 +224,7 @@ public partial class PersistanceManager : Node
     }
 
     // ============ FIND BY ID OPERATIONS ============
-    public string FindByIdAsync(string id, string requestId = "")
+    public string FindByIdAsync(string uid, string requestId = "")
     {
         if (string.IsNullOrEmpty(requestId))
         {
@@ -230,7 +237,7 @@ public partial class PersistanceManager : Node
         {
             try 
             {
-                var result = await FindByIdInternalAsync(id);
+                var result = await FindByIdInternalAsync(uid);
                 CallDeferred(nameof(EmitFindByIdCompleted), result.IsSuccess, result.Data ?? "", result.ErrorMessage ?? "", requestId);
             }
             catch (System.Exception ex)
@@ -243,10 +250,11 @@ public partial class PersistanceManager : Node
         return requestId;
     }
 
-    public void StartFindByIdAsync(string id)
+    public string StartFindByIdAsync(string id)
     {
         var requestId = System.Guid.NewGuid().ToString();
         FindByIdAsync(id, requestId);
+        return requestId;
     }
 
     private void EmitFindByIdCompleted(bool success, string jsonData, string errorMessage, string requestId)
@@ -318,12 +326,12 @@ public partial class PersistanceManager : Node
         return await transaction.QueryAsync(queryString);
     }
 
-    public async Task<IOperationResultData> FindByIdInternalAsync(string id)
+    public async Task<IOperationResultData> FindByIdInternalAsync(string uid)
     {
         if (!_enabled) return OperationResultData.Failure("Database not enabled");
 
         using var transaction = await _persistenceProvider.BeginReadOnlyTransactionAsync();
-        var query = $"{{ entity(func: uid({id})) {{ expand(_all_) }} }}";
+        var query = $"{{ entity(func: uid({uid})) {{ expand(_all_) }} }}";
         return await transaction.QueryAsync(query);
     }
 

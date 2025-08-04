@@ -18,6 +18,7 @@ public interface IOperationResultData: IOperationResult
 public interface IOperationResultWithUid : IOperationResultData
 {
     string Uid { get; } 
+    Dictionary<string, string> Uids { get; } 
 }
 
 public class OperationResult : IOperationResult
