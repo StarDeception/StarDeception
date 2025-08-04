@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://d27tine8adfd5"
-path="res://.godot/imported/Box4mColl.glb-c97cbe1c37abb84fcf34b93ab20201a1.scn"
+uid="uid://d2fuvcev4h0b3"
+path="res://.godot/imported/InversedCollider100m.glb-0c8049228120b27de372096459d54e6a.scn"
 
 [deps]
 
-source_file="res://Models/Testbox/Box4mColl.glb"
-dest_files=["res://.godot/imported/Box4mColl.glb-c97cbe1c37abb84fcf34b93ab20201a1.scn"]
+source_file="res://example_scene/scenes/SimpleBoxTest/InversedCollider100m.glb"
+dest_files=["res://.godot/imported/InversedCollider100m.glb-0c8049228120b27de372096459d54e6a.scn"]
 
 [params]
 

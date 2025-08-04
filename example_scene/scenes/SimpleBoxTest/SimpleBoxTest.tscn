@@ -1,0 +1,37 @@
+[gd_scene load_steps=7 format=3 uid="uid://fxj147p5soqi"]
+
+[ext_resource type="PackedScene" uid="uid://dlbkch6iuy8gn" path="res://addons/fp_controller/player.tscn" id="1_o506w"]
+[ext_resource type="Shape3D" uid="uid://nlfpii7pt3xn" path="res://example_scene/scenes/SimpleBoxTest/InversedCollisider100m.shape" id="1_xqwsu"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_xqwsu"]
+size = Vector2(100, 100)
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_xqwsu"]
+energy_multiplier = 1.5
+
+[sub_resource type="Sky" id="Sky_0uuu0"]
+sky_material = SubResource("ProceduralSkyMaterial_xqwsu")
+
+[sub_resource type="Environment" id="Environment_le64j"]
+background_mode = 2
+sky = SubResource("Sky_0uuu0")
+ambient_light_source = 3
+
+[node name="SimpleBoxTest" type="Node3D"]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("PlaneMesh_xqwsu")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="MeshInstance3D"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="MeshInstance3D/StaticBody3D"]
+shape = ExtResource("1_xqwsu")
+
+[node name="Player" parent="." instance=ExtResource("1_o506w")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.258819, 0.965926, 0, -0.965926, 0.258819, 0, 20, 0)
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_le64j")

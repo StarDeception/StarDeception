@@ -85,11 +85,18 @@ var can_pause: bool = true
 @onready var labelz: Label = $UserInterface/LabelZValue
 
 @onready var box4m: PackedScene = preload("res://Models/Testbox/box_4m.tscn")
+@onready var box50m: PackedScene = preload("res://Models/Testbox/box_50cm.tscn")
+@onready var isInsideBox4m: bool = false
 
 func _ready() -> void:
 	default_view_bobbing_amount = view_bobbing_amount
 	# TODO FOR THE RELEASE
-	global_position = Vector3(RandomNumberGenerator.new().randf_range(-2000.0, 2000.0), 1300, RandomNumberGenerator.new().randf_range(-2000.0, 2000.0))
+	match get_parent().name:
+		"SimpleBoxTest":
+			global_position = Vector3(0.0,10.0,0.0)
+		_:
+			global_position = Vector3(RandomNumberGenerator.new().randf_range(-4000.0, -200.0), 1707, RandomNumberGenerator.new().randf_range(-2000.0, 2000.0))
+	
 	check_controls()
 	if can_pause:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -146,6 +153,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	
 	if event.is_action_pressed("spawn_4mbox"):
 		call_deferred("spawn_box4m")
+	
+	if event.is_action_pressed("spawn_50cmbox"):
+		call_deferred("spawn_box50cm")
 
 
 func _physics_process(delta: float) -> void:
@@ -187,11 +197,24 @@ func _process(_delta: float):
 		_handle_joy_camera_motion()
 
 func spawn_box4m() -> void:
-	var box4m_instance = box4m.instantiate()
-	var spawn_position: Vector3 = global_position + (-transform.basis.z * 1.0) + Vector3.UP * 6.0
+	var box4m_instance: RigidBody3D = box4m.instantiate()
+	var spawn_position: Vector3 = global_position + (-transform.basis.z * 3.0) + Vector3.UP * 6.0
 	get_tree().current_scene.add_child(box4m_instance)
 	box4m_instance.global_position = spawn_position
-	print("Je veux spawn une caisse dans " + get_tree().current_scene.name +" à la position " + str(spawn_position))
+	var to_player = (global_transform.origin - spawn_position)
+	box4m_instance.rotate_y(atan2(to_player.x, to_player.z) + PI)
+	
+func spawn_box50cm() -> void:
+	var box50cm_instance: RigidBody3D = box50m.instantiate()
+	var spawn_position: Vector3 = global_position + (-transform.basis.z * 1.5) + Vector3.UP * 2.0
+	get_tree().current_scene.add_child(box50cm_instance)
+	box50cm_instance.global_position = spawn_position
+	
+	if isInsideBox4m:
+		box50cm_instance.set_collision_layer_value(1, false)
+		box50cm_instance.set_collision_layer_value(2, true)
+		box50cm_instance.set_collision_mask_value(1, false)
+		box50cm_instance.set_collision_mask_value(2, true)
 
 func _handle_camera_motion() -> void:
 	rotate_y(mouse_motion.x * camera_sensitivity)
