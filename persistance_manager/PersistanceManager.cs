@@ -4,6 +4,7 @@ using Pb;
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 public partial class PersistanceManager : Node
@@ -35,7 +36,7 @@ public partial class PersistanceManager : Node
 
     public override void _Ready()
     {
-        if (Godot.OS.HasFeature("dedicated_server"))
+        if (Godot.OS.HasFeature("dedicated_server") || true)
         {
           Instance = this;
           InitializeAsync();
@@ -62,6 +63,22 @@ public partial class PersistanceManager : Node
                 if (await _persistenceProvider.InitializeAsync())
                 {
                     GD.Print("✅ Database connection established");
+                    string path = "res://persistance_manager/database.schema";
+                    if (FileAccess.FileExists(path))
+                    {
+                        using var file = FileAccess.Open(path, FileAccess.ModeFlags.Read);
+                        string content = file.GetAsText();
+                        var isapply = await _persistenceProvider.ApplySchemaAsync(content);
+                        GD.Print(isapply);
+                        if (isapply){
+                            GD.Print("✅ Database schema apply");
+                        }
+                    }
+                    else
+                    {
+                        GD.PrintErr($"File not found: {path}");
+                    }
+                   
                     IsReady = true;
                     EmitSignal(nameof(ClientReady));
                 }
@@ -70,6 +87,7 @@ public partial class PersistanceManager : Node
                     GD.PrintErr("❌ Failed to initialize database connection");
                     _enabled = false;
                 }
+                
             }
         }
         catch (Exception ex)

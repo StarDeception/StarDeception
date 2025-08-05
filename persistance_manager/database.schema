@@ -1,0 +1,3 @@
+schema:
+  uuid: string @id .
+  dgraph.type: string @index(exact) .

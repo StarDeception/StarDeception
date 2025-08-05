@@ -74,9 +74,9 @@ public class DgraphPersistenceProvider : IPersistenceProvider
         {
             var operation = new Api.Operation { Schema = schema };
             var result = await _client.Alter(operation);
-            return result.IsSuccess;
+            return true;
         }
-        catch
+        catch (Exception ex)
         {
             return false;
         }
