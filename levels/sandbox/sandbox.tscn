@@ -7,8 +7,8 @@
 [ext_resource type="PackedScene" uid="uid://nswkrnyepieq" path="res://scenes/props/testblock/basic_block.tscn" id="3_nm1m6"]
 [ext_resource type="PackedScene" uid="uid://kqmbae0l4ewu" path="res://scenes/props/testblock/basic_block_2.tscn" id="4_1esxm"]
 [ext_resource type="PackedScene" uid="uid://bmk1yx4q5cewg" path="res://assets/models/CommemorativeBust/commemorativebust.res" id="6_uk6j5"]
-[ext_resource type="Shape3D" uid="uid://bs2jtbdfjwdcb" path="res://assets/models/Mountain/MountainDecimate.shape" id="7_6mjhe"]
-[ext_resource type="ArrayMesh" uid="uid://c62itgsr47vg0" path="res://assets/models/Mountain/Mountain.mesh" id="7_f3jw6"]
+[ext_resource type="ArrayMesh" uid="uid://h02nelqdqrri" path="res://assets/models/Mountain/Jungle Mountain.obj" id="8_0psug"]
+[ext_resource type="Shape3D" uid="uid://boud0upk1v46j" path="res://assets/models/Mountain/MountainCollision.shape" id="9_hrvvi"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_r6mis"]
 sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
@@ -96,13 +96,13 @@ spawn_path = NodePath("..")
 
 [node name="Mountain" type="StaticBody3D" parent="."]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Mountain"]
-transform = Transform3D(5000, 0, 0, 0, 5000, 0, 0, 0, 5000, 0, 0, 0)
-shape = ExtResource("7_6mjhe")
-
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Mountain"]
 transform = Transform3D(5000, 0, 0, 0, 5000, 0, 0, 0, 5000, 0, 0, 0)
-mesh = ExtResource("7_f3jw6")
+mesh = ExtResource("8_0psug")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Mountain"]
+transform = Transform3D(5000, 0, 0, 0, 5000, 0, 0, 0, 5000, 0, 0, 0)
+shape = ExtResource("9_hrvvi")
 
 [connection signal="ready" from="." to="." method="_on_ready"]
 
