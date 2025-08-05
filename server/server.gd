@@ -96,10 +96,9 @@ func _start_server():
 func loadServerConfig():
 	var config = ConfigFile.new()
 	config.load("server.ini")
-	for conf in config.get_sections():
-		SDOServerUrl = config.get_value(conf, "SDO")
-		ServerPort = config.get_value(conf, "port")
-		ServerName = config.get_value(conf, "name")
+	SDOServerUrl = config.get_value("server", "SDO")
+	ServerPort = config.get_value("server", "port")
+	ServerName = config.get_value("server", "name")
 
 func _on_player_connected(id):
 	print("player " + str(id) + " connected, wouahou !")

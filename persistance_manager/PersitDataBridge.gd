@@ -1,12 +1,12 @@
 extends Node
 class_name PersitDataBridge
 
-var data: DataObject
+@export var data: DataObject
 
 var persistCalback: Dictionary[String, Callable]
 
 func setup_persistence_manager():
-	if OS.has_feature("dedicated_server"):
+	if OS.has_feature("dedicated_server") || true:
 		var pm = PersistanceManager
 		if not pm:
 			push_error("PersistanceManager is null!")

@@ -10,13 +10,7 @@ func _enter_tree():
 func _ready():
 	check_parent()
 	setup_persistence_manager()
-	create_test_data()
-
-func create_test_data():
 	data = DataObject.new()
-	data.position = parent.position
-	data.name = "TestObject_" + str(randi() % 1000)
-	data.uid = "_:temp_" + str(randi() % 10000)
 
 func check_parent():
 	parent = get_parent()
