@@ -1,8 +1,9 @@
-[gd_scene load_steps=5 format=3 uid="uid://b7aajb2l3gvg5"]
+[gd_scene load_steps=6 format=3 uid="uid://b7aajb2l3gvg5"]
 
 [ext_resource type="Script" uid="uid://ck5cjdbjngm6a" path="res://1_login_page/1_login_page.gd" id="1_al056"]
 [ext_resource type="Texture2D" uid="uid://trpcoqhuryo0" path="res://Assets/Menu/Background_1920x1080.png" id="2_5ta56"]
 [ext_resource type="Texture2D" uid="uid://dq2e8gaxm2dkp" path="res://icon.svg" id="2_vxyvi"]
+[ext_resource type="Script" uid="uid://u6rtm2efxd0h" path="res://1_login_page/auto_updater.cs" id="4_20s6r"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_5ta56"]
 font_size = 100
@@ -21,6 +22,10 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = -393.0
+offset_top = -213.0
+offset_right = 375.0
+offset_bottom = 219.0
 grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("2_5ta56")
@@ -116,6 +121,19 @@ texture = ExtResource("2_vxyvi")
 stretch_mode = 3
 
 [node name="HTTPRequest" type="HTTPRequest" parent="."]
+
+[node name="auto_updater" type="Node" parent="."]
+script = ExtResource("4_20s6r")
+
+[node name="hint_text" type="RichTextLabel" parent="auto_updater"]
+offset_left = 106.0
+offset_top = 437.0
+offset_right = 1046.0
+offset_bottom = 585.0
+bbcode_enabled = true
+text = "Informations sur la MAJ..."
+scroll_following = true
+threaded = true
 
 [connection signal="ready" from="." to="." method="_on_ready"]
 [connection signal="pressed" from="FormPlacer/FormContainer/ButtonContainer/OnlineButton" to="." method="_on_button_pressed" binds= ["Online"]]
