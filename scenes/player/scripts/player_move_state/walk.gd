@@ -33,7 +33,7 @@ func handle_input(event: InputEvent) -> void:
 
 func physics_update(_delta: float) -> void:
 	input_dir = player.input_direction
-	var direction := (player.transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
+	var direction := (player.global_transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 	
 	if input_dir.y > 0:
 		move_speed = player.walk_back_speed
@@ -44,11 +44,9 @@ func physics_update(_delta: float) -> void:
 			move_speed = player.walk_speed * player.movement_strength
 	
 	if direction:
-		player.velocity.x = direction.x * move_speed
-		player.velocity.z = direction.z * move_speed
+		player.velocity = direction * move_speed
 	else:
-		player.velocity.x = move_toward(player.velocity.x, 0, move_speed)
-		player.velocity.z = move_toward(player.velocity.z, 0, move_speed)
+		player.velocity = player.velocity.move_toward(Vector3.ZERO, move_speed)
 		
 		state_machine.transition_to(state_machine.movement_state[state_machine.IDLE])
 	

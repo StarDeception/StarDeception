@@ -40,15 +40,14 @@ func physics_update(_delta: float) -> void:
 		move_speed = player.sprint_speed
 	
 	if direction:
-		player.velocity.x = direction.x * move_speed
-		player.velocity.z = direction.z * move_speed
+		player.velocity = direction * move_speed
 	else:
 		player.view_bobbing_amount = player.default_view_bobbing_amount
 		state_machine.transition_to(state_machine.movement_state[state_machine.WALK])
-		player.velocity.x = move_toward(player.velocity.x, 0, move_speed)
-		player.velocity.z = move_toward(player.velocity.z, 0, move_speed)
-		
-	if player.velocity.y < 0:
+		player.velocity = player.velocity.move_toward(Vector3.ZERO, move_speed)
+	
+	prints("updir dot velocity", player.up_direction.dot(player.velocity))
+	if player.up_direction.dot(player.velocity) < 0:
 		state_machine.transition_to(
 			state_machine.movement_state[state_machine.FALL],
 			{ state_machine.TO : state_machine.SPRINT }

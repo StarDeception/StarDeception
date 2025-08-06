@@ -1,6 +1,7 @@
-class_name Player extends CharacterBody3D
+extends CharacterBody3D
+#class_name Player 
 
-var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
+var gravity: float = 0.0
 
 @export_group("Controls map names")
 @export var MOVE_FORWARD: String = "move_forward"
@@ -78,6 +79,9 @@ var can_crouch: bool = true
 var can_sprint: bool = true
 var can_pause: bool = true
 
+
+var parent_gravity_area: Area3D
+
 @onready var game_is_paused: bool = false
 
 @onready var labelx: Label = $UserInterface/LabelXValue
@@ -91,11 +95,6 @@ var can_pause: bool = true
 func _ready() -> void:
 	default_view_bobbing_amount = view_bobbing_amount
 	# TODO FOR THE RELEASE
-	match get_parent().name:
-		"SimpleBoxTest":
-			global_position = Vector3(0.0,10.0,0.0)
-		_:
-			global_position = Vector3(RandomNumberGenerator.new().randf_range(-4000.0, -200.0), 1707, RandomNumberGenerator.new().randf_range(-2000.0, 2000.0))
 	
 	check_controls()
 	if can_pause:
@@ -156,8 +155,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	
 	if event.is_action_pressed("spawn_50cmbox"):
 		call_deferred("spawn_box50cm")
-
-
+	
 func _physics_process(delta: float) -> void:
 	if can_move:
 		if Input.get_vector(MOVE_LEFT, MOVE_RIGHT, MOVE_FORWARD, MOVE_BACK):
@@ -170,15 +168,36 @@ func _physics_process(delta: float) -> void:
 		else:
 			input_direction = Vector2.ZERO
 	
+	if parent_gravity_area:
+		$RayCast3D.target_position = global_position.direction_to(parent_gravity_area.global_position)
+		if parent_gravity_area.gravity_point:
+			if $RayCast3D.is_colliding():
+				var normal = $RayCast3D.get_collision_normal()
+				up_direction = normal
+			else:
+				parent_gravity_area.global_position.direction_to(global_position)
+		else:
+			up_direction = parent_gravity_area.global_basis.y
+		
+		gravity = parent_gravity_area.gravity
+	else:
+		gravity = 0.0
+	
+	
 	# Add the gravity.
 	if not is_on_floor() && is_affected_by_gravity:
-		velocity.y -= gravity * delta
+		velocity -= up_direction * gravity * delta
 	
 	# Resetting climb ability when on ground
 	if is_on_floor() && !can_climb:
 		if can_climb_timer != null:
 			can_climb_timer.queue_free()
 		can_climb = true
+	
+	
+	# smoothly align vertical axis to gravity normal
+	var target_xform := global_transform.looking_at(global_position - global_basis.z, up_direction)
+	global_transform = target_xform#global_transform.interpolate_with(target_xform, 0.3)
 	
 	move_and_slide()
 	#print(global_position)
@@ -198,7 +217,7 @@ func _process(_delta: float):
 
 func spawn_box4m() -> void:
 	var box4m_instance: RigidBody3D = box4m.instantiate()
-	var spawn_position: Vector3 = global_position + (-transform.basis.z * 3.0) + Vector3.UP * 6.0
+	var spawn_position: Vector3 = global_position + (-global_basis.z * 3.0) + global_basis.y * 6.0
 	get_tree().current_scene.add_child(box4m_instance)
 	box4m_instance.global_position = spawn_position
 	var to_player = (global_transform.origin - spawn_position)
@@ -206,7 +225,7 @@ func spawn_box4m() -> void:
 	
 func spawn_box50cm() -> void:
 	var box50cm_instance: RigidBody3D = box50m.instantiate()
-	var spawn_position: Vector3 = global_position + (-transform.basis.z * 1.5) + Vector3.UP * 2.0
+	var spawn_position: Vector3 = global_position + (-global_basis.z * 1.5) + global_basis.y * 2.0
 	get_tree().current_scene.add_child(box50cm_instance)
 	box50cm_instance.global_position = spawn_position
 	
@@ -217,7 +236,7 @@ func spawn_box50cm() -> void:
 		box50cm_instance.set_collision_mask_value(2, true)
 
 func _handle_camera_motion() -> void:
-	rotate_y(mouse_motion.x * camera_sensitivity)
+	global_rotate(global_basis.y, mouse_motion.x * camera_sensitivity)
 	camera_pivot.rotate_x(mouse_motion.y  * camera_sensitivity)
 	
 	camera_pivot.rotation_degrees.x = clampf(
@@ -330,7 +349,7 @@ func _on_grab_available_timeout() -> void:
 ## Note that it's triggered after the 'state' "enter" method
 func _on_state_machine_transitioned(state: PlayerState) -> void:
 	is_moving = state is Walk || state is Sprint
-	
+	#print("new state", state)
 	if is_moving:
 		view_bobbing_player.play("view_bobbing", .5, view_bobbing_amount, false)
 	else:
@@ -348,3 +367,16 @@ func _add_joy_button_event(action_name: String, joy_button: JoyButton = 100) -> 
 	var joy_button_event = InputEventJoypadButton.new()
 	joy_button_event.button_index = joy_button
 	InputMap.action_add_event(action_name, joy_button_event)
+
+
+func _on_area_detector_area_entered(area: Area3D) -> void:
+	if area.is_in_group("gravity"):
+		parent_gravity_area = area
+		prints("player entered gravity area", area)
+
+
+func _on_area_detector_area_exited(area: Area3D) -> void:
+	if area.is_in_group("gravity"): 
+		if parent_gravity_area and parent_gravity_area == area:
+			prints("player left gravity area", area)
+			parent_gravity_area = null

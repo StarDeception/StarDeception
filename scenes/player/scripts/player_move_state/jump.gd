@@ -6,7 +6,6 @@ var move_speed: float
 
 var has_direction: bool
 
-
 func enter(msg := {}) -> void:
 	if player.is_crouched:
 		player.stand_up()
@@ -15,10 +14,11 @@ func enter(msg := {}) -> void:
 	
 	move_speed = player.walk_back_speed
 	has_direction = player.input_direction != Vector2.ZERO
-	player.velocity.y = sqrt(player.jump_height * 2 * player.gravity)
+	player.velocity += player.up_direction * sqrt(player.jump_height * 2 * player.gravity)
 
 
 func physics_update(_delta: float) -> void:
+	
 	if player.velocity.y < 0:
 		state_machine.transition_to(
 			state_machine.movement_state[state_machine.FALL],
@@ -30,7 +30,7 @@ func physics_update(_delta: float) -> void:
 	if not input_dir:
 		init_state = state_machine.WALK
 	
-	var direction := (player.transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
+	var direction := (player.global_transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 	
 	# this gives some in-air control if jumping from standing still
 	if (has_direction && player.velocity.length() < player.walk_back_speed) || !has_direction:
