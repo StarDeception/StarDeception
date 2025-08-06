@@ -1,9 +1,8 @@
-[gd_scene load_steps=14 format=3 uid="uid://d1mhk3prnqywk"]
+[gd_scene load_steps=13 format=3 uid="uid://d1mhk3prnqywk"]
 
 [ext_resource type="Material" uid="uid://brpu7xylrg2l2" path="res://assets/materials/material_basic_blue.tres" id="1_fb2x7"]
 [ext_resource type="Script" uid="uid://u7bmtowwqmhu" path="res://levels/sandbox/sandbox.gd" id="1_fd0ol"]
 [ext_resource type="PackedScene" uid="uid://cu2jncdgxjipn" path="res://scenes/player/player_remote.tscn" id="2_f3jw6"]
-[ext_resource type="PackedScene" uid="uid://dlbkch6iuy8gn" path="res://scenes/player/player.tscn" id="2_l16tt"]
 [ext_resource type="PackedScene" uid="uid://nswkrnyepieq" path="res://scenes/props/testblock/basic_block.tscn" id="3_nm1m6"]
 [ext_resource type="PackedScene" uid="uid://kqmbae0l4ewu" path="res://scenes/props/testblock/basic_block_2.tscn" id="4_1esxm"]
 [ext_resource type="PackedScene" uid="uid://bmk1yx4q5cewg" path="res://assets/models/CommemorativeBust/commemorativebust.res" id="6_uk6j5"]
@@ -85,15 +84,6 @@ polygon = PackedVector2Array(0, 0, 2.08165e-12, 2, 6, 2, 10, 2.08165e-12)
 [node name="ChrisR_01" parent="Floor" instance=ExtResource("6_uk6j5")]
 transform = Transform3D(-0.757827, 0, -0.652456, 0, 1, 0, 0.652456, 0, -0.757827, 0, -2.1761, 0)
 
-[node name="Player" parent="." instance=ExtResource("2_l16tt")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1300, 0)
-
-[node name="HTTPRequest" type="HTTPRequest" parent="Player"]
-
-[node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="."]
-_spawnable_scenes = PackedStringArray("uid://cu2jncdgxjipn")
-spawn_path = NodePath("..")
-
 [node name="Mountain" type="StaticBody3D" parent="."]
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Mountain"]
@@ -104,6 +94,12 @@ mesh = ExtResource("8_0psug")
 transform = Transform3D(5000, 0, 0, 0, 5000, 0, 0, 0, 5000, 0, 0, 0)
 shape = ExtResource("9_hrvvi")
 
-[connection signal="ready" from="." to="." method="_on_ready"]
+[node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="."]
+_spawnable_scenes = PackedStringArray("uid://dlbkch6iuy8gn")
+spawn_path = NodePath("../Players")
+spawn_limit = 120
 
-[editable path="Player"]
+[node name="Players" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2166.02, 7.98085, 2151.12)
+
+[connection signal="ready" from="." to="." method="_on_ready"]

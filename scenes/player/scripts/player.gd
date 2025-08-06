@@ -88,14 +88,20 @@ var can_pause: bool = true
 @onready var box50m: PackedScene = preload("res://scenes/props/testbox/box_50cm.tscn")
 @onready var isInsideBox4m: bool = false
 
+@export var player_id := 1:
+	set(id):
+		player_id = id
+		%InputSynchronizer.set_multiplayer_authority(id)
+
 func _ready() -> void:
 	default_view_bobbing_amount = view_bobbing_amount
 	# TODO FOR THE RELEASE
-	match get_parent().name:
-		"SimpleBoxTest":
-			global_position = Vector3(0.0,10.0,0.0)
-		_:
-			global_position = Vector3(RandomNumberGenerator.new().randf_range(-4000.0, -200.0), 1707, RandomNumberGenerator.new().randf_range(-2000.0, 2000.0))
+	#match get_parent().name:
+		#"SimpleBoxTest":
+			#global_position = Vector3(0.0,10.0,0.0)
+		#_:
+			#global_position = Vector3(RandomNumberGenerator.new().randf_range(-4000.0, -200.0), 1707, RandomNumberGenerator.new().randf_range(-2000.0, 2000.0))
+	global_position = Vector3(0.0,1500.0,0.0)
 	
 	check_controls()
 	if can_pause:
@@ -159,34 +165,41 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if can_move:
-		if Input.get_vector(MOVE_LEFT, MOVE_RIGHT, MOVE_FORWARD, MOVE_BACK):
-			input_direction = Input.get_vector(MOVE_LEFT, MOVE_RIGHT, MOVE_FORWARD, MOVE_BACK)
-		elif Input.get_connected_joypads().size() != 0:
-			input_direction = Vector2(Input.get_joy_axis(0, JOY_AXIS_LEFT_X), Input.get_joy_axis(0, JOY_AXIS_LEFT_Y))
-			var x = Input.get_joy_axis(0, JOY_AXIS_LEFT_X)
-			var y = Input.get_joy_axis(0, JOY_AXIS_LEFT_Y)
-			movement_strength = Vector2(x, y).length()
-		else:
-			input_direction = Vector2.ZERO
-	
-	# Add the gravity.
-	if not is_on_floor() && is_affected_by_gravity:
-		velocity.y -= gravity * delta
-	
-	# Resetting climb ability when on ground
-	if is_on_floor() && !can_climb:
-		if can_climb_timer != null:
-			can_climb_timer.queue_free()
-		can_climb = true
-	
-	move_and_slide()
-	#print(global_position)
-	if Globals.onlineMode:
-		Server.send_to_server_position(global_position)
-	labelx.text = str("%0.2f" % global_position[0])
-	labely.text = str("%0.2f" % global_position[1])
-	labelz.text = str("%0.2f" % global_position[2])
+	if multiplayer.is_server():
+		
+		if can_move:
+			var inputdir = %InputSynchronizer.input_direction
+			if inputdir:
+				input_direction = inputdir
+			##elif Input.get_connected_joypads().size() != 0:
+				##input_direction = Vector2(Input.get_joy_axis(0, JOY_AXIS_LEFT_X), Input.get_joy_axis(0, JOY_AXIS_LEFT_Y))
+				##var x = Input.get_joy_axis(0, JOY_AXIS_LEFT_X)
+				##var y = Input.get_joy_axis(0, JOY_AXIS_LEFT_Y)
+				##movement_strength = Vector2(x, y).length()
+			else:
+				input_direction = Vector2.ZERO
+		
+		# Add the gravity.
+		if not is_on_floor() && is_affected_by_gravity:
+			velocity.y -= gravity * delta
+		
+		# Resetting climb ability when on ground
+		if is_on_floor() && !can_climb:
+			if can_climb_timer != null:
+				can_climb_timer.queue_free()
+			can_climb = true
+		#print(input_direction)
+		move_and_slide()
+		# DEBUG
+		#for i in get_slide_collision_count():
+		#	var collision = get_slide_collision(i)
+		#	print("I collided with ", collision.get_collider().name)
+		#print(global_position)
+		#if Globals.onlineMode:
+			#Server.send_to_server_position(global_position)
+		labelx.text = str("%0.2f" % global_position[0])
+		labely.text = str("%0.2f" % global_position[1])
+		labelz.text = str("%0.2f" % global_position[2])
 
 func _process(_delta: float):
 	if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:

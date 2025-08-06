@@ -1,8 +1,9 @@
-[gd_scene load_steps=26 format=3 uid="uid://dlbkch6iuy8gn"]
+[gd_scene load_steps=29 format=3 uid="uid://dlbkch6iuy8gn"]
 
 [ext_resource type="Script" uid="uid://dvpsr7ogx4jae" path="res://scenes/player/scripts/player.gd" id="1_5ras8"]
 [ext_resource type="Script" uid="uid://df1l1fnp23q4r" path="res://scenes/player/scripts/smooth_camera.gd" id="2_1py82"]
 [ext_resource type="PackedScene" uid="uid://vv063vdbl0aa" path="res://assets/models/astronaut/astronaut.res" id="2_a8wmt"]
+[ext_resource type="Script" uid="uid://ciy6pafuy1yuf" path="res://scenes/multiplayer_player/multiplayer_input.gd" id="2_lgqa7"]
 [ext_resource type="Script" uid="uid://darw4ktv3brra" path="res://scenes/player/scripts/player_state_machine.gd" id="2_wwa58"]
 [ext_resource type="Script" uid="uid://7klatkjm163l" path="res://scenes/player/scripts/player_move_state/idle.gd" id="3_xe000"]
 [ext_resource type="Script" uid="uid://caj18woq6mfis" path="res://scenes/player/scripts/player_move_state/jump.gd" id="4_1lr3q"]
@@ -18,6 +19,19 @@
 [ext_resource type="Script" uid="uid://du8smr1o81j1c" path="res://scenes/player/label_game_server_number_players.gd" id="15_vfxpb"]
 [ext_resource type="Script" uid="uid://cp4hqc0wqd0l0" path="res://scenes/player/label_game_server_number.gd" id="16_mkvci"]
 [ext_resource type="Script" uid="uid://bwj71lom8cof6" path="res://scenes/player/label_universe_number_players.gd" id="17_a8wmt"]
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_lgqa7"]
+properties/0/path = NodePath(".:player_id")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath(".:position")
+properties/1/spawn = true
+properties/1/replication_mode = 1
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_8ydkj"]
+properties/0/path = NodePath("InputSynchronizer:input_direction")
+properties/0/spawn = true
+properties/0/replication_mode = 1
 
 [sub_resource type="Animation" id="Animation_5udu4"]
 length = 0.001
@@ -196,6 +210,14 @@ height = 1.8
 [node name="Player" type="CharacterBody3D"]
 script = ExtResource("1_5ras8")
 
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+replication_config = SubResource("SceneReplicationConfig_lgqa7")
+
+[node name="InputSynchronizer" type="MultiplayerSynchronizer" parent="."]
+unique_name_in_owner = true
+replication_config = SubResource("SceneReplicationConfig_8ydkj")
+script = ExtResource("2_lgqa7")
+
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 unique_name_in_owner = true
 libraries = {
@@ -274,7 +296,6 @@ script = ExtResource("2_1py82")
 
 [node name="ReflectionProbe" type="ReflectionProbe" parent="CameraPivot/SmoothCamera"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0138313, -0.00632906, -0.0253583)
-visible = false
 
 [node name="StateMachine" type="Node" parent="."]
 unique_name_in_owner = true
