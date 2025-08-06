@@ -216,6 +216,7 @@ func spawn_box50cm() -> void:
 		box50cm_instance.set_collision_mask_value(1, false)
 		box50cm_instance.set_collision_mask_value(2, true)
 
+
 func _handle_camera_motion() -> void:
 	rotate_y(mouse_motion.x * camera_sensitivity)
 	camera_pivot.rotate_x(mouse_motion.y  * camera_sensitivity)

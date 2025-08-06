@@ -1,7 +1,9 @@
-[gd_scene load_steps=7 format=3 uid="uid://fxj147p5soqi"]
+[gd_scene load_steps=9 format=3 uid="uid://fxj147p5soqi"]
 
 [ext_resource type="PackedScene" uid="uid://dlbkch6iuy8gn" path="res://scenes/player/player.tscn" id="1_o506w"]
 [ext_resource type="Shape3D" uid="uid://nlfpii7pt3xn" path="res://levels/SimpleBoxTest/InversedCollisider100m.shape" id="1_xqwsu"]
+[ext_resource type="Script" uid="uid://cdgyq0x3rqmv6" path="res://levels/SimpleBoxTest/simple_box_test.gd" id="1_ynis1"]
+[ext_resource type="PackedScene" uid="uid://cu2jncdgxjipn" path="res://scenes/player/player_remote.tscn" id="2_o7bnk"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_xqwsu"]
 size = Vector2(100, 100)
@@ -18,6 +20,8 @@ sky = SubResource("Sky_0uuu0")
 ambient_light_source = 3
 
 [node name="SimpleBoxTest" type="Node3D"]
+script = ExtResource("1_ynis1")
+player_scene = ExtResource("2_o7bnk")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 mesh = SubResource("PlaneMesh_xqwsu")
