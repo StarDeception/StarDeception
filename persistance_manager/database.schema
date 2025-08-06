@@ -1,3 +1,31 @@
-schema:
-  uuid: string @id .
-  dgraph.type: string @index(exact) .
+# ==== Champs communs ====
+uuid: string @index(hash) .    # Identifiant unique
+name: string @index(exact, term) .      # Nom de l'entité
+parent: uid @reverse .                  # Relation hiérarchique enfant -> parent
+position: uid .                         # Lien vers un nœud Position
+type_obj: string .
+# ==== Champs Position ====
+x: int .                                # X scalée for précision
+y: int .                                # Y scalée
+z: int .                                # Z scalée
+
+# ==== Types ====
+type Position {
+  x
+  y
+  z
+}
+
+type Entity {                             # Type générique
+  uuid
+  parent
+  position
+  type_obj
+}
+
+type Planete {
+  uuid
+  name
+  <~parent> 
+  type_obj                          
+}
