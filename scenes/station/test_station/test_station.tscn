@@ -1,0 +1,65 @@
+[gd_scene load_steps=2 format=3 uid="uid://cn1e5bp50weao"]
+
+[ext_resource type="PackedScene" uid="uid://gxlfwbj17i1h" path="res://scenes/station/test_station/pads.tscn" id="1_53j1l"]
+
+[node name="TestStation" type="StaticBody3D"]
+
+[node name="CSGCylinder3D" type="CSGCylinder3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, -1.25822, 1.25822)
+radius = 13.855
+height = 255.113
+
+[node name="CSGCylinder3D4" type="CSGCylinder3D" parent="."]
+transform = Transform3D(-4.37114e-08, -1, 0, -4.37114e-08, 1.91069e-15, -1, 1, -4.37114e-08, -4.37114e-08, 0, -1.25822, 92.8144)
+radius = 6.1958
+height = 187.604
+
+[node name="CSGCylinder3D5" type="CSGCylinder3D" parent="."]
+transform = Transform3D(1.91069e-15, 4.37114e-08, -1, 0, 1, 4.37114e-08, 1, 0, 1.91069e-15, 0, -1.25822, 92.8144)
+radius = 6.1958
+height = 187.604
+
+[node name="CSGCylinder3D2" type="CSGCylinder3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, -1.25822, 92.0327)
+radius = 98.8682
+height = 14.7322
+sides = 17
+
+[node name="CSGCylinder3D3" type="CSGCylinder3D" parent="CSGCylinder3D2"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -4.37441, 0)
+operation = 2
+radius = 84.8149
+height = 68.554
+sides = 17
+
+[node name="CSGCylinder3D6" type="CSGCylinder3D" parent="."]
+transform = Transform3D(-4.37114e-08, -1, 0, -4.37114e-08, 1.91069e-15, -1, 1, -4.37114e-08, -4.37114e-08, 0, -1.25821, -93.8102)
+radius = 6.1958
+height = 187.604
+
+[node name="CSGCylinder3D7" type="CSGCylinder3D" parent="."]
+transform = Transform3D(1.91069e-15, 4.37114e-08, -1, 0, 1, 4.37114e-08, 1, 0, 1.91069e-15, 0, -1.25821, -93.8102)
+radius = 6.1958
+height = 187.604
+
+[node name="CSGCylinder3D3" type="CSGCylinder3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, -1.25821, -94.2297)
+radius = 98.8682
+height = 14.0076
+sides = 17
+
+[node name="CSGCylinder3D3" type="CSGCylinder3D" parent="CSGCylinder3D3"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -4.37441, 0)
+operation = 2
+radius = 84.8149
+height = 68.554
+sides = 17
+
+[node name="Pads" parent="." instance=ExtResource("1_53j1l")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -50.3401)
+
+[node name="Pads2" parent="." instance=ExtResource("1_53j1l")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 47.124)
+
+[node name="Pads3" parent="." instance=ExtResource("1_53j1l")]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, -3.29602)
