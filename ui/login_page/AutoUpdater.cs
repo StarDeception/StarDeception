@@ -3,6 +3,7 @@ using System;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
 
 public partial class AutoUpdater : RichTextLabel {
 
@@ -13,46 +14,71 @@ public partial class AutoUpdater : RichTextLabel {
 
     public string expectedHash = ""; // SHA256 attendu par défaut (bf2d3a65ffa3ab8c1de8f7fa15ed0a22552a15913fbbd74caf9da38d33db7528)
     public string saveHashPath = "user://hash.sha256"; // Emplacement local
-    public string savePathExe = "user://StarDeception.windows.exe"; // Emplacement local de l'exe
+    public string saveExePath = "user://StarDeception.windows.exe"; // Emplacement local de l'exe
     public string saveUpdaterPath = "user://SDUpdater.exe"; // Emplacement local de l'exe
-    byte[] hash_body = null;
     RichTextLabel statusLabel;
 
-    public override void _Ready() {
+    public override async void _Ready() {
+        //définition des fichiers à télécharger sur le repo git
         exeUrl = repo_url + "StarDeception.windows.exe";
         hashUrl = repo_url + "hash.sha256";
         updaterUrl = repo_url + "SDUpdater.exe";
 
-        statusLabel = this;//GetNode<RichTextLabel>("auto_updater_log");
+        statusLabel = this;
         statusLabel.Clear();
 
+        //si dans l'éditeur, pas de check
         if (Engine.IsEditorHint() || OS.HasFeature("editor")) {
             AddLog("Vous êtes dans l'editeur, pas de MAJ vérifiée !", "00FFAA");
             return;
         }
-        AddLog("Dossier de l'exe en cours : " + OS.GetExecutablePath());
 
         if (OS.HasFeature("linux")) {
             saveUpdaterPath = "user://SDUpdater.sh";
-            updaterUrl =  repo_url + "SDUpdater.sh";
+            updaterUrl = repo_url + "SDUpdater.sh";
         }
 
         //Téléchargement de l'updater
         if (!FileAccess.FileExists(saveUpdaterPath)) {
-            AddLog("Téléchargement de l'updater : " + updaterUrl + "...", "AAFF00");
-            HttpRequest req = new HttpRequest();
-            AddChild(req);
-            req.RequestCompleted += OnRequestUpdaterCompleted;
-            Error err = req.Request(updaterUrl);
-            if (err != Error.Ok) {
-                AddLog("Erreur de requête HTTP : " + err, "FF0000");
+            var bytes = await DownloadFromHttp(updaterUrl);
+            SaveBinaryOnDisk(saveUpdaterPath, bytes);
+
+            if (OS.HasFeature("linux")) {
+                FileAccess file2 = FileAccess.Open(saveUpdaterPath, FileAccess.ModeFlags.Read);
+                OS.Execute("chmod", new[] { "+x", ProjectSettings.GlobalizePath("user://SDUpdater.sh") });
+                file2.Close();
+                saveExePath = "user://StarDeception.linux.x86_64";
+                exeUrl = repo_url + "StarDeception.linux.x86_64";
             }
-        } else {
-            CheckForUpdate();
+
+            AddLog("Updater téléchargé avec succès :) > " + saveUpdaterPath, "00FF00");
         }
+
+        await CheckForUpdateAsync();
     }
 
-    void CheckForUpdate() {
+    /// <summary>
+    /// sauvegarde un buffer binaire sur le disque (dans notre cas dans le dossier user)
+    /// </summary>
+    /// <param name="filename"></param>
+    /// <param name="bin"></param>
+    void SaveBinaryOnDisk(string filename, byte[] bin) {
+        var file = FileAccess.Open(filename, FileAccess.ModeFlags.Write);
+        int chunkSize = 8192;
+        for (int i = 0; i < bin.Length; i += chunkSize) {
+            int size = Math.Min(chunkSize, bin.Length - i);
+            file.StoreBuffer(bin.AsSpan(i, size).ToArray());
+        }
+        file.Flush();
+        file.Close();
+        AddLog($"Fichier {filename} sauvegardé !", "d8d8d8");
+    }
+
+    /// <summary>
+    /// vérifie les MAJ via le fichier hash.sha256 de github contenant le hash de l'exe
+    /// </summary>
+    /// <returns></returns>
+    async Task CheckForUpdateAsync() {
         AddLog($"Dossier utilisateur : {ProjectSettings.GlobalizePath("user://")}", "666666");
 
         //vérification d'un .sha256 déjà présent (maj déjà vérifiée)
@@ -61,89 +87,66 @@ public partial class AutoUpdater : RichTextLabel {
             expectedHash = Encoding.UTF8.GetString(file_hash.GetBuffer((long)file_hash.GetLength()));
             AddLog("Hash en cache : " + expectedHash, "666666");
         } else {
-            AddLog("Pas de .sha256 en cache, utilisation du hash par défaut : " + expectedHash, "FFFF00");
+            AddLog("Pas de hash.sha256 en cache, téléchargement...", "FFFF00");
         }
 
         //requêtte du .sha256 dans /release
-        HttpRequest req = new HttpRequest();
-        AddChild(req);
-        req.RequestCompleted += OnRequestHashCompleted;
-
-        AddLog("Téléchargement du fichier " + hashUrl.Replace(repo_url, "[github]/"), "a2d8fc");
-        Error err = req.Request(hashUrl);
-        if (err != Error.Ok) {
-            AddLog("Erreur de requête HTTP : " + err, "FF0000");
-        }
-    }
-
-    private void OnRequestUpdaterCompleted(long result, long responseCode, string[] headers, byte[] body) {
-        if (result != (long)HttpRequest.Result.Success || responseCode != 200) {
-            AddLog("Échec de téléchargement de l'updater : " + responseCode, "FF0000");
-            return;
-        }
-
-        var file = FileAccess.Open(saveUpdaterPath, FileAccess.ModeFlags.Write);
-        file.StoreBuffer(body);
-        file.Close();
-
-        if (OS.HasFeature("linux")) {
-            FileAccess file2 = FileAccess.Open("user://updater.sh", FileAccess.ModeFlags.Read);
-            OS.Execute("chmod", new[] { "+x", ProjectSettings.GlobalizePath("user://SDUpdater.sh") });
-            savePathExe = "user://StarDeception.linux.x86_64 ";
-            exeUrl = repo_url + "StarDeception.linux.x86_64 ";
-        }
-
-        AddLog("Updater téléchargé avec succès :) > " + saveUpdaterPath, "00FF00");
-        CheckForUpdate();
-    }
-
-    private void OnRequestHashCompleted(long result, long responseCode, string[] headers, byte[] body) {
-        if (result != (long)HttpRequest.Result.Success || responseCode != 200) {
-            AddLog("Échec de téléchargement : " + responseCode, "FF0000");
-            return;
-        }
-
-        string hash = Encoding.UTF8.GetString(body);
-        AddLog("Version SHA256 téléchargé : " + Encoding.UTF8.GetString(body), "00AAFF");
+        byte[] hash_bin = await DownloadFromHttp(hashUrl);
+        string hash = Encoding.UTF8.GetString(hash_bin);
+        AddLog("Version SHA256 téléchargé : " + hash, "00AAFF");
 
         if (hash != expectedHash) {
-            hash_body = body;
-            AddLog("Hash invalide ! " + hash, "fb7d50");
-            HttpRequest req = new HttpRequest();
-            AddChild(req);
-            req.RequestCompleted += OnRequestExeCompleted;
-
-            AddLog("Téléchargement du fichier " + exeUrl.Replace(repo_url, "[github]/") + " (peut prendre du temps !)", "fbb450");
-            Error err = req.Request(exeUrl);
-            if (err != Error.Ok) {
-                AddLog("Erreur de requête HTTP : " + err, "FF0000");
-            }
-            return;
+            AddLog("Hash client invalide !", "fb7d50");
+            byte[] exe_bin = await DownloadFromHttp(exeUrl);
+            SaveBinaryOnDisk(saveHashPath, hash_bin);
+            SaveBinaryOnDisk(saveExePath, exe_bin);
+            AddLog("Le client va se fermer et se relancer à jour dans 3 secondes...", "22FF33");
+            await ToSignal(GetTree().CreateTimer(3.0), "timeout");
+            LaunchUpdater();
         } else {
             AddLog("Hash valide :)", "00FF00");
         }
     }
 
-    private void OnRequestExeCompleted(long result, long responseCode, string[] headers, byte[] body) {
-        if (result != (long)HttpRequest.Result.Success || responseCode != 200) {
-            AddLog("Échec de téléchargement : " + responseCode, "FF0000");
-            return;
+    /// <summary>
+    /// télécharge un fichier via HTTP
+    /// </summary>
+    /// <param name="url"></param>
+    /// <returns></returns>
+    private async Task<byte[]> DownloadFromHttp(string url) {
+        AddLog("Téléchargement de : " + url.Replace(repo_url, "[github]/") + "...", "c385fb");
+
+        HttpRequest req = new HttpRequest();
+        AddChild(req);
+
+        var tcs = new TaskCompletionSource<byte[]>();
+
+        void OnCompleted(long result, long responseCode, string[] headers, byte[] body) {
+            req.RequestCompleted -= OnCompleted;
+            req.QueueFree();
+
+            if (result != (long)HttpRequest.Result.Success || responseCode != 200) {
+                AddLog($"Erreur HTTP : Code {responseCode}", "FF0000");
+                tcs.SetResult(Array.Empty<byte>());
+            } else {
+                tcs.SetResult(body);
+            }
         }
 
-        var file_hash = FileAccess.Open(saveHashPath, FileAccess.ModeFlags.Write);
-        file_hash.StoreBuffer(hash_body);
-        file_hash.Close();
+        req.RequestCompleted += OnCompleted;
+        var err = req.Request(url);
+        if (err != Error.Ok) {
+            AddLog("Erreur de requête HTTP : " + err, "FF0000");
+            req.QueueFree();
+            return Array.Empty<byte>();
+        }
 
-        var file = FileAccess.Open(savePathExe, FileAccess.ModeFlags.Write);
-        file.StoreBuffer(body);
-        file.Close();
-
-        AddLog("Fichier .exe sauvegardé à : " + savePathExe, "d8d8d8");
-        AddLog("Fichier .sha256 sauvegardé à : " + saveHashPath, "dbe9d3");
-
-        LaunchUpdater();
+        return await tcs.Task;
     }
 
+    /// <summary>
+    /// lance le script de copie du nouvel exe téléchargé vers l'actuel
+    /// </summary>
     void LaunchUpdater() {
         string oldExePath = OS.GetExecutablePath();
         //fermeture exe et auto maj
@@ -161,15 +164,11 @@ public partial class AutoUpdater : RichTextLabel {
         GetTree().Quit();
     }
 
-    private string ComputeSHA256(byte[] data) {
-        using SHA256 sha = SHA256.Create();
-        byte[] hashBytes = sha.ComputeHash(data);
-        StringBuilder sb = new StringBuilder();
-        foreach (byte b in hashBytes)
-            sb.Append(b.ToString("x2")); // Hex format
-        return sb.ToString();
-    }
-
+    /// <summary>
+    /// ajoute un log à la fenêtre pour info client
+    /// </summary>
+    /// <param name="log"></param>
+    /// <param name="hexCode"></param>
     void AddLog(string log, string hexCode = "FFFFFF") {
         statusLabel.AppendText($"[color=#{hexCode}]{log}[/color]\n");
     }
