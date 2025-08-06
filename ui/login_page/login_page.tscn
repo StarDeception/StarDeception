@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3 uid="uid://b7aajb2l3gvg5"]
+[gd_scene load_steps=6 format=3 uid="uid://b7aajb2l3gvg5"]
 
 [ext_resource type="Script" uid="uid://ck5cjdbjngm6a" path="res://ui/login_page/login_page.gd" id="1_ihlnx"]
-[ext_resource type="Texture2D" uid="uid://trpcoqhuryo0" path="res://assets/Menu/Background_1920x1080.png" id="2_rpukb"]
-[ext_resource type="Texture2D" uid="uid://0yw6o1aoe6pj" path="res://assets/Menu/Title_StarDeception.svg" id="3_11evp"]
+[ext_resource type="Texture2D" uid="uid://trpcoqhuryo0" path="res://assets/textures/Menu/Background_1920x1080.png" id="2_rpukb"]
+[ext_resource type="Texture2D" uid="uid://0yw6o1aoe6pj" path="res://assets/textures/Menu/Title_StarDeception.svg" id="3_11evp"]
 [ext_resource type="Texture2D" uid="uid://dq2e8gaxm2dkp" path="res://icon.svg" id="4_fk6tm"]
+[ext_resource type="Script" uid="uid://c8apyaoyaqvhx" path="res://ui/login_page/AutoUpdater.cs" id="5_rpukb"]
 
 [node name="LoginUI" type="Control"]
 layout_mode = 3
@@ -27,11 +28,9 @@ stretch_mode = 6
 
 [node name="FormPlacer" type="Control" parent="."]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_vertical = 3
@@ -39,15 +38,13 @@ size_flags_vertical = 3
 [node name="FormContainer" type="VBoxContainer" parent="FormPlacer"]
 clip_contents = true
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -200.0
-offset_top = -47.0
-offset_right = 200.0
-offset_bottom = 47.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 148.0
+offset_top = 26.0
+offset_right = -148.0
+offset_bottom = -14.0
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_vertical = 3
@@ -56,6 +53,7 @@ theme_override_constants/separation = 10
 [node name="TextureRect" type="TextureRect" parent="FormPlacer/FormContainer"]
 layout_mode = 2
 texture = ExtResource("3_11evp")
+stretch_mode = 3
 
 [node name="UserName" type="LineEdit" parent="FormPlacer/FormContainer"]
 layout_mode = 2
@@ -85,6 +83,16 @@ size_flags_horizontal = 3
 size_flags_vertical = 0
 theme_override_font_sizes/font_size = 24
 text = "Hors ligne"
+
+[node name="auto_updater_log" type="RichTextLabel" parent="FormPlacer/FormContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 8.08
+bbcode_enabled = true
+text = "Informations sur la mise à jour"
+scroll_following = true
+autowrap_mode = 1
+script = ExtResource("5_rpukb")
 
 [node name="Logo" type="TextureRect" parent="."]
 self_modulate = Color(1, 1, 1, 0.392157)
