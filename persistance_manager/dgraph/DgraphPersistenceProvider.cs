@@ -59,7 +59,7 @@ public class DgraphPersistenceProvider : IPersistenceProvider
         try
         {
             using var transaction = await BeginReadOnlyTransactionAsync();
-            var result = await transaction.QueryAsync("{ test(func: has(dgraph.type)) { count(uid) } }");
+            var result = await transaction.QueryAsync("schema {}");
             return result.IsSuccess;
         }
         catch
@@ -70,16 +70,15 @@ public class DgraphPersistenceProvider : IPersistenceProvider
 
     public async Task<bool> ApplySchemaAsync(string schema)
     {
-        try
-        {
+
             var operation = new Api.Operation { Schema = schema };
             var result = await _client.Alter(operation);
-            return true;
-        }
-        catch (Exception ex)
-        {
-            return false;
-        }
+            if (result.IsSuccess) {
+                return true;
+            } else {
+                 GD.PrintErr(result.Errors[0].Message);
+                return false;
+            }
     }
     public Task<ITransaction> BeginTransactionAsync()
     {
