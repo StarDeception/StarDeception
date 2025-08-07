@@ -26,7 +26,7 @@ func  _on_client_ready():
 	print("🚀 Signal ClientReady Persist Physic Data !")
 	PersitDataBridge.execute_custom_query('''
 	{ 
-		planet(func: eq(name, {0})) @filter(eq(dgraph.type, "Planete")) 
+		planet(func: eq(name, "{0}")) @filter(eq(dgraph.type, "Planete")) 
 		{ 
 			uid 
 			uuid 
@@ -46,7 +46,7 @@ func _check_planete(result: String):
 		if typeof(loadplanet) == TYPE_ARRAY:
 			if(loadplanet.size() == 0):
 				print("0 planet fond")
-				saved() # todo bug for get uid on the first run after wipe 
+				saved()
 			else:
 				deserialize(loadplanet[0])
 				query_child_data()
@@ -63,7 +63,13 @@ func query_child_data():
 			type_obj
 		  }
 	  }
-	}'''.format([uid]),_list_child_entity)
+	}'''.format([uid]),_load_child_entity)
 
-func _list_child_entity(result: String):
-	print(result)
+func _load_child_entity(result: String):
+	var parsed = JSON.parse_string(result)
+	for element in parsed["entity"][0]["~parent"]:
+		var childpck = load(element["type_obj"])
+		var child = childpck.instantiate()
+		if child.has_node("DataEntity"):
+			child.get_node("DataEntity").load(element,self)
+			parent.add_child(child)
