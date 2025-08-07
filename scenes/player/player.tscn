@@ -1,4 +1,4 @@
-[gd_scene load_steps=29 format=3 uid="uid://dlbkch6iuy8gn"]
+[gd_scene load_steps=24 format=3 uid="uid://dlbkch6iuy8gn"]
 
 [ext_resource type="Script" uid="uid://dvpsr7ogx4jae" path="res://scenes/player/scripts/player.gd" id="1_5ras8"]
 [ext_resource type="Script" uid="uid://df1l1fnp23q4r" path="res://scenes/player/scripts/smooth_camera.gd" id="2_1py82"]
@@ -14,11 +14,6 @@
 [ext_resource type="Script" uid="uid://bylffmh52hh2h" path="res://scenes/player/scripts/player_move_state/climb.gd" id="10_o7gmx"]
 [ext_resource type="Script" uid="uid://bk35bswvdxf86" path="res://scenes/player/scripts/player_move_state/grab.gd" id="11_gkc45"]
 [ext_resource type="Script" uid="uid://dlylungjo3kdv" path="res://scenes/player/scripts/player_move_state/slide.gd" id="12_bqyfq"]
-[ext_resource type="Script" uid="uid://cfwy76dpxuvoj" path="res://scenes/player/scripts/player_ui.gd" id="12_d7xi0"]
-[ext_resource type="Script" uid="uid://c62vv4kkvwuk1" path="res://scenes/player/label_game_server_name.gd" id="14_ttf0e"]
-[ext_resource type="Script" uid="uid://du8smr1o81j1c" path="res://scenes/player/label_game_server_number_players.gd" id="15_vfxpb"]
-[ext_resource type="Script" uid="uid://cp4hqc0wqd0l0" path="res://scenes/player/label_game_server_number.gd" id="16_mkvci"]
-[ext_resource type="Script" uid="uid://bwj71lom8cof6" path="res://scenes/player/label_universe_number_players.gd" id="17_a8wmt"]
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_lgqa7"]
 properties/0/path = NodePath(".:player_id")
@@ -332,146 +327,4 @@ script = ExtResource("11_gkc45")
 [node name="Slide" type="Node" parent="StateMachine"]
 script = ExtResource("12_bqyfq")
 
-[node name="UserInterface" type="Control" parent="."]
-top_level = true
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-pivot_offset = Vector2(576, 324)
-mouse_filter = 2
-script = ExtResource("12_d7xi0")
-
-[node name="ColorRect" type="ColorRect" parent="UserInterface"]
-layout_mode = 0
-offset_right = 657.0
-offset_bottom = 125.0
-color = Color(0, 0, 0, 0.690196)
-
-[node name="CrosshairContainer" type="CenterContainer" parent="UserInterface"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-
-[node name="Crosshair" type="Control" parent="UserInterface/CrosshairContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-mouse_filter = 2
-
-[node name="Label" type="Label" parent="UserInterface"]
-layout_mode = 2
-offset_left = 100.0
-offset_right = 312.0
-offset_bottom = 23.0
-text = "Connected to game server: "
-
-[node name="Label4" type="Label" parent="UserInterface"]
-layout_mode = 2
-offset_left = 1.0
-offset_top = 20.0
-offset_right = 311.0
-offset_bottom = 43.0
-text = "Number of players on this game server: "
-
-[node name="Label2" type="Label" parent="UserInterface"]
-layout_mode = 2
-offset_left = 62.0
-offset_top = 40.0
-offset_right = 312.0
-offset_bottom = 63.0
-text = "Number of active game servers: "
-
-[node name="Label3" type="Label" parent="UserInterface"]
-layout_mode = 2
-offset_top = 60.0
-offset_right = 313.0
-offset_bottom = 83.0
-text = "Number of total players in the universe: "
-
-[node name="Labelx" type="Label" parent="UserInterface"]
-layout_mode = 2
-offset_top = 80.0
-offset_right = 20.0
-offset_bottom = 103.0
-text = "x: "
-
-[node name="Labely" type="Label" parent="UserInterface"]
-layout_mode = 2
-offset_left = 188.0
-offset_top = 80.0
-offset_right = 208.0
-offset_bottom = 103.0
-text = "y: "
-
-[node name="Labelz" type="Label" parent="UserInterface"]
-layout_mode = 2
-offset_left = 376.0
-offset_top = 80.0
-offset_right = 396.0
-offset_bottom = 103.0
-text = "z: "
-
-[node name="LabelGameServerName" type="Label" parent="UserInterface"]
-layout_mode = 2
-offset_left = 320.0
-offset_right = 442.0
-offset_bottom = 23.0
-text = "Soon™"
-script = ExtResource("14_ttf0e")
-
-[node name="LabelGameServerNumberPlayers" type="Label" parent="UserInterface"]
-layout_mode = 2
-offset_left = 320.0
-offset_top = 20.0
-offset_right = 442.0
-offset_bottom = 43.0
-text = "Soon™"
-script = ExtResource("15_vfxpb")
-
-[node name="LabelGameServerNumber" type="Label" parent="UserInterface"]
-layout_mode = 2
-offset_left = 320.0
-offset_top = 40.0
-offset_right = 442.0
-offset_bottom = 63.0
-text = "Soon™"
-script = ExtResource("16_mkvci")
-
-[node name="LabelUniverseNumberPlayers" type="Label" parent="UserInterface"]
-layout_mode = 2
-offset_left = 320.0
-offset_top = 60.0
-offset_right = 442.0
-offset_bottom = 83.0
-text = "Soon™"
-script = ExtResource("17_a8wmt")
-
-[node name="LabelXValue" type="Label" parent="UserInterface"]
-layout_mode = 2
-offset_left = 18.0
-offset_top = 80.0
-offset_right = 178.0
-offset_bottom = 103.0
-
-[node name="LabelYValue" type="Label" parent="UserInterface"]
-layout_mode = 2
-offset_left = 205.0
-offset_top = 80.0
-offset_right = 365.0
-offset_bottom = 103.0
-
-[node name="LabelZValue" type="Label" parent="UserInterface"]
-layout_mode = 2
-offset_left = 393.0
-offset_top = 80.0
-offset_right = 553.0
-offset_bottom = 103.0
-
 [connection signal="transitioned" from="StateMachine" to="." method="_on_state_machine_transitioned"]
-[connection signal="draw" from="UserInterface/CrosshairContainer/Crosshair" to="UserInterface" method="_on_crosshair_draw"]
