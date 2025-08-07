@@ -100,7 +100,6 @@ static func _on_find_by_id_completed(success: bool, json_data: String, error_mes
 static func save_data(data: DataObject,  calback: Callable):
 	var pm = PersistanceManager
 	if pm and pm.IsReady:
-		printerr(data.serialize())
 		var rid = pm.StartSaveAsync(data.serialize())
 		persistCalback[rid]=calback
 	else:

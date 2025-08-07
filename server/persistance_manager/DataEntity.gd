@@ -48,9 +48,16 @@ func deserialize(data: Dictionary):
 		)
 		if parent:
 			parent.position = last_saved_position
+	
 
 func _enter_tree():
 	check_parent()
+
+func on_saved(new_uid: String):
+	super.on_saved(new_uid)
+	if new_uid != "": # !!!  Workaround is not best solution rework code for use array of uid or not save possiton on same save of entity
+		if not is_new_object:
+			uid_position = new_uid
 
 func _ready() -> void:
 	check_parent()
@@ -86,7 +93,7 @@ func initialize_and_save():
 	saved()
 	start_loop()
 
-func load(data: Dictionary, attach_parent: DataObject):
+func load_obj(data: Dictionary, attach_parent: DataObject = null):
 	print("load Data Object")
 	is_new_object = false
 	if attach_parent != null:
