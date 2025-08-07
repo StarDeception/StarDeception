@@ -2,7 +2,12 @@ extends Node
 
 var normal_player = preload("res://scenes/normal_player/normal_player.tscn")
 var sandbox_scene = preload("res://levels/sandbox/sandbox.tscn")
+var box_50cm = preload("res://scenes/props/testbox/box_50cm.tscn")
+
 var _players_spawn_node
+var _spawn_node_box_50cm
+
+@onready var isInsideBox4m: bool = false
 
 func _ready() -> void:
 	
@@ -34,6 +39,7 @@ func _start_server():
 	await get_tree().create_timer(4.0).timeout
 
 	_players_spawn_node = get_tree().get_current_scene().get_node("Players")
+	_spawn_node_box_50cm = get_tree().get_current_scene().get_node("Boxes50cm")
 
 	var server_peer = ENetMultiplayerPeer.new()
 	server_peer.create_server(7051, 150)
@@ -55,6 +61,20 @@ func _on_player_disconnect(id):
 	if player:
 		player.queue_free()
 
+@rpc("any_peer", "call_local", "reliable")
+func spawn_box50cm(spawn_position) -> void:
+	# server received and ths is played on all clients (rpc any_peer)
+	var box50cm_instance = box_50cm.instantiate()
+	_spawn_node_box_50cm = get_tree().get_current_scene().get_node("Boxes50cm")
+	_spawn_node_box_50cm.add_child(box50cm_instance, true)
+	box50cm_instance.global_position = spawn_position
+	
+	if isInsideBox4m:
+		box50cm_instance.set_collision_layer_value(1, false)
+		box50cm_instance.set_collision_layer_value(2, true)
+		box50cm_instance.set_collision_mask_value(1, false)
+		box50cm_instance.set_collision_mask_value(2, true)
+
 #####################################################################################
 ## Played on the very first game server (to manage all players positions)
 #####################################################################################
@@ -72,3 +92,6 @@ func create_client(player_scene):
 	var client_peer = ENetMultiplayerPeer.new()
 	client_peer.create_client("127.0.0.1", 7051)
 	multiplayer.multiplayer_peer = client_peer
+
+func spawn_prop_box_50cm(position):
+	rpc_id(1, "server_spawn_prop_box_50cm", position)

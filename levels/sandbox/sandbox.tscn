@@ -102,4 +102,10 @@ spawn_limit = 120
 [node name="Players" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2166.02, 7.98085, 2151.12)
 
+[node name="SpawnBoxes50cm" type="MultiplayerSpawner" parent="."]
+_spawnable_scenes = PackedStringArray("uid://d37hc6ybk8fsj")
+spawn_path = NodePath("../Boxes50cm")
+
+[node name="Boxes50cm" type="Node3D" parent="."]
+
 [connection signal="ready" from="." to="." method="_on_ready"]
