@@ -89,7 +89,8 @@ func initialize_and_save():
 func load(data: Dictionary, attach_parent: DataObject):
 	print("load Data Object")
 	is_new_object = false
-	parent_obj = attach_parent
+	if attach_parent != null:
+		parent_obj = attach_parent
 	PersitDataBridge.execute_custom_query('''
 	{
 	  entity(func: uid({0})) {

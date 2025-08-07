@@ -25,7 +25,7 @@ Globals="*res://scenes/globals/globals.gd"
 PipeHttpHeavy="*res://server/pipe_http_heavy.tscn"
 uuid="*res://addons/uuid/uuid.gd"
 ErrorManager="*res://ui/error_message/error_message.tscn"
-PersistanceManager="*res://persistance_manager/PersistanceManager.cs"
+PersistanceManager="*res://server/persistance_manager/PersistanceManager.cs"
 
 [display]
 

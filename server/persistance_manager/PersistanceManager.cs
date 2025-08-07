@@ -63,7 +63,7 @@ public partial class PersistanceManager : Node
                 if (await _persistenceProvider.InitializeAsync())
                 {
                     GD.Print("✅ Database connection established");
-                    string path = "res://persistance_manager/database.schema";
+                    string path = "res://server/persistance_manager/database.schema";
                     if (FileAccess.FileExists(path))
                     {
                         using var file = FileAccess.Open(path, FileAccess.ModeFlags.Read);

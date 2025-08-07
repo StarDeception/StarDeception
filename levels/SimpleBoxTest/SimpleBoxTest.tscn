@@ -2,7 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://dlbkch6iuy8gn" path="res://scenes/player/player.tscn" id="1_o506w"]
 [ext_resource type="Shape3D" uid="uid://nlfpii7pt3xn" path="res://levels/SimpleBoxTest/InversedCollisider100m.shape" id="1_xqwsu"]
-[ext_resource type="Script" uid="uid://cj5kd1hkfvjrg" path="res://persistance_manager/DataPlanete.gd" id="4_le64j"]
+[ext_resource type="Script" uid="uid://cj5kd1hkfvjrg" path="res://server/persistance_manager/DataPlanete.gd" id="4_le64j"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_xqwsu"]
 size = Vector2(100, 100)
