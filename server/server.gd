@@ -1,6 +1,7 @@
 extends Node
 
 var multiplayer_scene = preload("res://scenes/player/player.tscn")
+var standard_player = preload("res://scenes/normal_player/normal_player.tscn")
 var sandbox_scene = preload("res://levels/sandbox/sandbox.tscn")
 var _players_spawn_node
 
@@ -75,8 +76,8 @@ func _on_player_connected(id):
 	#var player = player_scene.instantiate()
 	#player.name = str(id)
 	#get_tree().get_current_scene().add_child(player)
-	var player_to_add = multiplayer_scene.instantiate()
-	player_to_add.player_id = id
+	var player_to_add = standard_player.instantiate()
+	#player_to_add.player_id = id
 	player_to_add.name = str(id)
 	#rpc("get_server_name", ServerName)
 	
@@ -91,13 +92,12 @@ func _on_player_disconnect(id):
 			#myUniqidPlayer = puuid
 			#break
 	#
-	#print("player " + str(myUniqidPlayer) + " disconnected")
+	print("player " + str(id) + " disconnected")
 	#players.erase(myUniqidPlayer)
 	#print(players)
-	if not _players_spawn_node.get_node(str(id)):
-		return
-	_players_spawn_node.get_node(str(id)).queue_free()
-	pass
+	var player = _players_spawn_node.get_node_or_null(str(id))
+	if player:
+		player.queue_free()
 
 
 
