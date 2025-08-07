@@ -84,6 +84,8 @@ var can_pause: bool = true
 @onready var labely: Label = $UserInterface/LabelYValue
 @onready var labelz: Label = $UserInterface/LabelZValue
 
+@onready var cam = $CameraPivot/SmoothCamera
+
 @onready var box4m: PackedScene = preload("res://scenes/props/testbox/box_4m.tscn")
 @onready var box50m: PackedScene = preload("res://scenes/props/testbox/box_50cm.tscn")
 @onready var isInsideBox4m: bool = false
@@ -104,8 +106,12 @@ func _ready() -> void:
 	global_position = Vector3(0.0,1500.0,0.0)
 	
 	check_controls()
+	if not is_multiplayer_authority(): return
 	if can_pause:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+	cam.current = true
+	
 
 func check_controls() -> void:
 	if !InputMap.has_action(MOVE_FORWARD):
@@ -145,6 +151,7 @@ func check_controls() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	#if not is_multiplayer_authority(): return
 	if event is InputEventMouseMotion:
 		mouse_motion = -event.relative * 0.001
 	
