@@ -49,7 +49,7 @@ func get_current_uid() -> String:
 func is_saved() -> bool:
 	return uid != "" and not uid.begins_with("_")
 	
-func load(data: Dictionary, attach_parent: DataObject):
+func load_obj(data: Dictionary, attach_parent: DataObject = null):
 	print("load Data Object")
 	PersitDataBridge.find_data_by_id(data["uid"],loaded)
 

@@ -71,5 +71,5 @@ func _load_child_entity(result: String):
 		var childpck = load(element["type_obj"])
 		var child = childpck.instantiate()
 		if child.has_node("DataEntity"):
-			child.get_node("DataEntity").load(element,self)
+			child.get_node("DataEntity").load_obj(element,self)
 			parent.add_child(child)
