@@ -1,8 +1,8 @@
 [gd_scene load_steps=5 format=3 uid="uid://b7aajb2l3gvg5"]
 
 [ext_resource type="Script" uid="uid://ck5cjdbjngm6a" path="res://ui/login_page/login_page.gd" id="1_ihlnx"]
-[ext_resource type="Texture2D" uid="uid://trpcoqhuryo0" path="res://assets/Menu/Background_1920x1080.png" id="2_rpukb"]
-[ext_resource type="Texture2D" uid="uid://0yw6o1aoe6pj" path="res://assets/Menu/Title_StarDeception.svg" id="3_11evp"]
+[ext_resource type="Texture2D" uid="uid://trpcoqhuryo0" path="res://assets/textures/Menu/Background_1920x1080.png" id="2_rpukb"]
+[ext_resource type="Texture2D" uid="uid://0yw6o1aoe6pj" path="res://assets/textures/Menu/Title_StarDeception.svg" id="3_11evp"]
 [ext_resource type="Texture2D" uid="uid://dq2e8gaxm2dkp" path="res://icon.svg" id="4_fk6tm"]
 
 [node name="LoginUI" type="Control"]
