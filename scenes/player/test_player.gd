@@ -111,6 +111,7 @@ func _physics_process(delta: float) -> void:
 		gravity = parent_gravity_area.gravity
 		motion_mode = CharacterBody3D.MOTION_MODE_GROUNDED
 	else:
+		# 0g movement
 		gravity = 0.0
 		camera_pivot.rotation.x = 0
 		motion_mode = CharacterBody3D.MOTION_MODE_FLOATING
@@ -132,7 +133,11 @@ func _physics_process(delta: float) -> void:
 			velocity = move_direction * speed
 		else:
 			velocity = velocity.move_toward(Vector3.ZERO, speed)
-	
+	else:
+		# "air" movement
+		if input_direction:
+			velocity += move_direction * speed * delta
+			
 	if is_on_floor() and Input.is_action_just_pressed(JUMP):
 		velocity += up_direction * jump_height * gravity
 	# Add the gravity.
@@ -152,6 +157,9 @@ func _physics_process(delta: float) -> void:
 
 func _process(_delta: float):
 	if !active: return
+	
+	
+	$UserInterface/ParentLabel.text = "Gravity areas: " + str(gravity_parents)
 	
 	if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		# Handling camera in '_process' so that camera movement is framerate independent
@@ -179,15 +187,15 @@ func orient_player(delta: float):
 func spawn_box4m() -> void:
 	var box4m_instance: RigidBody3D = box4m.instantiate()
 	var spawn_position: Vector3 = global_position + (-global_basis.z * 3.0) + global_basis.y * 6.0
-	get_tree().current_scene.add_child(box4m_instance)
+	get_parent().add_child(box4m_instance, true)
 	box4m_instance.global_position = spawn_position
 	var to_player = (global_transform.origin - spawn_position)
 	box4m_instance.rotate_y(atan2(to_player.x, to_player.z) + PI)
 	
 func spawn_box50cm() -> void:
 	var box50cm_instance: RigidBody3D = box50m.instantiate()
-	var spawn_position: Vector3 = global_position + (-global_basis.z * 1.5) + global_basis.y * 2.0
-	get_tree().current_scene.add_child(box50cm_instance)
+	var spawn_position: Vector3 = global_position + (-global_basis.z * 1.5) + global_basis.y * 1.0
+	get_parent().add_child(box50cm_instance, true)
 	box50cm_instance.global_position = spawn_position
 	
 	if isInsideBox4m:
@@ -198,18 +206,15 @@ func spawn_box50cm() -> void:
 
 func _handle_camera_motion() -> void:
 	if gravity == 0:
+		camera_pivot.rotation.x = 0
 		rotate_object_local(Vector3.UP, mouse_motion.x  * camera_sensitivity)
 		rotate_object_local(Vector3.RIGHT, mouse_motion.y  * camera_sensitivity)
 	else:
 		global_rotate(global_basis.y, mouse_motion.x * camera_sensitivity)
 		camera_pivot.global_rotate(global_basis.x, mouse_motion.y  * camera_sensitivity)
-	
-	
-	camera_pivot.rotation_degrees.x = clampf(
-		camera_pivot.rotation_degrees.x , -89.0, 89.0
-	)
-	
+		camera_pivot.rotation_degrees.x = clamp(camera_pivot.rotation_degrees.x, -80, 80)
 	mouse_motion = Vector2.ZERO
+	camera_pivot.global_basis = camera_pivot.global_basis.orthonormalized()
 
 
 func _handle_joy_camera_motion() -> void:
@@ -243,14 +248,10 @@ func _handle_joy_camera_motion() -> void:
 		camera_pivot.rotation_degrees.x , -89.0, 89.0
 	)
 
-
 func _on_area_detector_area_entered(area: Area3D) -> void:
 	if area.is_in_group("gravity"):
 		gravity_parents.push_back(area)
 		prints("player entered gravity area", area)
-		
-		if area is Grid:
-			area.enter(self)
 
 
 func _on_area_detector_area_exited(area: Area3D) -> void:
@@ -258,6 +259,3 @@ func _on_area_detector_area_exited(area: Area3D) -> void:
 		if gravity_parents.has(area):
 			prints("player left gravity area", area)
 			gravity_parents.erase(area)
-			if area is Grid:
-				area.exit(self)
-				call_deferred("reparent", get_tree().current_scene)

@@ -27,6 +27,7 @@ shape = SubResource("CapsuleShape3D_5tngb")
 [node name="Astronaut" parent="." instance=ExtResource("1_5tngb")]
 
 [node name="AreaDetector" type="Area3D" parent="."]
+monitorable = false
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="AreaDetector"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.50544, 0)
@@ -219,6 +220,18 @@ grow_horizontal = 2
 grow_vertical = 0
 text = "Interact"
 horizontal_alignment = 1
+
+[node name="ParentLabel" type="Label" parent="UserInterface"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -165.0
+offset_top = 33.0
+offset_right = -54.0
+offset_bottom = 56.0
+grow_horizontal = 0
+horizontal_alignment = 2
 
 [connection signal="area_entered" from="AreaDetector" to="." method="_on_area_detector_area_entered"]
 [connection signal="area_exited" from="AreaDetector" to="." method="_on_area_detector_area_exited"]

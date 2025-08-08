@@ -1,8 +1,10 @@
-[gd_scene load_steps=2 format=3 uid="uid://cn1e5bp50weao"]
+[gd_scene load_steps=3 format=3 uid="uid://cn1e5bp50weao"]
 
 [ext_resource type="PackedScene" uid="uid://gxlfwbj17i1h" path="res://scenes/station/test_station/pads.tscn" id="1_53j1l"]
+[ext_resource type="Script" uid="uid://fieeorhs15tv" path="res://scenes/station/test_station/local_grid.gd" id="1_cd0cu"]
 
-[node name="TestStation" type="StaticBody3D"]
+[node name="TestStation" type="Node3D"]
+script = ExtResource("1_cd0cu")
 
 [node name="CSGCylinder3D" type="CSGCylinder3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, -1.25822, 1.25822)
