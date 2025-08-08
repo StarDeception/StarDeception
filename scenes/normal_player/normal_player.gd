@@ -8,6 +8,10 @@ extends CharacterBody3D
 @onready var labelPlayerName: Label3D = %LabelPlayerName
 @onready var astronaut: Node3D = $Placeholder_Collider/Astronaut
 
+@onready var box4m: PackedScene = preload("res://scenes/props/testbox/box_4m.tscn")
+@onready var box50m: PackedScene = preload("res://scenes/props/testbox/box_50cm.tscn")
+@onready var isInsideBox4m: bool = false
+
 const SPEED = 5.0
 const JUMP_VELOCITY = 4.5
 
@@ -28,7 +32,7 @@ func _ready() -> void:
 	# hide player name label for me only
 	labelPlayerName.visible = false
 	astronaut.visible = false
-	
+
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not is_multiplayer_authority(): return
@@ -37,6 +41,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		camera.rotate_x(-event.relative.y * 0.005)
 		camera.rotation.x = clamp(camera.rotation.x, -PI/2, PI/2)
 
+	if event.is_action_pressed("spawn_4mbox"):
+		call_deferred("spawn_box4m")
+	
+	if event.is_action_pressed("spawn_50cmbox"):
+		# action of client, send RPC request to server (id = 1)
+		Server.spawn_box50cm.rpc_id(1, global_position + (-transform.basis.z * 1.5) + Vector3.UP * 2.0)
 
 func _physics_process(delta: float) -> void:
 	if not is_multiplayer_authority(): return
@@ -70,3 +80,11 @@ func set_player_name(name):
 	
 func get_player_name():
 	print(labelPlayerName.text)
+
+func spawn_box4m() -> void:
+	var box4m_instance: RigidBody3D = box4m.instantiate()
+	var spawn_position: Vector3 = global_position + (-transform.basis.z * 3.0) + Vector3.UP * 6.0
+	get_tree().current_scene.add_child(box4m_instance)
+	box4m_instance.global_position = spawn_position
+	var to_player = (global_transform.origin - spawn_position)
+	box4m_instance.rotate_y(atan2(to_player.x, to_player.z) + PI)
