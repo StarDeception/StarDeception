@@ -1,8 +1,21 @@
-[gd_scene load_steps=2 format=3 uid="uid://cn1e5bp50weao"]
+[gd_scene load_steps=5 format=3 uid="uid://cn1e5bp50weao"]
 
 [ext_resource type="PackedScene" uid="uid://gxlfwbj17i1h" path="res://scenes/station/test_station/pads.tscn" id="1_53j1l"]
+[ext_resource type="Script" uid="uid://fieeorhs15tv" path="res://scenes/station/test_station/local_grid.gd" id="1_cd0cu"]
+[ext_resource type="Script" uid="uid://2e1cf4ehx8s5" path="res://scenes/grid/grid.gd" id="2_47354"]
 
-[node name="TestStation" type="StaticBody3D"]
+[sub_resource type="BoxShape3D" id="BoxShape3D_epvos"]
+size = Vector3(286.752, 246.507, 302.133)
+
+[node name="TestStation" type="Node3D"]
+script = ExtResource("1_cd0cu")
+
+[node name="PhysicsGrid" type="Area3D" parent="."]
+script = ExtResource("2_47354")
+metadata/_custom_type_script = "uid://2e1cf4ehx8s5"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="PhysicsGrid"]
+shape = SubResource("BoxShape3D_epvos")
 
 [node name="CSGCylinder3D" type="CSGCylinder3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, -1.25822, 1.25822)

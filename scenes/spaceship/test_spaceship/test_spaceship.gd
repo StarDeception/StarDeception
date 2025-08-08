@@ -5,15 +5,12 @@ extends RigidBody3D
 @export var roll_speed = 100
 @export var mouse_sensitivity = 0.01
 
-var force_multiplier = 1000
-
 var active = false
 
+var force_multiplier = 1000
 var gravity_area: Area3D
-
 var pilot: Player
-
-var pause_mode
+var pause_mode = false
 
 func _ready() -> void:
 	$StaticBody3D.add_collision_exception_with(self)
@@ -21,10 +18,11 @@ func _ready() -> void:
 # make the player part of the ship
 func take_control(player: Player):
 	pilot = player
-	player.reparent($PilotPosition)
 	player.global_transform = $PilotPosition.global_transform
 	player.active = false
 	player.camera_pivot.rotation.x = 0
+	
+	player.reparent(self)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -42,8 +40,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	if Input.is_action_just_pressed("exit"):
 		active = false
 		pilot.active = true
-		pilot.reparent(get_tree().current_scene)
+		pilot.reparent(get_parent())
 		pilot = null
+		
 
 			
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
@@ -64,7 +63,7 @@ func _process(delta: float) -> void:
 		
 	var boost = false
 	
-	$GravityArea.gravity_direction = -global_basis.y
+	$ShipPhysicsGrid.gravity_direction = -global_basis.y
 	
 	if active and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		
@@ -75,10 +74,8 @@ func _process(delta: float) -> void:
 		)
 		
 		roll = Vector3(0, 0, -Input.get_axis("roll_left", "roll_right"))
-		
-		#boost = Input.is_action_pressed("boost")
-	
-	
+
+
 	var speed_multiplier = 20.0 if boost else 1.0
 	
 	var force = dir.normalized() * speed * force_multiplier * speed_multiplier * delta
@@ -97,3 +94,12 @@ func _on_collision_area_exited(area: Area3D) -> void:
 	if area.is_in_group("gravity"):
 		gravity_area = null
 		print("exit planet")
+
+func _on_gravity_area_body_entered(body: PhysicsBody3D) -> void:
+	add_collision_exception_with(body)
+
+	
+func _on_gravity_area_body_exited(body: Node3D) -> void:
+	if pilot and body == pilot: return
+	remove_collision_exception_with(body)
+	

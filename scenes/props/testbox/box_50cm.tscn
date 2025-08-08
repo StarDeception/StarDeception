@@ -17,6 +17,7 @@ properties/1/replication_mode = 1
 
 [node name="box_50cm" type="RigidBody3D"]
 mass = 0.25
+continuous_cd = true
 script = ExtResource("1_o2evt")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
