@@ -5,6 +5,8 @@ extends CharacterBody3D
 @onready var labelx: Label = $UserInterface/LabelXValue
 @onready var labely: Label = $UserInterface/LabelYValue
 @onready var labelz: Label = $UserInterface/LabelZValue
+@onready var labelPlayerName: Label3D = %LabelPlayerName
+@onready var astronaut: Node3D = $Placeholder_Collider/Astronaut
 
 const SPEED = 5.0
 const JUMP_VELOCITY = 4.5
@@ -15,8 +17,18 @@ func _enter_tree() -> void:
 func _ready() -> void:
 	if not is_multiplayer_authority(): return
 	
+	# Here: client have authority
+	if Globals.playerName == "":
+		labelPlayerName.text = "I'm an idiot!"
+	else:
+		labelPlayerName.text = Globals.playerName
+		
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	camera.current = true
+	# hide player name label for me only
+	labelPlayerName.visible = false
+	astronaut.visible = false
+	
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not is_multiplayer_authority(): return
@@ -52,3 +64,9 @@ func _physics_process(delta: float) -> void:
 	labelx.text = str("%0.2f" % global_position[0])
 	labely.text = str("%0.2f" % global_position[1])
 	labelz.text = str("%0.2f" % global_position[2])
+
+func set_player_name(name):
+	labelPlayerName.text = str(name)
+	
+func get_player_name():
+	print(labelPlayerName.text)

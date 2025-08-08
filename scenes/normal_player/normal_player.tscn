@@ -2,11 +2,11 @@
 
 [ext_resource type="Script" uid="uid://b3ifoxj2c0cjt" path="res://scenes/normal_player/normal_player.gd" id="1_ll2l8"]
 [ext_resource type="PackedScene" uid="uid://vv063vdbl0aa" path="res://assets/models/astronaut/astronaut.res" id="2_rulc8"]
-[ext_resource type="Script" uid="uid://cfwy76dpxuvoj" path="res://scenes/player/scripts/player_ui.gd" id="3_kcm5r"]
-[ext_resource type="Script" uid="uid://c62vv4kkvwuk1" path="res://scenes/player/label_game_server_name.gd" id="4_ikqc6"]
-[ext_resource type="Script" uid="uid://du8smr1o81j1c" path="res://scenes/player/label_game_server_number_players.gd" id="5_dpwvv"]
-[ext_resource type="Script" uid="uid://cp4hqc0wqd0l0" path="res://scenes/player/label_game_server_number.gd" id="6_ev378"]
-[ext_resource type="Script" uid="uid://bwj71lom8cof6" path="res://scenes/player/label_universe_number_players.gd" id="7_82eon"]
+[ext_resource type="Script" uid="uid://cfwy76dpxuvoj" path="res://scenes/normal_player/player_ui.gd" id="3_kcm5r"]
+[ext_resource type="Script" uid="uid://c62vv4kkvwuk1" path="res://scenes/normal_player/label_game_server_name.gd" id="4_ikqc6"]
+[ext_resource type="Script" uid="uid://du8smr1o81j1c" path="res://scenes/normal_player/label_game_server_number_players.gd" id="5_dpwvv"]
+[ext_resource type="Script" uid="uid://cp4hqc0wqd0l0" path="res://scenes/normal_player/label_game_server_number.gd" id="6_ev378"]
+[ext_resource type="Script" uid="uid://bwj71lom8cof6" path="res://scenes/normal_player/label_universe_number_players.gd" id="7_82eon"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_2jk7f"]
 height = 1.8
@@ -21,6 +21,9 @@ properties/1/replication_mode = 1
 properties/2/path = NodePath("Camera3D:rotation")
 properties/2/spawn = true
 properties/2/replication_mode = 1
+properties/3/path = NodePath("LabelPlayerName:text")
+properties/3/spawn = true
+properties/3/replication_mode = 1
 
 [node name="NormalPlayer" type="CharacterBody3D"]
 script = ExtResource("1_ll2l8")
@@ -180,6 +183,7 @@ offset_right = 553.0
 offset_bottom = 103.0
 
 [node name="LabelPlayerName" type="Label3D" parent="."]
+unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, 0)
 billboard = 1
 text = "Dummy"
