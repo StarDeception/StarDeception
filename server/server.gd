@@ -93,5 +93,3 @@ func create_client(player_scene):
 	client_peer.create_client("127.0.0.1", 7051)
 	multiplayer.multiplayer_peer = client_peer
 
-func spawn_prop_box_50cm(position):
-	rpc_id(1, "server_spawn_prop_box_50cm", position)
