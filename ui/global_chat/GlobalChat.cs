@@ -70,7 +70,7 @@ public partial class GlobalChat : PanelContainer {
     /// <param name="delta"></param>
     public override void _Process(double delta) {
         if (Input.IsActionJustPressed("toggle_chat")) {
-            isVisible = true;
+            isVisible = !isVisible;
             Visible = isVisible;
         }
         if (isVisible) {
