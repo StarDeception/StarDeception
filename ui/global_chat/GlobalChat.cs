@@ -1,0 +1,140 @@
+using Godot;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading.Channels;
+
+public partial class GlobalChat : PanelContainer {
+    [Export] private LineEdit inputField;
+    [Export] private RichTextLabel outputField;
+    [Export] private OptionButton channelSelector;
+    private bool isVisible = false;
+
+    class Message {
+        public string content;
+        public channel_E channel;
+        public string author;
+        DateTime gdh = DateTime.Now;
+    }
+
+    List<Message> messages = new List<Message>();
+
+    enum channel_E {
+        general = 0,
+        direct_message = 1,
+        group = 2,
+        alliance = 3,
+        region = 4,
+        unspecified = 5,
+    }
+
+    /// <summary>
+    /// couleurs forcées en hexa selon les valeurs d'entrée pour éviter un hash aléatoire dans certains cas
+    /// </summary>
+    Dictionary<string, string> forced_colors = new Dictionary<string, string>() {
+        { channel_E.general.ToString(),  "FFFFFF" },
+        { channel_E.unspecified.ToString(),  "AAAAAA" },
+        { channel_E.group.ToString(),  "27C8F5" },
+        { channel_E.alliance.ToString(),  "D327F5" },
+        { channel_E.region.ToString(),  "F7F3B5" },
+        { channel_E.direct_message.ToString(),  "79F25E" },
+    };
+
+    public override void _Ready() {
+        Visible = true;
+
+        //si dans l'éditeur, affichage texte aléatoire pour démo
+        if (Engine.IsEditorHint() || OS.HasFeature("editor")) {
+            string lorem = "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?";
+            Random random = new Random();
+            string[] text_users = new string[] { "NeozSagan", "ddurieu", "irong", "The_Moye", "Syffix" };
+            for (int i = 0; i < 30; i++) {
+                string user = text_users[random.Next() % text_users.Length];
+                channel_E channel = (channel_E)Enum.GetValues(typeof(channel_E)).GetValue(random.Next() % Enum.GetNames(typeof(channel_E)).Length);
+                ReceiveMesssageFromServer(lorem.Substr((random.Next() % lorem.Length) / 2, (random.Next() % lorem.Length) / 2), user, channel);
+            }
+        }
+
+        //ajout des différents canaux pour l'onglet de sélection, et affiche par défaut le canal "général"
+        foreach (string item in Enum.GetNames(typeof(channel_E))) {
+            channelSelector.AddItem(item);
+            channelSelector.Selected = 0;
+        }
+    }
+
+    /// <summary>
+    /// vérifie si on presse F12 pour ouvrir/fermer le chat
+    /// </summary>
+    /// <param name="delta"></param>
+    public override void _Process(double delta) {
+        if (Input.IsActionJustPressed("toggle_chat")) {
+            isVisible = true;
+            Visible = isVisible;
+        }
+        if (isVisible) {
+            inputField.GrabFocus();
+        } else {
+            GetViewport().SetInputAsHandled();
+        }
+    }
+
+    /// <summary>
+    /// lorsque l'on appuie sur entrée pour valider notre message
+    /// </summary>
+    /// <param name="nt">le texte à envoyer au serveur</param>
+    private void _on_input_text_text_submitted(string nt) {
+        if (string.IsNullOrWhiteSpace(nt)) return;
+        SendMessageToServer(nt);
+        inputField.Text = "";
+    }
+
+    /// <summary>
+    /// Envoie un message (ici court circuité en local) avec en paramètre le canal sélectionné
+    /// </summary>
+    /// <param name="txt"></param>
+    void SendMessageToServer(string txt) {
+        ReceiveMesssageFromServer(txt, "NeozSagan", Enum.Parse<channel_E>(channelSelector.GetItemText(channelSelector.GetSelectedId())));
+    }
+
+    /// <summary>
+    /// recoit un message au serveur précisant qui, quel canal, et quel message
+    /// </summary>
+    /// <param name="message"></param>
+    /// <param name="user_nick"></param>
+    /// <param name="channel"></param>
+    private void ReceiveMesssageFromServer(string message, string user_nick, channel_E channel) {
+        Message msg = new Message() { content = message, author = user_nick, channel = channel };
+        messages.Add(msg);
+        ParseMessage(msg);
+    }
+
+    private void ParseMessage(Message msg) {
+        //vidage mémoire des messages reçu : on garde les 50 derniers des qu'on dépasse 100 reçus
+        if (messages.Count > 100) {
+            outputField.Clear();
+            messages = messages.Skip(50).ToList();
+            for (int i = 0; i < messages.Count; i++) {
+                ParseMessage(messages[i]);
+            }
+        }
+
+        string gdh = DateTime.Now.Hour.ToString("00") + ":" + DateTime.Now.Minute.ToString("00") + ":" + DateTime.Now.Second.ToString("00");
+        outputField.AppendText($"[{gdh}] : [color=#{GetHexaColorFromHash(msg.author)}]{msg.author} [/color][color=#{GetHexaColorFromHash(msg.channel.ToString())}]" +
+            $"{(msg.channel == channel_E.unspecified ? "" : ("(" + msg.channel.ToString() + ") "))}{msg.content}[/color]\n");
+    }
+
+    /// <summary>
+    /// prends un string en entrée et envoie un code hexa de couleur aléatoire mais constant
+    /// </summary>
+    /// <param name="text"></param>
+    /// <returns></returns>
+    private string GetHexaColorFromHash(string text) {
+        if (forced_colors.ContainsKey(text)) return forced_colors[text];
+
+        byte[] hash = SHA256.Create().ComputeHash(Encoding.UTF8.GetBytes(text));
+        string color = BitConverter.ToString(hash).Replace("-", "").Substr(0, 6);
+        return color;
+    }
+}
