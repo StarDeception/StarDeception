@@ -24,6 +24,7 @@ func _ready() -> void:
 	# Here: client have authority
 	if Globals.playerName == "":
 		labelPlayerName.text = "I'm an idiot!"
+		Globals.playerName = "I'm an idiot!"
 	else:
 		labelPlayerName.text = Globals.playerName
 		
