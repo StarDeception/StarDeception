@@ -111,6 +111,5 @@ spawn_path = NodePath("../Boxes50cm")
 
 [node name="GlobalChat" parent="." instance=ExtResource("9_fk1xc")]
 unique_name_in_owner = true
-visible = false
 
 [connection signal="ready" from="." to="." method="_on_ready"]
