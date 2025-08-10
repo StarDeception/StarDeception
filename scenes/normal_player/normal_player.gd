@@ -178,7 +178,7 @@ func _physics_process(delta: float) -> void:
 	var move_direction = (global_transform.basis * Vector3(input_direction.x, 0, input_direction.y)).normalized()
 	
 	if gravity > 0:
-		orient_player(delta)
+		orient_player()
 	
 	var speed = sprint_speed if sprint else walk_speed
 	
@@ -213,13 +213,13 @@ func _handle_camera_motion():
 		rotate_object_local(Vector3.UP, mouse_motion.x  * camera_sensitivity)
 		rotate_object_local(Vector3.RIGHT, mouse_motion.y  * camera_sensitivity)
 	else:
-		global_rotate(global_basis.y, mouse_motion.x * camera_sensitivity)
-		camera_pivot.global_rotate(global_basis.x, mouse_motion.y  * camera_sensitivity)
+		rotate_y(mouse_motion.x * camera_sensitivity)
+		camera_pivot.rotate_x(mouse_motion.y  * camera_sensitivity)
 		camera_pivot.rotation_degrees.x = clamp(camera_pivot.rotation_degrees.x, -80, 80)
+		orient_player()
 	mouse_motion = Vector2.ZERO
-	camera_pivot.global_basis = camera_pivot.global_basis.orthonormalized()
 
-func orient_player(delta: float):
+func orient_player():
 	global_transform = global_transform.interpolate_with(Globals.align_with_y(global_transform, up_direction), 0.3)
 
 func set_player_name(name):
