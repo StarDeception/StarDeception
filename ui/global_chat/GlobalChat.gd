@@ -75,14 +75,15 @@ func _on_input_text_text_submitted(nt: String) -> void:
 func send_message_to_server(txt: String) -> void:
 	var channel_name := channel_selector.get_item_text(channel_selector.get_selected_id())
 	var channel_value : int = ChannelE[channel_name]
-	receive_message_from_server(txt, "NeozSagan", channel_value)
+	Server.server_receive_chat_message.rpc_id(1, channel_name, Globals.playerName, txt)
 
 # Receives a message from the server
-func receive_message_from_server(message: String, user_nick: String, channel: int) -> void:
+@rpc("any_peer", "call_remote", "unreliable", 0)
+func receive_message_from_server(message: String, user_nick: String, channel: String) -> void:
 	var msg := Message.new()
 	msg.content = message
 	msg.author = user_nick
-	msg.channel = channel
+	msg.channel = ChannelE[channel]
 	messages.append(msg)
 	if is_visible:
 		parse_message(msg)
