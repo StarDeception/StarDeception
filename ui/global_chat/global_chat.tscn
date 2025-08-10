@@ -50,5 +50,6 @@ size_flags_stretch_ratio = 0.3
 [node name="input_text" type="LineEdit" parent="CanvasLayer/global_chat_container/MarginContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
+keep_editing_on_text_submit = true
 
 [connection signal="text_submitted" from="CanvasLayer/global_chat_container/MarginContainer/VBoxContainer/HBoxContainer/input_text" to="CanvasLayer/global_chat_container" method="_on_input_text_text_submitted"]

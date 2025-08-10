@@ -5,17 +5,18 @@ extends PanelContainer
 @export var channel_selector: OptionButton
 var is_visible := false
 
-# Définition d'une "classe" interne pour Message
+# Definition of an internal “class” for Message
 class Message:
 	var content: String
 	var channel: int
 	var author: String
 	var gdh := Time.get_datetime_dict_from_system()
 
-# Liste pour stocker les messages
+# List for storing messages
 var messages: Array[Message] = []
+var messages_waiting: Array[Message] = []
 
-# Énumération des canaux
+# Channel enumeration
 enum ChannelE {
 	GENERAL,
 	DIRECT_MESSAGE,
@@ -25,7 +26,7 @@ enum ChannelE {
 	UNSPECIFIED
 }
 
-# Couleurs forcées en hexadécimal selon le canal
+# Forced colors in hexadecimal according to channel
 var forced_colors := {
 	str(ChannelE.GENERAL): "FFFFFF",
 	str(ChannelE.UNSPECIFIED): "AAAAAA",
@@ -35,29 +36,22 @@ var forced_colors := {
 	str(ChannelE.DIRECT_MESSAGE): "79F25E"
 }
 
+# Prevents keyboard input from being sent to the game if the chat is visible
+func _unhandled_input(event):
+	if event is InputEventKey and event.is_pressed():
+		if is_visible and input_field.has_focus():
+			get_viewport().set_input_as_handled()
+
 func _ready():
 	visible = true
+	is_visible = visible
 
-	# Si on est dans l'éditeur → affichage texte aléatoire pour démo
-	if Engine.is_editor_hint() or OS.has_feature("editor"):
-		var lorem := "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?"
-		var text_users := ["NeozSagan", "ddurieu", "irong", "The_Moye", "Syffix", "Sangoku"]
-		randomize()
-
-		for i in range(30):
-			var user : String = text_users[randi() % text_users.size()]
-			# récupère un index valide dans l'enum
-			var channel : int = randi() % ChannelE.keys().size()
-			var start := (randi() % lorem.length()) / 2
-			var length := (randi() % lorem.length()) / 6
-			var snippet := lorem.substr(start, length)
-			receive_message_from_server(snippet, user, channel)
-
-	# Ajout des différents canaux dans le sélecteur
+	# Adding different channels to the selector
 	for name in ChannelE.keys():
 		channel_selector.add_item(name)
 	channel_selector.selected = 0
-	
+
+# Boucle principale qui vérifie que l'on appuie sur F12 ou pas
 func _process(delta):
 	if Input.is_action_just_pressed("toggle_chat"):
 		is_visible = not is_visible
@@ -66,6 +60,9 @@ func _process(delta):
 	if is_visible:
 		input_field.grab_focus()
 	else:
+		for m in messages_waiting:
+			parse_message(m)
+		messages_waiting.clear()
 		get_viewport().set_input_as_handled()
 
 func _on_input_text_text_submitted(nt: String) -> void:
@@ -74,26 +71,30 @@ func _on_input_text_text_submitted(nt: String) -> void:
 	send_message_to_server(nt)
 	input_field.text = ""
 
-# Envoie un message (ici court-circuité en local) avec le canal sélectionné
+# Send a message (here short-circuited locally) with the selected channel
 func send_message_to_server(txt: String) -> void:
 	var channel_name := channel_selector.get_item_text(channel_selector.get_selected_id())
 	var channel_value : int = ChannelE[channel_name]
 	receive_message_from_server(txt, "NeozSagan", channel_value)
 
-
-# Reçoit un message du serveur
+# Receives a message from the server
 func receive_message_from_server(message: String, user_nick: String, channel: int) -> void:
 	var msg := Message.new()
 	msg.content = message
 	msg.author = user_nick
 	msg.channel = channel
 	messages.append(msg)
-	parse_message(msg)
+	if is_visible:
+		parse_message(msg)
+	else:
+		messages_waiting.append(msg)
+		if messages_waiting.size() > 100:
+			messages_waiting = messages_waiting.slice(50, messages_waiting.size() - 50)
 
 
-# Parse un message pour affichage et gestion mémoire
+# Parse a message for display, and memory management
 func parse_message(msg: Message) -> void:
-	# Si plus de 100 messages → on garde les 50 derniers
+	# If there are more than 100 messages → keep the last 50
 	if messages.size() > 100:
 		output_field.clear()
 		messages = messages.slice(50, messages.size() - 50)
@@ -116,7 +117,7 @@ func parse_message(msg: Message) -> void:
 	)
 
 
-# Renvoie un code couleur hexa aléatoire mais constant pour un texte donné
+# Returns a random but constant hex color code for a given text
 func get_hexa_color_from_hash(text: String) -> String:
 	if forced_colors.has(text):
 		return forced_colors[text]
