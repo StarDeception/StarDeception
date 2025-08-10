@@ -41,6 +41,14 @@ func _unhandled_input(event):
 	if event is InputEventKey and event.is_pressed():
 		if is_visible and input_field.has_focus():
 			get_viewport().set_input_as_handled()
+	# Release input focus if clicked outside
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		if input_field.has_focus():
+			var mouse_pos = get_global_mouse_position()
+			var rect = Rect2(input_field.global_position, input_field.size)
+			if not rect.has_point(mouse_pos):
+				input_field.release_focus()
+
 
 func _ready():
 	visible = true
