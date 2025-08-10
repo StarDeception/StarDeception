@@ -1,6 +1,8 @@
 using Godot;
 using System;
+using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,12 +13,17 @@ public partial class AutoUpdater : RichTextLabel {
     public string exeUrl;
     public string hashUrl;
     public string updaterUrl;
+    byte[] hash_bin;
 
     public string expectedHash = ""; // SHA256 attendu par défaut (bf2d3a65ffa3ab8c1de8f7fa15ed0a22552a15913fbbd74caf9da38d33db7528)
     public string saveHashPath = "user://hash.sha256"; // Emplacement local
     public string saveExePath = "user://StarDeception.windows.exe"; // Emplacement local de l'exe
     public string saveUpdaterPath = "user://SDUpdater.exe"; // Emplacement local de l'exe
     RichTextLabel statusLabel;
+    [Export] CheckButton hideCheck;
+    [Export] RichTextLabel hideLabel;
+    [Export] ProgressBar progressBar;
+    [Export] Button launchMajButton;
 
     public override async void _Ready() {
         //définition des fichiers à télécharger sur le repo git
@@ -30,6 +37,7 @@ public partial class AutoUpdater : RichTextLabel {
         //si dans l'éditeur, pas de check
         if (Engine.IsEditorHint() || OS.HasFeature("editor")) {
             AddLog("Vous êtes dans l'editeur, pas de MAJ vérifiée !", "00FFAA");
+            HideLogs();
             return;
         }
 
@@ -39,12 +47,12 @@ public partial class AutoUpdater : RichTextLabel {
         }
 
         //Téléchargement de l'updater
-        if (!FileAccess.FileExists(saveUpdaterPath)) {
+        if (!Godot.FileAccess.FileExists(saveUpdaterPath)) {
             var bytes = await DownloadFromHttp(updaterUrl);
             SaveBinaryOnDisk(saveUpdaterPath, bytes);
 
             if (OS.HasFeature("linux")) {
-                FileAccess file2 = FileAccess.Open(saveUpdaterPath, FileAccess.ModeFlags.Read);
+                Godot.FileAccess file2 = Godot.FileAccess.Open(saveUpdaterPath, Godot.FileAccess.ModeFlags.Read);
                 OS.Execute("chmod", new[] { "+x", ProjectSettings.GlobalizePath("user://SDUpdater.sh") });
                 file2.Close();
                 saveExePath = "user://StarDeception.linux.x86_64";
@@ -57,13 +65,43 @@ public partial class AutoUpdater : RichTextLabel {
         await CheckForUpdateAsync();
     }
 
+    public async Task DownloadFileWithProgressAsync(string url, string savePath) {
+        using var client = new System.Net.Http.HttpClient();
+        using var response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+
+        response.EnsureSuccessStatusCode();
+
+        long totalBytes = response.Content.Headers.ContentLength ?? -1;
+        long receivedBytes = 0;
+
+        using var contentStream = await response.Content.ReadAsStreamAsync();
+        GD.Print("Save large binary file to " + savePath + " > " + ProjectSettings.GlobalizePath(savePath));
+        using var fileStream = File.Create(ProjectSettings.GlobalizePath(savePath));
+        GD.Print("binary total len = " + totalBytes);
+        var buffer = new byte[8192];
+        int bytesRead;
+        while ((bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length)) > 0) {
+            await fileStream.WriteAsync(buffer, 0, bytesRead);
+            receivedBytes += bytesRead;
+            progressBar.Value = (receivedBytes / (double)totalBytes) * 100.0;
+        }
+
+        fileStream.Flush();
+        fileStream.Close();
+    }
+
+    public void HideLogs() {
+        statusLabel.Visible = !statusLabel.Visible;        
+        hideLabel.Text = statusLabel.Visible ? "Afficher les logs de mise à jour" : "Masquer les logs de mise à jour";
+    }
+
     /// <summary>
     /// sauvegarde un buffer binaire sur le disque (dans notre cas dans le dossier user)
     /// </summary>
     /// <param name="filename"></param>
     /// <param name="bin"></param>
     void SaveBinaryOnDisk(string filename, byte[] bin) {
-        var file = FileAccess.Open(filename, FileAccess.ModeFlags.Write);
+        var file = Godot.FileAccess.Open(filename, Godot.FileAccess.ModeFlags.Write);
         int chunkSize = 8192;
         for (int i = 0; i < bin.Length; i += chunkSize) {
             int size = Math.Min(chunkSize, bin.Length - i);
@@ -82,8 +120,8 @@ public partial class AutoUpdater : RichTextLabel {
         AddLog($"Dossier utilisateur : {ProjectSettings.GlobalizePath("user://")}", "666666");
 
         //vérification d'un .sha256 déjà présent (maj déjà vérifiée)
-        if (FileAccess.FileExists(saveHashPath)) {
-            var file_hash = FileAccess.Open(saveHashPath, FileAccess.ModeFlags.Read);
+        if (Godot.FileAccess.FileExists(saveHashPath)) {
+            var file_hash = Godot.FileAccess.Open(saveHashPath, Godot.FileAccess.ModeFlags.Read);
             expectedHash = Encoding.UTF8.GetString(file_hash.GetBuffer((long)file_hash.GetLength()));
             AddLog("Hash en cache : " + expectedHash, "666666");
         } else {
@@ -91,21 +129,32 @@ public partial class AutoUpdater : RichTextLabel {
         }
 
         //requêtte du .sha256 dans /release
-        byte[] hash_bin = await DownloadFromHttp(hashUrl);
+       hash_bin = await DownloadFromHttp(hashUrl);
         string hash = Encoding.UTF8.GetString(hash_bin);
         AddLog("Version SHA256 téléchargé : " + hash, "00AAFF");
 
         if (hash != expectedHash) {
-            AddLog("Hash client invalide !", "fb7d50");
-            byte[] exe_bin = await DownloadFromHttp(exeUrl);
-            SaveBinaryOnDisk(saveHashPath, hash_bin);
-            SaveBinaryOnDisk(saveExePath, exe_bin);
-            AddLog("Le client va se fermer et se relancer à jour dans 3 secondes...", "22FF33");
-            await ToSignal(GetTree().CreateTimer(3.0), "timeout");
-            LaunchUpdater();
+            AddLog("Hash client invalide ! Appuyez sur 'Lancer la mise à jour' :)", "fb7d50");
+            launchMajButton.Visible = true;
         } else {
             AddLog("Hash valide :)", "00FF00");
+            HideLogs();
         }
+    }
+
+    async void StarDownloadExe() {
+        AddLog("Début de la mise à jour...", "AAFF33");
+        await StartDownloadExeTask();
+    }
+
+    async Task StartDownloadExeTask() {
+        progressBar.Visible = true;
+        await DownloadFileWithProgressAsync(exeUrl, saveExePath);
+        progressBar.Visible = false;
+        AddLog("Le client va se fermer et se relancer à jour dans 3 secondes...", "22FF33");
+        await ToSignal(GetTree().CreateTimer(3.0), "timeout");
+        SaveBinaryOnDisk(saveHashPath, hash_bin);
+        LaunchUpdater();
     }
 
     /// <summary>
@@ -151,7 +200,7 @@ public partial class AutoUpdater : RichTextLabel {
         string oldExePath = OS.GetExecutablePath();
         //fermeture exe et auto maj
         if (OS.HasFeature("windows")) {
-            if (!FileAccess.FileExists("user://SDUpdater.exe")) {
+            if (!Godot.FileAccess.FileExists("user://SDUpdater.exe")) {
                 AddLog("Updater introuvable !", "FF0000");
                 return;
             }

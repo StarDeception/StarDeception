@@ -4,7 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://trpcoqhuryo0" path="res://assets/textures/Menu/Background_1920x1080.png" id="2_rpukb"]
 [ext_resource type="Texture2D" uid="uid://0yw6o1aoe6pj" path="res://assets/textures/Menu/Title_StarDeception.svg" id="3_11evp"]
 [ext_resource type="Texture2D" uid="uid://dq2e8gaxm2dkp" path="res://icon.svg" id="4_fk6tm"]
-[ext_resource type="Script" uid="uid://c8apyaoyaqvhx" path="res://ui/login_page/AutoUpdater.cs" id="5_rpukb"]
+[ext_resource type="Script" uid="uid://c8apyaoyaqvhx" path="res://ui/auto_updater/AutoUpdater.cs" id="5_rpukb"]
 
 [node name="LoginUI" type="Control"]
 layout_mode = 3
