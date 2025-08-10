@@ -104,6 +104,9 @@ func spawn_box50cm(spawn_position) -> void:
 		box50cm_instance.set_collision_mask_value(1, false)
 		box50cm_instance.set_collision_mask_value(2, true)
 
+###################
+# Chat part       #
+
 func connect_chat_mqtt():
 	MQTTClient = mqtt.instantiate()
 	get_tree().get_current_scene().add_child(MQTTClient)
@@ -117,16 +120,28 @@ func connect_chat_mqtt():
 
 func _on_mqtt_received_message(topic, message):
 	print("[chat] received MQTT message")
-	print(topic)
-	print(message)
+	if topic == "chat/GENERAL":
+		var chatData = JSON.parse_string(message)
+		rpc("receive_chat_message_from_server", chatData.msg, chatData.pseudo, "GENERAL")
+	else:
+		print(topic)
+		print(message)
 
 func _on_mqtt_broker_connected():
 	print("[chat] MQTT chat connected")
-	MQTTClient.subscribe("test")
+	MQTTClient.subscribe("chat/GENERAL")
 	MQTTClient.publish("test", "I'm here NOW")
 
 func _on_mqtt_broker_connection_failed():
 	print("[chat] MQTT chat failed to connecte :(")
+
+@rpc("any_peer", "call_local", "reliable")
+func server_receive_chat_message(channelName, pseudo, message):
+	MQTTClient.publish("chat/" + channelName, JSON.stringify({
+		"pseudo": pseudo,
+		"msg": message,
+	}))
+
 
 
 #####################################################################################
@@ -146,3 +161,10 @@ func create_client(player_scene):
 	var client_peer = ENetMultiplayerPeer.new()
 	client_peer.create_client("127.0.0.1", 7051)
 	multiplayer.multiplayer_peer = client_peer
+
+@rpc("any_peer", "call_remote", "unreliable", 0)
+func receive_chat_message_from_server(message: String, pseudo: String, channel: String) -> void:
+	var sceneChat = get_tree().get_current_scene().get_node("GlobalChat")
+	var canvas = sceneChat.get_node("CanvasLayer")
+	var chatContainer = canvas.get_node("global_chat_container")
+	chatContainer.receive_message_from_server(message, pseudo, channel)
