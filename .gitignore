@@ -20,3 +20,4 @@ mono_crash.*.json
 # specific for this project (build versions)
 StarDeception.*
 /.vs
+/build

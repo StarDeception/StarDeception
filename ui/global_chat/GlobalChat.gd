@@ -1,9 +1,12 @@
 extends PanelContainer
+class_name GlobalChat
 
 @export var input_field: LineEdit
 @export var output_field: RichTextLabel
 @export var channel_selector: OptionButton
-var is_visible := false
+static var is_visible := false
+static var is_focused := false
+var loggin := "all"
 
 # Definition of an internal “class” for Message
 class Message:
@@ -48,15 +51,23 @@ func _unhandled_input(event):
 			var rect = Rect2(input_field.global_position, input_field.size)
 			if not rect.has_point(mouse_pos):
 				input_field.release_focus()
+				is_focused = false
+				logg("focused chat box !")
+			else:
+				is_focused = true
+				logg("un-focused chat box !")
 
 
 func _ready():
-	visible = true
+	visible = false
 	is_visible = visible
+	is_focused = visible
+	input_field.grab_focus()
 
 	# Adding different channels to the selector
 	for name in ChannelE.keys():
 		channel_selector.add_item(name)
+	logg("selection du canal par défautl: " + str(ChannelE.keys()[0]))
 	channel_selector.selected = 0
 
 # Boucle principale qui vérifie que l'on appuie sur F12 ou pas
@@ -64,6 +75,10 @@ func _process(delta):
 	if Input.is_action_just_pressed("toggle_chat"):
 		is_visible = not is_visible
 		visible = is_visible
+		is_focused = is_visible
+		logg("swap de la visibilité du chat: " + str(is_visible))
+	else :
+		return
 
 	if is_visible:
 		input_field.grab_focus()
@@ -84,6 +99,7 @@ func send_message_to_server(txt: String) -> void:
 	var channel_name := channel_selector.get_item_text(channel_selector.get_selected_id())
 	var channel_value : int = ChannelE[channel_name]
 	Server.server_receive_chat_message.rpc_id(1, channel_name, Globals.playerName, txt)
+	logg("message envoyé au serveur :" + txt)
 
 # Receives a message from the server
 @rpc("any_peer", "call_remote", "unreliable", 0)
@@ -92,8 +108,9 @@ func receive_message_from_server(message: String, user_nick: String, channel: St
 	msg.content = message
 	msg.author = user_nick
 	msg.channel = ChannelE[channel]
-	messages.append(msg)
+	logg("nouveau message du serveur : " + msg.content)
 	if is_visible:
+		messages.append(msg)
 		parse_message(msg)
 	else:
 		messages_waiting.append(msg)
@@ -136,3 +153,7 @@ func get_hexa_color_from_hash(text: String) -> String:
 	ctx.update(text.to_utf8_buffer())
 	var hash_bytes := ctx.finish()
 	return hash_bytes.hex_encode().substr(0, 6)
+
+func logg(log: String, severity: String = "log"):
+	if(loggin == "all" || loggin == "severity"):
+		print(log)

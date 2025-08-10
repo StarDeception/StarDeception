@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://p7wkxaw77bvr" path="res://ui/global_chat/GlobalChat.gd" id="1_2gaj1"]
 
 [node name="GlobalChat" type="Node2D"]
+visible = false
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
