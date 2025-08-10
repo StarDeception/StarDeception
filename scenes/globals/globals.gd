@@ -1,5 +1,7 @@
 extends Node
 
+var init_scene = "res://levels/system-sandbox/system_sandbox.tscn"
+
 var playerName: String = "I am an idiot !"
 var onlineMode: bool = false
 

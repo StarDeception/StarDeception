@@ -1,26 +1,66 @@
 extends CharacterBody3D
+class_name Player
 
-@onready var camera = $Camera3D
+@onready var camera = $CameraPivot/Camera3D
 
 @onready var labelx: Label = $UserInterface/LabelXValue
 @onready var labely: Label = $UserInterface/LabelYValue
 @onready var labelz: Label = $UserInterface/LabelZValue
 @onready var labelPlayerName: Label3D = %LabelPlayerName
 @onready var astronaut: Node3D = $Placeholder_Collider/Astronaut
+@onready var interact_ray: RayCast3D = $CameraPivot/Camera3D/InteractRay
+@onready var interact_label: Label = $UserInterface/InteractLabel
+@onready var camera_pivot: Node3D = $CameraPivot
 
 @onready var box4m: PackedScene = preload("res://scenes/props/testbox/box_4m.tscn")
 @onready var box50m: PackedScene = preload("res://scenes/props/testbox/box_50cm.tscn")
 @onready var isInsideBox4m: bool = false
 
-const SPEED = 5.0
-const JUMP_VELOCITY = 4.5
+@onready var game_is_paused: bool = false
+
+@export_group("Controls map names")
+@export var MOVE_FORWARD: String = "move_forward"
+@export var MOVE_BACK: String = "move_back"
+@export var MOVE_LEFT: String = "move_left"
+@export var MOVE_RIGHT: String = "move_right"
+@export var JUMP: String = "jump"
+@export var CROUCH: String = "crouch"
+@export var SPRINT: String = "sprint"
+@export var PAUSE: String = "pause"
+
+@export_group("Customizable player stats")
+@export var walk_back_speed: float = 1.5
+@export var walk_speed: float = 2.5
+@export var player_thruster_force = 10
+@export var sprint_speed: float = 5.0
+@export var crouch_speed: float = 1.5
+@export var jump_height: float = 1.0
+@export var acceleration: float = 10.0
+@export var arm_length: float = 0.5
+@export var regular_climb_speed: float = 6.0
+@export var fast_climb_speed: float = 8.0
+@export_range(0.0, 1.0) var view_bobbing_amount: float = 1.0
+@export_range(1.0, 10.0) var camera_sensitivity: float = 2.0
+@export_range(0.0, 0.5) var camera_start_deadzone: float = .2
+@export_range(0.0, 0.5) var camera_end_deadzone: float = .1
+
+var input_direction: Vector2
+var movement_strength: float
+var mouse_motion: Vector2
+
+@export var gravity = 0.0
+
+var gravity_parents: Array[Area3D]
+
+# to disable player input when piloting vehicule/ship
+var active = true
 
 func _enter_tree() -> void:
 	set_multiplayer_authority(str(name).to_int())
 
 func _ready() -> void:
 	if not is_multiplayer_authority(): return
-	
+
 	# Here: client have authority
 	if Globals.playerName == "":
 		labelPlayerName.text = "I'm an idiot!"
@@ -33,52 +73,150 @@ func _ready() -> void:
 	# hide player name label for me only
 	labelPlayerName.visible = false
 	astronaut.visible = false
+	
+	if not is_multiplayer_authority(): return
+	connect_area_detect()
 
+
+func connect_area_detect():
+	$AreaDetector.area_entered.connect(_on_area_detector_area_entered)
+	$AreaDetector.area_exited.connect(_on_area_detector_area_exited)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not is_multiplayer_authority(): return
-	if event is InputEventMouseMotion:
-		rotate_y(-event.relative.x * 0.005)
-		camera.rotate_x(-event.relative.y * 0.005)
-		camera.rotation.x = clamp(camera.rotation.x, -PI/2, PI/2)
-
-	if event.is_action_pressed("spawn_4mbox"):
-		call_deferred("spawn_box4m")
+	if !active: return
+	
+	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+		mouse_motion = -event.relative * 0.001
 	
 	if event.is_action_pressed("spawn_50cmbox"):
 		# action of client, send RPC request to server (id = 1)
 		Server.spawn_box50cm.rpc_id(1, global_position + (-transform.basis.z * 1.5) + Vector3.UP * 2.0)
+	
+	if event.is_action_pressed("spawn_4mbox"):
+		Server.spawn_box4m.rpc_id(1)
+	
+	if event.is_action_pressed(PAUSE):
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		game_is_paused = true
+	
+	if game_is_paused and event is InputEventMouseButton:
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		game_is_paused = false
+
+	
+	
+	
+	
+	if Input.is_action_just_pressed("ext_cam"):
+		if $ExtCamera3D.current:
+			camera.make_current()
+		else: 
+			$ExtCamera3D.make_current()
+
+func _process(delta: float) -> void:
+	if not is_multiplayer_authority(): return
+	if !active: return
+	
+	_handle_camera_motion()
+	
+	interact_label.hide()
+	if interact_ray.is_colliding():
+		var collider = interact_ray.get_collider()
+		if collider.has_method("interact"):
+			interact_label.text = collider.label
+			interact_label.show()
+			if Input.is_action_just_pressed("interact"):
+				collider.interact()
+				interact_label.hide()
+
 
 func _physics_process(delta: float) -> void:
 	if not is_multiplayer_authority(): return
-	# Add the gravity.
-	if not is_on_floor():
-		velocity += get_gravity() * delta
-
-	# Handle jump.
-	if Input.is_action_just_pressed("ui_accept") and is_on_floor() and not GlobalChat.is_focused:
-		velocity.y = JUMP_VELOCITY
-
-	if GlobalChat.is_focused:
-		velocity.x = 0
-		velocity.z = 0
+	if !active: return
+	
+	var dir_vect = Input.get_vector(MOVE_LEFT, MOVE_RIGHT, MOVE_FORWARD, MOVE_BACK)
+	if dir_vect:
+		input_direction = dir_vect
 	else:
-		# Get the input direction and handle the movement/deceleration.
-		# As good practice, you should replace UI actions with custom gameplay actions.
-		var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
-		var direction := (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
-		if direction:
-			velocity.x = direction.x * SPEED
-			velocity.z = direction.z * SPEED
-		else:
-			velocity.x = move_toward(velocity.x, 0, SPEED)
-			velocity.z = move_toward(velocity.z, 0, SPEED)
+		input_direction = Vector2.ZERO
 
+	var sprint = Input.is_action_pressed(SPRINT)
+	var jump = Input.is_action_just_pressed(JUMP)
+	
+	var parent_gravity_area: Area3D = gravity_parents.back() if not gravity_parents.is_empty() else null
+	
+	if parent_gravity_area:
+		
+		if parent_gravity_area.gravity_point:
+			var space_state = get_world_3d().direct_space_state
+			var param = PhysicsRayQueryParameters3D.new()
+			param.from = global_position
+			param.to = parent_gravity_area.global_position
+			var result = space_state.intersect_ray(param)
+			if result:
+				up_direction = result.normal
+		else:
+			up_direction = parent_gravity_area.global_basis.y
+		
+		gravity = parent_gravity_area.gravity
+		motion_mode = CharacterBody3D.MOTION_MODE_GROUNDED
+	else:
+		# 0g movement
+		gravity = 0.0
+		camera_pivot.rotation.x = 0
+		motion_mode = CharacterBody3D.MOTION_MODE_FLOATING
+		var dir = Vector3(input_direction.x, 0, input_direction.y)
+		
+		velocity += global_basis * dir * player_thruster_force * delta
+		velocity *= 0.98
+	
+	var move_direction = (global_transform.basis * Vector3(input_direction.x, 0, input_direction.y)).normalized()
+	
+	if gravity > 0:
+		orient_player(delta)
+	
+	var speed = sprint_speed if sprint else walk_speed
+	
+	if is_on_floor():
+		if input_direction:
+			velocity = move_direction * speed
+		else:
+			velocity = velocity.move_toward(Vector3.ZERO, speed)
+	else:
+		# "air" movement
+		if input_direction:
+			velocity += move_direction * speed * delta
+			
+	if is_on_floor() and jump:
+		velocity += up_direction * jump_height * gravity
+	# Add the gravity.
+	elif not is_on_floor():
+		velocity -= up_direction * gravity * 2.0 * delta
+
+	#prints("player vel", velocity, multiplayer.get_unique_id())
+	
+	#prints("player pos", position, rotation, multiplayer.get_unique_id())
 	move_and_slide()
 
 	labelx.text = str("%0.2f" % global_position[0])
 	labely.text = str("%0.2f" % global_position[1])
 	labelz.text = str("%0.2f" % global_position[2])
+
+func _handle_camera_motion():
+	if gravity == 0:
+		camera_pivot.rotation.x = 0
+		rotate_object_local(Vector3.UP, mouse_motion.x  * camera_sensitivity)
+		rotate_object_local(Vector3.RIGHT, mouse_motion.y  * camera_sensitivity)
+	else:
+		global_rotate(global_basis.y, mouse_motion.x * camera_sensitivity)
+		camera_pivot.global_rotate(global_basis.x, mouse_motion.y  * camera_sensitivity)
+		camera_pivot.rotation_degrees.x = clamp(camera_pivot.rotation_degrees.x, -80, 80)
+	mouse_motion = Vector2.ZERO
+	camera_pivot.global_basis = camera_pivot.global_basis.orthonormalized()
+
+func orient_player(delta: float):
+	global_transform = global_transform.interpolate_with(Globals.align_with_y(global_transform, up_direction), 0.3)
 
 func set_player_name(name):
 	labelPlayerName.text = str(name)
@@ -86,10 +224,18 @@ func set_player_name(name):
 func get_player_name():
 	print(labelPlayerName.text)
 
-func spawn_box4m() -> void:
-	var box4m_instance: RigidBody3D = box4m.instantiate()
-	var spawn_position: Vector3 = global_position + (-transform.basis.z * 3.0) + Vector3.UP * 6.0
-	get_tree().current_scene.add_child(box4m_instance)
-	box4m_instance.global_position = spawn_position
-	var to_player = (global_transform.origin - spawn_position)
-	box4m_instance.rotate_y(atan2(to_player.x, to_player.z) + PI)
+
+
+func _on_area_detector_area_entered(area: Area3D) -> void:
+	if area.is_in_group("gravity"):
+		gravity_parents.push_back(area)
+		prints("player entered gravity area", area)
+		#disconnect_area_detect()
+		#await call_deferred("reparent", self, area)
+		#connect_area_detect()
+
+func _on_area_detector_area_exited(area: Area3D) -> void:
+	if area.is_in_group("gravity"):
+		if gravity_parents.has(area):
+			prints("player left gravity area", area)
+			gravity_parents.erase(area)

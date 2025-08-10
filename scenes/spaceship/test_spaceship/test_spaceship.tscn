@@ -1,9 +1,20 @@
-[gd_scene load_steps=9 format=3 uid="uid://xud5xo51ir5r"]
+[gd_scene load_steps=10 format=3 uid="uid://xud5xo51ir5r"]
 
 [ext_resource type="Script" uid="uid://bpb1urve1pqnj" path="res://scenes/spaceship/test_spaceship/test_spaceship.gd" id="1_f1s04"]
 [ext_resource type="Material" uid="uid://wm1k35sl1iwp" path="res://assets/materials/material_basic_orange.tres" id="1_vvggs"]
 [ext_resource type="Script" uid="uid://di4o647k2wjid" path="res://scenes/spaceship/test_spaceship/ship_console.gd" id="2_xjcjc"]
 [ext_resource type="PackedScene" uid="uid://dumbqmrjvj582" path="res://scenes/grid/physics_grid.tscn" id="3_xjcjc"]
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_xjcjc"]
+properties/0/path = NodePath(".:position")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath(".:rotation")
+properties/1/spawn = true
+properties/1/replication_mode = 1
+properties/2/path = NodePath("PilotSeat:remote_path")
+properties/2/spawn = true
+properties/2/replication_mode = 1
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_hn282"]
 size = Vector3(3.16406, 3.22339, 5.33411)
@@ -26,6 +37,9 @@ script = ExtResource("1_f1s04")
 speed = 3000
 roll_speed = 200
 
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+replication_config = SubResource("SceneReplicationConfig_xjcjc")
+
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.458999, -1.28591)
 shape = SubResource("BoxShape3D_hn282")
@@ -39,8 +53,8 @@ label = "Pilot ship [F]"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.552779, -0.0702209)
 shape = SubResource("BoxShape3D_xjcjc")
 
-[node name="PilotPosition" type="Marker3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.763336, -2.74163)
+[node name="PilotSeat" type="RemoteTransform3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.763336, -3.06721)
 
 [node name="ShipPhysicsGrid" parent="." instance=ExtResource("3_xjcjc")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.921729, -3.45297)

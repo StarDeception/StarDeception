@@ -1,10 +1,14 @@
 extends Node
 
 var normal_player = preload("res://scenes/normal_player/normal_player.tscn")
-var sandbox_scene = preload("res://levels/sandbox/sandbox.tscn")
 var box_50cm = preload("res://scenes/props/testbox/box_50cm.tscn")
+const box_4m = preload("res://scenes/props/testbox/box_4m.tscn")
+var spaceship_scene = preload("res://scenes/spaceship/test_spaceship/test_spaceship.tscn")
 
-var _players_spawn_node
+## triggered when a new player has spawned
+signal player_spawned(id)
+
+var entities_spawn_node: Node3D
 var _spawn_node_box_50cm
 
 var SDOServerUrl = ""
@@ -19,6 +23,9 @@ var ServerMQTTVerboseLevel
 
 const mqtt = preload("res://addons/mqtt/mqtt.tscn")
 var MQTTClient
+
+var players: Dictionary[int, Player] = {}
+var player_ship: Dictionary[int, Spaceship] = {}
 
 @onready var isInsideBox4m: bool = false
 
@@ -48,15 +55,19 @@ func _display_type_of_var(variable):
 func _start_server():
 	print("Starting the server...")
 	# change to main scene
-	get_tree().change_scene_to_packed(sandbox_scene)
-	await get_tree().create_timer(4.0).timeout
+	get_tree().call_deferred("change_scene_to_file", Globals.init_scene)
+	await get_tree().process_frame
+	await get_tree().process_frame
 	loadServerConfig()
-
-	_players_spawn_node = get_tree().get_current_scene().get_node("Players")
-	_spawn_node_box_50cm = get_tree().get_current_scene().get_node("Boxes50cm")
+	
+	entities_spawn_node = get_tree().get_current_scene().get_node("Planet")
 
 	var server_peer = ENetMultiplayerPeer.new()
-	server_peer.create_server(7051, 150)
+	var res = server_peer.create_server(7051, 150)
+	if res != OK:
+		prints("creating server failed:", error_string(res))
+		return
+		
 	multiplayer.multiplayer_peer = server_peer
 	connect_chat_mqtt()
 	print("server loaded... \\o/")
@@ -79,23 +90,23 @@ func loadServerConfig():
 
 func _on_player_connected(id):
 	print("player " + str(id) + " connected, wouahou !")
-	var player_to_add = normal_player.instantiate()
-	player_to_add.name = str(id)
-	_players_spawn_node.add_child(player_to_add, true)
+	
+	player_spawned.emit(id)
 
 func _on_player_disconnect(id):
 	print("player " + str(id) + " disconnected")
-
-	var player = _players_spawn_node.get_node_or_null(str(id))
+	var player = entities_spawn_node.get_node_or_null(str(id))
 	if player:
 		player.queue_free()
 
-@rpc("any_peer", "call_local", "reliable")
+
+@rpc("any_peer", "call_remote", "reliable")
 func spawn_box50cm(spawn_position) -> void:
+	var senderid = multiplayer.get_remote_sender_id()
 	# server received and ths is played on all clients (rpc any_peer)
 	var box50cm_instance = box_50cm.instantiate()
-	_spawn_node_box_50cm = get_tree().get_current_scene().get_node("Boxes50cm")
-	_spawn_node_box_50cm.add_child(box50cm_instance, true)
+	
+	players[senderid].add_sibling(box50cm_instance, true)
 	box50cm_instance.global_position = spawn_position
 	
 	if isInsideBox4m:
@@ -143,6 +154,15 @@ func server_receive_chat_message(channelName, pseudo, message):
 	}))
 
 
+@rpc("any_peer", "call_remote", "reliable")
+func spawn_box4m() -> void:
+	var player = Server.players[multiplayer.get_remote_sender_id()]
+	var box4m_instance: RigidBody3D = box_4m.instantiate()
+	var spawn_position: Vector3 = player.global_position + (-player.transform.basis.z * 3.0) + Vector3.UP * 6.0
+	player.add_sibling(box4m_instance, true)
+	box4m_instance.global_position = spawn_position
+	var to_player = (player.global_transform.origin - spawn_position)
+	box4m_instance.rotate_y(atan2(to_player.x, to_player.z) + PI)
 
 #####################################################################################
 ## Played on the very first game server (to manage all players positions)
@@ -156,7 +176,7 @@ func server_receive_chat_message(channelName, pseudo, message):
 # Played on client
 ####################################################################################
 
-func create_client(player_scene):
+func create_client():
 	# create client
 	var client_peer = ENetMultiplayerPeer.new()
 	client_peer.create_client("127.0.0.1", 7051)

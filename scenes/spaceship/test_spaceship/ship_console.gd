@@ -1,6 +1,9 @@
 extends Area3D
+class_name Interactable
 
 @export var label = "Interact"
 
-func interact(player: Player):
-	owner.take_control(player)
+signal interacted()
+
+func interact():
+	emit_signal("interacted")

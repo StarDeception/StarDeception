@@ -16,8 +16,9 @@ background_color = Color(0.101563, 0.101563, 0.101563, 1)
 sky = SubResource("Sky_gmgav")
 tonemap_mode = 2
 
-[node name="SystemSandbox" type="Node3D"]
+[node name="SystemSandbox" type="Node3D" node_paths=PackedStringArray("spawn_node")]
 script = ExtResource("1_6wdpo")
+spawn_node = NodePath("Planet")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(-0.866023, -0.433016, 0.250001, 0, 0.499998, 0.866027, -0.500003, 0.749999, -0.43301, 0, 0, 0)
@@ -27,3 +28,7 @@ shadow_enabled = true
 environment = SubResource("Environment_jp7ei")
 
 [node name="Planet" parent="." instance=ExtResource("2_jp7ei")]
+
+[node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="."]
+_spawnable_scenes = PackedStringArray("uid://ccme8rxijtf2s", "uid://xud5xo51ir5r", "uid://d37hc6ybk8fsj", "uid://cptjp55tlikyl")
+spawn_path = NodePath("../Planet")
