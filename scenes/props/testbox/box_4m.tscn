@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://cptjp55tlikyl"]
+[gd_scene load_steps=10 format=3 uid="uid://cptjp55tlikyl"]
 
 [ext_resource type="ArrayMesh" uid="uid://jg1qr0355r1d" path="res://assets/models/Testbox/Box4m.mesh" id="1_82nol"]
 [ext_resource type="Script" uid="uid://d01f76c0qpc0d" path="res://scenes/props/testbox/box_4m.gd" id="1_ealuu"]
@@ -17,6 +17,14 @@ albedo_color = Color(1, 0, 1, 1)
 [sub_resource type="BoxMesh" id="BoxMesh_3xnib"]
 material = SubResource("StandardMaterial3D_ealuu")
 size = Vector3(4, 0.1, 4)
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_l5hyn"]
+properties/0/path = NodePath(".:rotation")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath(".:position")
+properties/1/spawn = true
+properties/1/replication_mode = 1
 
 [node name="RigidBody3D" type="RigidBody3D"]
 script = ExtResource("1_ealuu")
@@ -46,3 +54,6 @@ shape = ExtResource("3_ealuu")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.8, 0)
 visible = false
 mesh = SubResource("BoxMesh_3xnib")
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+replication_config = SubResource("SceneReplicationConfig_l5hyn")

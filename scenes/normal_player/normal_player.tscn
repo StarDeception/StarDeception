@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://ccme8rxijtf2s"]
+[gd_scene load_steps=12 format=3 uid="uid://ccme8rxijtf2s"]
 
 [ext_resource type="Script" uid="uid://b3ifoxj2c0cjt" path="res://scenes/normal_player/normal_player.gd" id="1_ll2l8"]
 [ext_resource type="PackedScene" uid="uid://vv063vdbl0aa" path="res://assets/models/astronaut/astronaut.res" id="2_rulc8"]
@@ -23,10 +23,18 @@ properties/2/path = NodePath(".:rotation")
 properties/2/spawn = true
 properties/2/replication_mode = 1
 
+[sub_resource type="LabelSettings" id="LabelSettings_kcm5r"]
+font_size = 24
+outline_size = 2
+outline_color = Color(0, 0, 0, 1)
+
 [sub_resource type="BoxShape3D" id="BoxShape3D_kcm5r"]
+size = Vector3(0.53418, 1.39465, 0.44873)
 
 [node name="NormalPlayer" type="CharacterBody3D"]
 script = ExtResource("1_ll2l8")
+walk_speed = 5.0
+sprint_speed = 10.0
 
 [node name="Placeholder_Collider" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.08165e-12, 0.9, 2.08165e-12)
@@ -195,20 +203,20 @@ offset_right = 553.0
 offset_bottom = 103.0
 
 [node name="InteractLabel" type="Label" parent="UserInterface"]
-visible = false
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -100.0
-offset_top = -66.0
-offset_right = 97.0
-offset_bottom = -41.0
+offset_left = -83.0
+offset_top = -67.0
+offset_right = 85.0
+offset_bottom = -44.0
 grow_horizontal = 2
 grow_vertical = 0
 text = "Interact"
+label_settings = SubResource("LabelSettings_kcm5r")
 horizontal_alignment = 1
 
 [node name="LabelPlayerName" type="Label3D" parent="."]
@@ -221,7 +229,7 @@ text = "Dummy"
 monitorable = false
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="AreaDetector"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.50544, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.702767, 0.0593262)
 shape = SubResource("BoxShape3D_kcm5r")
 
 [node name="ExtCamera3D" type="Camera3D" parent="."]

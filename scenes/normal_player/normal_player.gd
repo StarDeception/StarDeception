@@ -73,9 +73,12 @@ func _ready() -> void:
 	# hide player name label for me only
 	labelPlayerName.visible = false
 	astronaut.visible = false
-	
-	if not is_multiplayer_authority(): return
 	connect_area_detect()
+	
+	
+	await get_tree().create_timer(1).timeout
+	Server.spawn_ship.rpc_id(1)
+	
 
 
 func connect_area_detect():
@@ -91,7 +94,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	
 	if event.is_action_pressed("spawn_50cmbox"):
 		# action of client, send RPC request to server (id = 1)
-		Server.spawn_box50cm.rpc_id(1, global_position + (-transform.basis.z * 1.5) + Vector3.UP * 2.0)
+		Server.spawn_box50cm.rpc_id(1)
 	
 	if event.is_action_pressed("spawn_4mbox"):
 		Server.spawn_box4m.rpc_id(1)
@@ -104,14 +107,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		game_is_paused = false
 
-	
-	
-	
-	
 	if Input.is_action_just_pressed("ext_cam"):
 		if $ExtCamera3D.current:
 			camera.make_current()
+			astronaut.visible = false
 		else: 
+			astronaut.visible = true
 			$ExtCamera3D.make_current()
 
 func _process(delta: float) -> void:

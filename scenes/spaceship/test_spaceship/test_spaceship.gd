@@ -83,7 +83,6 @@ func _process(delta: float) -> void:
 ## Set the position of the ship after the spawn
 @rpc("authority", "call_local", "reliable")
 func position_ship(new_pos: Vector3, planet_normal: Vector3):
-	print("position ship", new_pos)
 	global_position = new_pos
 	global_transform = Globals.align_with_y(global_transform, planet_normal)
 

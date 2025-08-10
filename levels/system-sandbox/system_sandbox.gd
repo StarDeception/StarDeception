@@ -23,39 +23,22 @@ func on_player_spawn(id):
 	# spawn station for the new connected player
 	spawn_station.rpc_id(id)
 	
-	# spawn player on all server
+	# spawn player on server
 	spawn_player(id)
 	
-	# spawn the ship for this player on all remotes
-	spawn_ship(id)
 
-func spawn_player(id: int):
+func spawn_player(id: int) -> void:
 	var player = normal_player.instantiate()
 	player.name = str(id)
 	spawn_node.add_child(player, true)
 	Server.players[id] = player
 	
-	var point = Vector3(randf_range(-.2, .2), 1.0, randf_range(-.2, .2))
+	var point = Vector3(randf_range(-.1, .1), 1.0, randf_range(-.2, .2))
 	print(point)
 	var planet_normal = point.normalized()
 	var spawn_point: Vector3 = planet_normal * 2002.0
 	
 	set_player_position.rpc(id, spawn_point, planet_normal)
-	prints("player spawn", spawn_point)
-
-func spawn_ship(id: int):
-	var player = Server.players[id]
-	var ship_pos = player.global_position + player.global_basis.x * 10 + player.global_basis.y * 3
-	
-	var spaceship = spaceship_scene.instantiate() as Spaceship
-	#if multiplayer.is_server():
-	Server.player_ship[id] = spaceship
-	spawn_node.add_child(spaceship, true)
-	
-	var player_position = player.global_position
-	var planet_normal = spawn_node.global_position.direction_to(player_position)
-	spaceship.position_ship.rpc(ship_pos, planet_normal)
-
 
 
 @rpc("authority", "call_remote", "reliable")
@@ -72,9 +55,7 @@ func set_player_position(id: int, position: Vector3, planet_normal: Vector3):
 	player.global_position = position
 	player.global_transform = Globals.align_with_y(player.global_transform, planet_normal)
 
-#@rpc("authority", "call_local", "reliable")
-
 
 func _physics_process(delta: float) -> void:
-	#pass
+	pass
 	spawn_node.rotation.y += 0.01 * delta

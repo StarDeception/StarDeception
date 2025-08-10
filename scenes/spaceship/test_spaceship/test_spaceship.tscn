@@ -34,7 +34,7 @@ continuous_cd = true
 linear_damp = 0.2
 angular_damp = 2.0
 script = ExtResource("1_f1s04")
-speed = 3000
+speed = 2000
 roll_speed = 200
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
@@ -54,7 +54,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.552779, -0.0702209)
 shape = SubResource("BoxShape3D_xjcjc")
 
 [node name="PilotSeat" type="RemoteTransform3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.763336, -3.06721)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.763, -2.664)
 
 [node name="ShipPhysicsGrid" parent="." instance=ExtResource("3_xjcjc")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.921729, -3.45297)

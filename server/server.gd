@@ -98,13 +98,24 @@ func _on_player_disconnect(id):
 	var player = entities_spawn_node.get_node_or_null(str(id))
 	if player:
 		player.queue_free()
+	
+	var ship = player_ship[id]
+	if ship:
+		ship.queue_free()
+	
+	players.erase(id)
+	player_ship.erase(id)
 
 
 @rpc("any_peer", "call_remote", "reliable")
-func spawn_box50cm(spawn_position) -> void:
+func spawn_box50cm() -> void:
 	var senderid = multiplayer.get_remote_sender_id()
 	# server received and ths is played on all clients (rpc any_peer)
 	var box50cm_instance = box_50cm.instantiate()
+	
+	var player = players[senderid]
+	
+	var spawn_position = player.global_position + (-player.global_basis.z * 1.5) + player.global_basis.y * 2.0
 	
 	players[senderid].add_sibling(box50cm_instance, true)
 	box50cm_instance.global_position = spawn_position
@@ -158,11 +169,28 @@ func server_receive_chat_message(channelName, pseudo, message):
 func spawn_box4m() -> void:
 	var player = Server.players[multiplayer.get_remote_sender_id()]
 	var box4m_instance: RigidBody3D = box_4m.instantiate()
-	var spawn_position: Vector3 = player.global_position + (-player.transform.basis.z * 3.0) + Vector3.UP * 6.0
+	var spawn_position: Vector3 = player.global_position + (-player.global_basis.z * 3.0) + player.global_basis.y * 6.0
 	player.add_sibling(box4m_instance, true)
 	box4m_instance.global_position = spawn_position
 	var to_player = (player.global_transform.origin - spawn_position)
 	box4m_instance.rotate_y(atan2(to_player.x, to_player.z) + PI)
+
+@rpc("any_peer", "call_remote", "reliable")
+func spawn_ship() -> void:
+	var id = multiplayer.get_remote_sender_id()
+	var player = Server.players[id]
+	var ship_pos = player.global_position + -player.global_basis.z * 10 + player.global_basis.y * 3
+	
+	var spaceship = spaceship_scene.instantiate() as Spaceship
+	
+	Server.player_ship[id] = spaceship
+	player.add_sibling(spaceship, true)
+	
+	var planet_normal = get_tree().current_scene.global_position.direction_to(player.global_position)
+	
+	#spaceship.position_ship.rpc(ship_pos, planet_normal)
+	spaceship.global_position = ship_pos
+	spaceship.global_transform = Globals.align_with_y(spaceship.global_transform, planet_normal)
 
 #####################################################################################
 ## Played on the very first game server (to manage all players positions)
