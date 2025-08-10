@@ -1,7 +1,8 @@
-[gd_scene load_steps=6 format=3 uid="uid://drqxadtx316hs"]
+[gd_scene load_steps=7 format=3 uid="uid://drqxadtx316hs"]
 
 [ext_resource type="Script" uid="uid://de1e8utjyqtod" path="res://levels/system-sandbox/system_sandbox.gd" id="1_6wdpo"]
 [ext_resource type="PackedScene" uid="uid://rv6ugxi8n8pe" path="res://scenes/planet/testplanet.tscn" id="2_jp7ei"]
+[ext_resource type="PackedScene" uid="uid://cpju4tbxmjpwc" path="res://ui/global_chat/global_chat.tscn" id="3_6wdpo"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_swxq8"]
 sky_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
@@ -32,3 +33,5 @@ environment = SubResource("Environment_jp7ei")
 [node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="."]
 _spawnable_scenes = PackedStringArray("uid://ccme8rxijtf2s", "uid://xud5xo51ir5r", "uid://d37hc6ybk8fsj", "uid://cptjp55tlikyl")
 spawn_path = NodePath("../Planet")
+
+[node name="GlobalChat" parent="." instance=ExtResource("3_6wdpo")]

@@ -89,6 +89,16 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not is_multiplayer_authority(): return
 	if !active: return
 	
+	if GlobalChat.is_focused: return
+	
+	if event.is_action_pressed(PAUSE):
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		game_is_paused = true
+	
+	if game_is_paused and event is InputEventMouseButton:
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		game_is_paused = false
+	
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		mouse_motion = -event.relative * 0.001
 	
@@ -99,13 +109,6 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("spawn_4mbox"):
 		Server.spawn_box4m.rpc_id(1)
 	
-	if event.is_action_pressed(PAUSE):
-		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-		game_is_paused = true
-	
-	if game_is_paused and event is InputEventMouseButton:
-		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-		game_is_paused = false
 
 	if Input.is_action_just_pressed("ext_cam"):
 		if $ExtCamera3D.current:
@@ -137,7 +140,7 @@ func _physics_process(delta: float) -> void:
 	if !active: return
 	
 	var dir_vect = Input.get_vector(MOVE_LEFT, MOVE_RIGHT, MOVE_FORWARD, MOVE_BACK)
-	if dir_vect:
+	if dir_vect and !GlobalChat.is_focused:
 		input_direction = dir_vect
 	else:
 		input_direction = Vector2.ZERO
@@ -180,7 +183,7 @@ func _physics_process(delta: float) -> void:
 	var speed = sprint_speed if sprint else walk_speed
 	
 	if is_on_floor():
-		if input_direction:
+		if input_direction and !GlobalChat.is_focused:
 			velocity = move_direction * speed
 		else:
 			velocity = velocity.move_toward(Vector3.ZERO, speed)
@@ -189,7 +192,7 @@ func _physics_process(delta: float) -> void:
 		if input_direction:
 			velocity += move_direction * speed * delta
 			
-	if is_on_floor() and jump:
+	if is_on_floor() and jump and !GlobalChat.is_focused:
 		velocity += up_direction * jump_height * gravity
 	# Add the gravity.
 	elif not is_on_floor():
@@ -199,7 +202,7 @@ func _physics_process(delta: float) -> void:
 	
 	#prints("player pos", position, rotation, multiplayer.get_unique_id())
 	move_and_slide()
-
+	
 	labelx.text = str("%0.2f" % global_position[0])
 	labely.text = str("%0.2f" % global_position[1])
 	labelz.text = str("%0.2f" % global_position[2])
