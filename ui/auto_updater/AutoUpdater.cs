@@ -103,7 +103,7 @@ public partial class AutoUpdater : RichTextLabel {
             int n = 0;
             while ((bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length)) > 0) {
                 if (n % 1000 == 0) {
-                    GD.Print("Copie du buffer en pos " + (int)receivedBytes + " = " + ((receivedBytes / (double)totalBytes) * 100.0) + "%");
+                    GD.Print("Copie du buffer en pos " + (int)receivedBytes + " = " + ((receivedBytes / (double)bufer_bin.Length) * 100.0) + "%");
                 }
                 Buffer.BlockCopy(buffer, 0, bufer_bin, (int)receivedBytes, bytesRead);
                 receivedBytes += bytesRead;
