@@ -213,10 +213,10 @@ func _handle_camera_motion():
 		rotate_object_local(Vector3.UP, mouse_motion.x  * camera_sensitivity)
 		rotate_object_local(Vector3.RIGHT, mouse_motion.y  * camera_sensitivity)
 	else:
-		rotate_y(mouse_motion.x * camera_sensitivity)
-		camera_pivot.rotate_x(mouse_motion.y  * camera_sensitivity)
-		camera_pivot.rotation_degrees.x = clamp(camera_pivot.rotation_degrees.x, -80, 80)
 		orient_player()
+		global_basis = global_basis.rotated(global_basis.y, mouse_motion.x * camera_sensitivity)
+		camera_pivot.rotate_object_local(Vector3.RIGHT, mouse_motion.y  * camera_sensitivity)
+		camera_pivot.rotation_degrees.x = clamp(camera_pivot.rotation_degrees.x, -80, 80)
 	mouse_motion = Vector2.ZERO
 
 func orient_player():
