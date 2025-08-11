@@ -1,9 +1,6 @@
 # Godot 4+ specific ignores
 .godot/
 
-# vscode specific ignores files
-.vscode/
-
 # Godot-specific ignores
 .import/
 export.cfg
@@ -21,4 +18,6 @@ mono_crash.*.json
 *.blend1
 
 # specific for this project (build versions)
-build/StarDeception.*
+StarDeception.*
+/.vs
+/build

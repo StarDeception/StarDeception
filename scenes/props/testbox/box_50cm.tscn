@@ -8,8 +8,17 @@
 [sub_resource type="BoxShape3D" id="BoxShape3D_urcx6"]
 size = Vector3(0.5, 0.5, 0.5)
 
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_8kwx5"]
+properties/0/path = NodePath(".:position")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath(".:rotation")
+properties/1/spawn = true
+properties/1/replication_mode = 1
+
 [node name="box_50cm" type="RigidBody3D"]
 mass = 0.25
+continuous_cd = true
 script = ExtResource("1_o2evt")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
@@ -18,6 +27,9 @@ surface_material_override/0 = ExtResource("3_ovsim")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 shape = SubResource("BoxShape3D_urcx6")
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+replication_config = SubResource("SceneReplicationConfig_8kwx5")
 
 [node name="DataEntity" type="Node" parent="."]
 script = ExtResource("4_f5bhg")

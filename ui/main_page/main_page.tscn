@@ -1,8 +1,8 @@
 [gd_scene load_steps=4 format=3 uid="uid://c2iig1r7l0cbb"]
 
 [ext_resource type="Script" uid="uid://1l14ge8hbbo1" path="res://ui/main_page/main_page.gd" id="1_o7ao7"]
-[ext_resource type="Texture2D" uid="uid://trpcoqhuryo0" path="res://assets/Menu/Background_1920x1080.png" id="2_b1ygv"]
-[ext_resource type="Texture2D" uid="uid://0yw6o1aoe6pj" path="res://assets/Menu/Title_StarDeception.svg" id="3_wrgf5"]
+[ext_resource type="Texture2D" uid="uid://trpcoqhuryo0" path="res://assets/textures/Menu/Background_1920x1080.png" id="2_b1ygv"]
+[ext_resource type="Texture2D" uid="uid://0yw6o1aoe6pj" path="res://assets/textures/Menu/Title_StarDeception.svg" id="3_wrgf5"]
 
 [node name="MainPage" type="CanvasLayer"]
 script = ExtResource("1_o7ao7")
