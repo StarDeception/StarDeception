@@ -1,29 +1,34 @@
 using Godot;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
 public partial class AutoUpdater : RichTextLabel {
-
+    #region vars
     string repo_url = "https://github.com/StarDeception/StarDeception/releases/download/test/";
     public string exeUrl;
     public string hashUrl;
     public string updaterUrl;
-    byte[] hash_bin;
+    byte[] hash_bin = new byte[0];
+    byte[] bufer_bin = new byte[0];
+    long receivedBytes = 0;
 
-    public string expectedHash = ""; // SHA256 attendu par défaut (bf2d3a65ffa3ab8c1de8f7fa15ed0a22552a15913fbbd74caf9da38d33db7528)
-    public string saveHashPath = "user://hash.sha256"; // Emplacement local
-    public string saveExePath = "user://StarDeception.windows.exe"; // Emplacement local de l'exe
-    public string saveUpdaterPath = "user://SDUpdater.exe"; // Emplacement local de l'exe
+    public string expectedHash = ""; // SHA256 localy downloaded
+    public string saveHashPath = "user://hash.sha256";
+    public string saveExePath = "user://StarDeception.windows.exe";
+    public string saveUpdaterPath = "user://SDUpdater.exe";
     RichTextLabel statusLabel;
     [Export] CheckButton hideCheck;
     [Export] RichTextLabel hideLabel;
     [Export] ProgressBar progressBar;
     [Export] Button launchMajButton;
+    #endregion
 
     public override async void _Ready() {
         //définition des fichiers à télécharger sur le repo git
@@ -65,38 +70,72 @@ public partial class AutoUpdater : RichTextLabel {
         await CheckForUpdateAsync();
     }
 
+    /// <summary>
+    /// download a big file (here only the executable) and get the ability to resume it if failed
+    /// </summary>
+    /// <param name="url"></param>
+    /// <param name="savePath"></param>
+    /// <returns></returns>
     public async Task DownloadFileWithProgressAsync(string url, string savePath) {
-        using var client = new System.Net.Http.HttpClient();
-        using var response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+        try {
+            using var client = new System.Net.Http.HttpClient();
 
-        response.EnsureSuccessStatusCode();
+            if (bufer_bin.Length != 0) {
+                GD.Print("Reprise d'un téléchargement, je possède " + receivedBytes + " octets déjà en mémoire");
+                client.DefaultRequestHeaders.Range = new System.Net.Http.Headers.RangeHeaderValue(receivedBytes, null);
+            }
 
-        long totalBytes = response.Content.Headers.ContentLength ?? -1;
-        long receivedBytes = 0;
+            using var response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
 
-        using var contentStream = await response.Content.ReadAsStreamAsync();
-        GD.Print("Save large binary file to " + savePath + " > " + ProjectSettings.GlobalizePath(savePath));
-        using var fileStream = File.Create(ProjectSettings.GlobalizePath(savePath));
-        GD.Print("binary total len = " + totalBytes);
-        var buffer = new byte[8192];
-        int bytesRead;
-        while ((bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length)) > 0) {
-            await fileStream.WriteAsync(buffer, 0, bytesRead);
-            receivedBytes += bytesRead;
-            progressBar.Value = (receivedBytes / (double)totalBytes) * 100.0;
+            response.EnsureSuccessStatusCode();
+
+            long totalBytes = response.Content.Headers.ContentLength ?? -1;
+            if (bufer_bin.Length == 0) {
+                bufer_bin = new byte[totalBytes];
+                receivedBytes = 0;
+                GD.Print("Téléchargement d'un nouveau gros fichier" + totalBytes);
+            }
+
+            using var contentStream = await response.Content.ReadAsStreamAsync();
+            GD.Print("Save large binary file to " + savePath + " > " + ProjectSettings.GlobalizePath(savePath));
+            var buffer = new byte[8192];
+            int bytesRead;
+            int n = 0;
+            while ((bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length)) > 0) {
+                if (n % 1000 == 0) {
+                    GD.Print("Copie du buffer en pos " + (int)receivedBytes + " = " + ((receivedBytes / (double)totalBytes) * 100.0) + "%");
+                }
+                Buffer.BlockCopy(buffer, 0, bufer_bin, (int)receivedBytes, bytesRead);
+                receivedBytes += bytesRead;
+                if (n % 100 == 0) {
+                    progressBar.Value = (receivedBytes / (double)bufer_bin.Length) * 100.0;
+                }
+
+                n++;
+            }
+
+            GD.Print("Copie sur le disque dur...");
+            SaveBinaryOnDisk(savePath, bufer_bin);
+            await AfterExeDownloaded();
+        } catch (Exception ex) {
+            AddLog("Il y a eu un problème lors du téléchargement de l'exe :(" + ex.Message, "FF0000");
+            GD.Print(ex.StackTrace);
+            AddLog("Tentative de reprise...", "FFFF00");
+            await ToSignal(GetTree().CreateTimer(3.0), "timeout");
+            await DownloadFileWithProgressAsync(exeUrl, saveExePath);
         }
-
-        fileStream.Flush();
-        fileStream.Close();
-    }
-
-    public void HideLogs() {
-        statusLabel.Visible = !statusLabel.Visible;        
-        hideLabel.Text = statusLabel.Visible ? "Afficher les logs de mise à jour" : "Masquer les logs de mise à jour";
     }
 
     /// <summary>
-    /// sauvegarde un buffer binaire sur le disque (dans notre cas dans le dossier user)
+    /// Hide/Show the log text in client
+    /// </summary>
+    public void HideLogs() {
+        statusLabel.Visible = !statusLabel.Visible;
+        hideLabel.Text = statusLabel.Visible ? "Masquer les logs de mise à jour" : "Afficher les logs de mise à jour";
+    }
+
+    /// <summary>
+    /// save a binary file on hard drive
     /// </summary>
     /// <param name="filename"></param>
     /// <param name="bin"></param>
@@ -113,7 +152,7 @@ public partial class AutoUpdater : RichTextLabel {
     }
 
     /// <summary>
-    /// vérifie les MAJ via le fichier hash.sha256 de github contenant le hash de l'exe
+    /// check hash.sha256 from github /release and compare to our local version
     /// </summary>
     /// <returns></returns>
     async Task CheckForUpdateAsync() {
@@ -129,7 +168,7 @@ public partial class AutoUpdater : RichTextLabel {
         }
 
         //requêtte du .sha256 dans /release
-       hash_bin = await DownloadFromHttp(hashUrl);
+        hash_bin = await DownloadFromHttp(hashUrl);
         string hash = Encoding.UTF8.GetString(hash_bin);
         AddLog("Version SHA256 téléchargé : " + hash, "00AAFF");
 
@@ -142,7 +181,14 @@ public partial class AutoUpdater : RichTextLabel {
         }
     }
 
+    /// <summary>
+    /// Start the download of the file
+    /// </summary>
     async void StarDownloadExe() {
+        if (bufer_bin.Length != 0) {
+            AddLog("Une MAJ a déjà été lancée... En cas de souci relancez l'application.", "FFFF00");
+            return;
+        }
         AddLog("Début de la mise à jour...", "AAFF33");
         await StartDownloadExeTask();
     }
@@ -150,6 +196,14 @@ public partial class AutoUpdater : RichTextLabel {
     async Task StartDownloadExeTask() {
         progressBar.Visible = true;
         await DownloadFileWithProgressAsync(exeUrl, saveExePath);
+    }
+
+    /// <summary>
+    /// Close application and swap executables (downloaded and actual) and relaunch updated executable
+    /// </summary>
+    /// <returns></returns>
+    async Task AfterExeDownloaded() {
+        GD.Print("Fichier téléchargé avec succès !");
         progressBar.Visible = false;
         AddLog("Le client va se fermer et se relancer à jour dans 3 secondes...", "22FF33");
         await ToSignal(GetTree().CreateTimer(3.0), "timeout");
@@ -158,7 +212,7 @@ public partial class AutoUpdater : RichTextLabel {
     }
 
     /// <summary>
-    /// télécharge un fichier via HTTP
+    /// download a file via http
     /// </summary>
     /// <param name="url"></param>
     /// <returns></returns>
@@ -194,7 +248,7 @@ public partial class AutoUpdater : RichTextLabel {
     }
 
     /// <summary>
-    /// lance le script de copie du nouvel exe téléchargé vers l'actuel
+    /// start updater and swap files
     /// </summary>
     void LaunchUpdater() {
         string oldExePath = OS.GetExecutablePath();
@@ -214,7 +268,7 @@ public partial class AutoUpdater : RichTextLabel {
     }
 
     /// <summary>
-    /// ajoute un log à la fenêtre pour info client
+    /// add a log to chat window
     /// </summary>
     /// <param name="log"></param>
     /// <param name="hexCode"></param>
