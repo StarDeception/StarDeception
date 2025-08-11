@@ -5,7 +5,6 @@ class_name GlobalChat
 @export var output_field: RichTextLabel
 @export var channel_selector: OptionButton
 static var is_visible := false
-static var is_focused := false
 var loggin := "all"
 
 # Definition of an internal “class” for Message
@@ -44,24 +43,11 @@ func _unhandled_input(event):
 	if event is InputEventKey and event.is_pressed():
 		if is_visible and input_field.has_focus():
 			get_viewport().set_input_as_handled()
-	# Release input focus if clicked outside
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		if input_field.has_focus():
-			var mouse_pos = get_global_mouse_position()
-			var rect = Rect2(input_field.global_position, input_field.size)
-			if not rect.has_point(mouse_pos):
-				input_field.release_focus()
-				is_focused = false
-				logg("focused chat box !")
-			else:
-				is_focused = true
-				logg("un-focused chat box !")
 
 
 func _ready():
 	visible = false
 	is_visible = visible
-	is_focused = visible
 	input_field.grab_focus()
 
 	# Adding different channels to the selector
@@ -75,14 +61,11 @@ func _process(delta):
 	if Input.is_action_just_pressed("toggle_chat"):
 		is_visible = not is_visible
 		visible = is_visible
-		is_focused = is_visible
 		logg("swap de la visibilité du chat: " + str(is_visible))
-	else :
-		return
 
+	#FIX : messages were parsed only if not visible :(
 	if is_visible:
 		input_field.grab_focus()
-	else:
 		for m in messages_waiting:
 			parse_message(m)
 		messages_waiting.clear()
