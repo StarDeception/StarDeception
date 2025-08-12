@@ -1,0 +1,128 @@
+[gd_scene load_steps=15 format=3 uid="uid://bcer07jbu28y1"]
+
+[ext_resource type="PackedScene" uid="uid://b86xjxnhg5yhd" path="res://scenes/planet/terrain_generator.tscn" id="1_invnv"]
+[ext_resource type="Script" uid="uid://qav8e3vvh7vd" path="res://scenes/planet/planet.gd" id="1_q7o7h"]
+[ext_resource type="Texture2D" uid="uid://trpcoqhuryo0" path="res://assets/textures/Menu/Background_1920x1080.png" id="2_25nq4"]
+[ext_resource type="Script" uid="uid://d0532xwig15xf" path="res://scenes/planet/noise_param.gd" id="2_xntnt"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_q7o7h"]
+noise_type = 3
+frequency = 0.004
+fractal_type = 2
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_25nq4"]
+frequency = 0.0064
+fractal_type = 2
+fractal_octaves = 6
+fractal_lacunarity = 1.995
+fractal_gain = 0.695
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_2vvio"]
+frequency = 0.0016
+fractal_type = 2
+fractal_lacunarity = 2.045
+fractal_gain = 0.78
+domain_warp_fractal_type = 0
+domain_warp_fractal_lacunarity = 6.195
+
+[sub_resource type="Resource" id="Resource_42vvu"]
+script = ExtResource("2_xntnt")
+amplitude = 0.8
+noise = SubResource("FastNoiseLite_2vvio")
+metadata/_custom_type_script = "uid://d0532xwig15xf"
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_xntnt"]
+noise_type = 3
+frequency = 0.0507
+
+[sub_resource type="Resource" id="Resource_2vvio"]
+script = ExtResource("2_xntnt")
+amplitude = 0.3
+noise = SubResource("FastNoiseLite_xntnt")
+metadata/_custom_type_script = "uid://d0532xwig15xf"
+
+[sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_xntnt"]
+panorama = ExtResource("2_25nq4")
+
+[sub_resource type="Sky" id="Sky_25nq4"]
+sky_material = SubResource("PanoramaSkyMaterial_xntnt")
+
+[sub_resource type="Environment" id="Environment_xntnt"]
+background_mode = 2
+background_color = Color(0, 0.0205757, 0.0703125, 1)
+sky = SubResource("Sky_25nq4")
+ambient_light_color = Color(0.578125, 0.578125, 0.578125, 1)
+ambient_light_sky_contribution = 0.68
+tonemap_mode = 2
+ssao_enabled = true
+glow_enabled = true
+fog_light_color = Color(0, 0, 0, 1)
+fog_density = 0.001
+
+[sub_resource type="BoxMesh" id="BoxMesh_25nq4"]
+
+[node name="Planet" type="Node3D"]
+script = ExtResource("1_q7o7h")
+radius = 2000
+lod_levels = Array[Dictionary]([{
+"distance": 4000,
+"resolution": 15
+}, {
+"distance": 2000,
+"resolution": 20
+}, {
+"distance": 1000,
+"resolution": 24
+}, {
+"distance": 200,
+"resolution": 30
+}, {
+"distance": 100,
+"resolution": 40
+}])
+min_height = 1573.06
+max_height = 10433.8
+noise = SubResource("FastNoiseLite_q7o7h")
+noise_micro = SubResource("FastNoiseLite_25nq4")
+noise_maps = Array[ExtResource("2_xntnt")]([SubResource("Resource_42vvu"), SubResource("Resource_2vvio")])
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_xntnt")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.977783, -0.0507113, 0.203392, 0, 0.970296, 0.241922, -0.209618, -0.236547, 0.948739, 0, 0, 0)
+shadow_enabled = true
+directional_shadow_max_distance = 1139.0
+
+[node name="TerrainGeneratorFront" parent="." node_paths=PackedStringArray("planet") instance=ExtResource("1_invnv")]
+planet = NodePath("..")
+focus_position = Vector3(258.171, 230.525, 3118.08)
+normal = Vector3(0, 0, -1)
+
+[node name="TerrainGeneratorRight" parent="." node_paths=PackedStringArray("planet") instance=ExtResource("1_invnv")]
+planet = NodePath("..")
+focus_position = Vector3(258.171, 230.525, 3118.08)
+normal = Vector3(1, 0, 0)
+
+[node name="TerrainGeneratorLeft" parent="." node_paths=PackedStringArray("planet") instance=ExtResource("1_invnv")]
+planet = NodePath("..")
+focus_position = Vector3(258.171, 230.525, 3118.08)
+normal = Vector3(-1, 0, 0)
+
+[node name="TerrainGeneratorBack" parent="." node_paths=PackedStringArray("planet") instance=ExtResource("1_invnv")]
+planet = NodePath("..")
+focus_position = Vector3(258.171, 230.525, 3118.08)
+
+[node name="TerrainGeneratorTop" parent="." node_paths=PackedStringArray("planet") instance=ExtResource("1_invnv")]
+planet = NodePath("..")
+focus_position = Vector3(258.171, 230.525, 3118.08)
+normal = Vector3(0, 1, 0)
+
+[node name="TerrainGeneratorBottom" parent="." node_paths=PackedStringArray("planet") instance=ExtResource("1_invnv")]
+planet = NodePath("..")
+focus_position = Vector3(258.171, 230.525, 3118.08)
+normal = Vector3(0, -1, 0)
+
+[node name="1mBox" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.462478, 0.586752, 0.664707, -0.357779, 0.809454, -0.465595, -0.811238, -0.0224909, 0.584283, 603.904, 1093.31, 361.705)
+mesh = SubResource("BoxMesh_25nq4")
