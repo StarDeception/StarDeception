@@ -4,7 +4,7 @@ class_name GlobalChat
 @export var input_field: LineEdit
 @export var output_field: RichTextLabel
 @export var channel_selector: OptionButton
-static var globalchat_is_visible := false
+static var is_shown := false
 var loggin := "all"
 
 # Definition of an internal “class” for Message
@@ -41,13 +41,13 @@ var forced_colors := {
 # Prevents keyboard input from being sent to the game if the chat is visible
 func _unhandled_input(event):
 	if event is InputEventKey and event.is_pressed():
-		if globalchat_is_visible and input_field.has_focus():
+		if is_shown and input_field.has_focus():
 			get_viewport().set_input_as_handled()
 
 
 func _ready():
 	visible = false
-	globalchat_is_visible = visible
+	is_shown = visible
 	input_field.grab_focus()
 
 	# Adding different channels to the selector
@@ -59,12 +59,12 @@ func _ready():
 # Boucle principale qui vérifie que l'on appuie sur F12 ou pas
 func _process(_delta):
 	if Input.is_action_just_pressed("toggle_chat"):
-		globalchat_is_visible = not globalchat_is_visible
-		visible = globalchat_is_visible
-		logg("swap de la visibilité du chat: " + str(globalchat_is_visible))
+		is_shown = not is_shown
+		visible = is_shown
+		logg("swap de la visibilité du chat: " + str(is_shown))
 
 	#FIX : messages were parsed only if not visible :(
-	if globalchat_is_visible:
+	if is_shown:
 		input_field.grab_focus()
 		for m in messages_waiting:
 			parse_message(m)
@@ -92,7 +92,7 @@ func receive_message_from_server(message: String, user_nick: String, channel: St
 	msg.author = user_nick
 	msg.channel = ChannelE[channel]
 	logg("nouveau message du serveur : " + msg.content)
-	if globalchat_is_visible:
+	if is_shown:
 		messages.append(msg)
 		parse_message(msg)
 	else:
