@@ -4,7 +4,7 @@ class_name GlobalChat
 @export var input_field: LineEdit
 @export var output_field: RichTextLabel
 @export var channel_selector: OptionButton
-static var is_visible := false
+static var globalchat_is_visible := false
 var loggin := "all"
 
 # Definition of an internal “class” for Message
@@ -41,30 +41,30 @@ var forced_colors := {
 # Prevents keyboard input from being sent to the game if the chat is visible
 func _unhandled_input(event):
 	if event is InputEventKey and event.is_pressed():
-		if is_visible and input_field.has_focus():
+		if globalchat_is_visible and input_field.has_focus():
 			get_viewport().set_input_as_handled()
 
 
 func _ready():
 	visible = false
-	is_visible = visible
+	globalchat_is_visible = visible
 	input_field.grab_focus()
 
 	# Adding different channels to the selector
-	for name in ChannelE.keys():
-		channel_selector.add_item(name)
+	for channel_name in ChannelE.keys():
+		channel_selector.add_item(channel_name)
 	logg("selection du canal par défautl: " + str(ChannelE.keys()[0]))
 	channel_selector.selected = 0
 
 # Boucle principale qui vérifie que l'on appuie sur F12 ou pas
-func _process(delta):
+func _process(_delta):
 	if Input.is_action_just_pressed("toggle_chat"):
-		is_visible = not is_visible
-		visible = is_visible
-		logg("swap de la visibilité du chat: " + str(is_visible))
+		globalchat_is_visible = not globalchat_is_visible
+		visible = globalchat_is_visible
+		logg("swap de la visibilité du chat: " + str(globalchat_is_visible))
 
 	#FIX : messages were parsed only if not visible :(
-	if is_visible:
+	if globalchat_is_visible:
 		input_field.grab_focus()
 		for m in messages_waiting:
 			parse_message(m)
@@ -80,7 +80,7 @@ func _on_input_text_text_submitted(nt: String) -> void:
 # Send a message (here short-circuited locally) with the selected channel
 func send_message_to_server(txt: String) -> void:
 	var channel_name := channel_selector.get_item_text(channel_selector.get_selected_id())
-	var channel_value : int = ChannelE[channel_name]
+	var _channel_value : int = ChannelE[channel_name]
 	Server.server_receive_chat_message.rpc_id(1, channel_name, Globals.playerName, txt)
 	logg("message envoyé au serveur :" + txt)
 
@@ -92,7 +92,7 @@ func receive_message_from_server(message: String, user_nick: String, channel: St
 	msg.author = user_nick
 	msg.channel = ChannelE[channel]
 	logg("nouveau message du serveur : " + msg.content)
-	if is_visible:
+	if globalchat_is_visible:
 		messages.append(msg)
 		parse_message(msg)
 	else:
@@ -137,6 +137,6 @@ func get_hexa_color_from_hash(text: String) -> String:
 	var hash_bytes := ctx.finish()
 	return hash_bytes.hex_encode().substr(0, 6)
 
-func logg(log: String, severity: String = "log"):
+func logg(to_log: String, _severity: String = "log"):
 	if(loggin == "all" || loggin == "severity"):
-		print(log)
+		print(to_log)

@@ -1,8 +1,11 @@
-[gd_scene load_steps=7 format=3 uid="uid://drqxadtx316hs"]
+[gd_scene load_steps=10 format=3 uid="uid://drqxadtx316hs"]
 
 [ext_resource type="Script" uid="uid://de1e8utjyqtod" path="res://levels/system-sandbox/system_sandbox.gd" id="1_6wdpo"]
 [ext_resource type="PackedScene" uid="uid://rv6ugxi8n8pe" path="res://scenes/planet/testplanet.tscn" id="2_jp7ei"]
 [ext_resource type="PackedScene" uid="uid://cpju4tbxmjpwc" path="res://ui/global_chat/global_chat.tscn" id="3_6wdpo"]
+[ext_resource type="PackedScene" uid="uid://bmk1yx4q5cewg" path="res://assets/models/CommemorativeBust/commemorativebust.res" id="4_0y0hx"]
+[ext_resource type="Script" uid="uid://7pymoxifok1q" path="res://tools/spawn_points/player_spawn_points_list.gd" id="4_y6v83"]
+[ext_resource type="Script" uid="uid://3b53gu5cyf58" path="res://tools/spawn_points/player_spawn_point.gd" id="5_0y0hx"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_swxq8"]
 sky_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
@@ -30,8 +33,32 @@ environment = SubResource("Environment_jp7ei")
 
 [node name="Planet" parent="." instance=ExtResource("2_jp7ei")]
 
+[node name="ChrisR_01" parent="Planet" instance=ExtResource("4_0y0hx")]
+transform = Transform3D(0.858298, 0.513152, 0, -0.513152, 0.858298, 0, 0, 0, 1, 900.824, 1783.63, 79.3835)
+
 [node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="."]
 _spawnable_scenes = PackedStringArray("uid://ccme8rxijtf2s", "uid://xud5xo51ir5r", "uid://d37hc6ybk8fsj", "uid://cptjp55tlikyl")
 spawn_path = NodePath("../Planet")
 
 [node name="GlobalChat" parent="." instance=ExtResource("3_6wdpo")]
+
+[node name="PlayerSpawnPointsList" type="Node" parent="."]
+script = ExtResource("4_y6v83")
+metadata/_custom_type_script = "uid://7pymoxifok1q"
+
+[node name="PlayerSpawnPoint01" type="Marker3D" parent="PlayerSpawnPointsList"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2001, 0)
+script = ExtResource("5_0y0hx")
+metadata/_custom_type_script = "uid://3b53gu5cyf58"
+
+[node name="PlayerSpawnPoint02" type="Marker3D" parent="PlayerSpawnPointsList"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -63.996, 1989.93, 199.86)
+gizmo_extents = 5.0
+script = ExtResource("5_0y0hx")
+metadata/_custom_type_script = "uid://3b53gu5cyf58"
+
+[node name="PlayerSpawnPoint03" type="Marker3D" parent="PlayerSpawnPointsList"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 902.067, 1783.47, 100.043)
+gizmo_extents = 5.0
+script = ExtResource("5_0y0hx")
+metadata/_custom_type_script = "uid://3b53gu5cyf58"

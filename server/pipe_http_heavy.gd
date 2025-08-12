@@ -9,7 +9,7 @@ func do_request(playersDataJson, SDOServerUrl, SDOServerId):
 	print("send HTTP request HEAVY")
 	$HTTPRequest.request('http://' + SDOServerUrl + '/sdo/servers/' + str(SDOServerId) + '/heavy', headers, HTTPClient.METHOD_POST, 'players=' + playersDataJson)
 
-func _my_reponse(result, reponse_code, headers, body):
+func _my_reponse(_result, _reponse_code, _headers, body):
 	print("Heavy request finished")
 	print(body.get_string_from_utf8())
 	var json = JSON.parse_string(body.get_string_from_utf8())

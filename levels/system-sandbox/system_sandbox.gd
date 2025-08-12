@@ -7,7 +7,13 @@ var normal_player = preload("res://scenes/normal_player/normal_player.tscn")
 
 @export var spawn_node: Node
 
+var spawn_points_list: Array[Vector3]
+
 func _ready() -> void:
+	if has_node("PlayerSpawnPointsList"):
+		for child in get_node("PlayerSpawnPointsList").get_children():
+			spawn_points_list.append(child.global_position)
+	
 	Server.player_spawned.connect(on_player_spawn)
 	
 	if not OS.has_feature("dedicated_server") and Globals.onlineMode:
@@ -38,6 +44,12 @@ func spawn_player(id: int) -> void:
 	var planet_normal = point.normalized()
 	var spawn_point: Vector3 = planet_normal * 2002.0
 	
+	# Le joueur spawn à une des positions de la liste. La liste est remplie avec les coordonnées de ses enfants de type PlayerSpawnPoint
+	if spawn_points_list.size() > 0:
+		spawn_point = spawn_points_list.pick_random()
+	
+	print_rich("[color=green]Spawn point : %.2v[/color]" % spawn_point)
+	
 	set_player_position.rpc(id, spawn_point, planet_normal)
 
 
@@ -50,9 +62,9 @@ func spawn_station():
 
 
 @rpc("authority", "call_local", "reliable")
-func set_player_position(id: int, position: Vector3, planet_normal: Vector3):
+func set_player_position(id: int, player_position: Vector3, planet_normal: Vector3):
 	var player = spawn_node.get_node(str(id)) as Node3D
-	player.global_position = position
+	player.global_position = player_position
 	player.global_transform = Globals.align_with_y(player.global_transform, planet_normal)
 
 

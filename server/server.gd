@@ -9,7 +9,6 @@ var spaceship_scene = preload("res://scenes/spaceship/test_spaceship/test_spaces
 signal player_spawned(id)
 
 var entities_spawn_node: Node3D
-var _spawn_node_box_50cm
 
 var SDOServerUrl = ""
 var ServerName = ""
@@ -39,7 +38,7 @@ func _ready() -> void:
 
 
 
-func _physics_process(delta: float) -> void:
+func _physics_process(_delta: float) -> void:
 	if OS.has_feature("dedicated_server"):
 		pass
 
