@@ -1,9 +1,8 @@
 extends Control
 
 func _on_ready() -> void:
+	Globals.print_rich_distinguished("[color=gold]Chargement de la login page[/color]", [])
 	BackgroundMusic.play_music_level()
-	pass
-
 
 func _on_button_pressed(button_id: String) -> void:
 #	TODO Call HTTP request to auth server to authenticate
@@ -11,7 +10,9 @@ func _on_button_pressed(button_id: String) -> void:
 	match button_id:
 		"Online":
 			Globals.onlineMode = true
-			get_tree().change_scene_to_file("res://ui/main_page/main_page.tscn")
+			#get_tree().change_scene_to_file("res://ui/main_page/main_page.tscn")
+			GameOrchestrator.change_game_state(GameOrchestrator.GAME_STATES.UNIVERSE_MENU)
 		"Local":
 			Globals.onlineMode = false
-			get_tree().change_scene_to_file("res://ui/main_page/main_page.tscn")
+			#get_tree().change_scene_to_file("res://ui/main_page/main_page.tscn")
+			GameOrchestrator.change_game_state(GameOrchestrator.GAME_STATES.UNIVERSE_MENU)

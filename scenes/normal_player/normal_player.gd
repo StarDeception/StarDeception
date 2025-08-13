@@ -77,7 +77,9 @@ func _ready() -> void:
 	
 	
 	await get_tree().create_timer(1).timeout
-	Server.spawn_ship.rpc_id(1)
+	Globals.print_rich_distinguished("[color=gold]Spawn du ship et serveur = %s[/color]", [GameOrchestrator._game_server.name])
+	#Server.spawn_ship.rpc_id(1)
+	GameOrchestrator._game_server.spawn_ship.rpc_id(1)
 	
 
 
@@ -89,64 +91,69 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not is_multiplayer_authority(): return
 	if !active: return
 	
-	if GlobalChat.is_shown: return
-	
-	if event.is_action_pressed(PAUSE):
-		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-		game_is_paused = true
-	
-	if game_is_paused and event is InputEventMouseButton:
-		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-		game_is_paused = false
-	
-	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-		mouse_motion = -event.relative * 0.001
-	
-	if event.is_action_pressed("spawn_50cmbox"):
-		# action of client, send RPC request to server (id = 1)
-		Server.spawn_box50cm.rpc_id(1)
-	
-	if event.is_action_pressed("spawn_4mbox"):
-		Server.spawn_box4m.rpc_id(1)
-	
+	if GameOrchestrator.current_stat != GameOrchestrator.GAME_STATES.PAUSE_MENU:
+		if GlobalChat.is_shown: return
+		
+		if event.is_action_pressed(PAUSE):
+			GameOrchestrator.change_game_state(GameOrchestrator.GAME_STATES.PAUSE_MENU)
+		
+		if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+			mouse_motion = -event.relative * 0.001
+		
+		if event.is_action_pressed("spawn_50cmbox"):
+			# action of client, send RPC request to server (id = 1)
+			GameOrchestrator._game_server.spawn_box50cm.rpc_id(1)
+		
+		if event.is_action_pressed("spawn_4mbox"):
+			GameOrchestrator._game_server.spawn_box4m.rpc_id(1)
+		
 
-	if Input.is_action_just_pressed("ext_cam"):
-		if $ExtCamera3D.current:
-			camera.make_current()
-			astronaut.visible = false
-		else: 
-			astronaut.visible = true
-			$ExtCamera3D.make_current()
+		if Input.is_action_just_pressed("ext_cam"):
+			if $ExtCamera3D.current:
+				camera.make_current()
+				astronaut.visible = false
+			else: 
+				astronaut.visible = true
+				$ExtCamera3D.make_current()
+	else:
+		if event is InputEventMouseButton:
+			GameOrchestrator.change_game_state(GameOrchestrator.GAME_STATES.PLAYING)
 
 func _process(_delta: float) -> void:
 	if not is_multiplayer_authority(): return
 	if !active: return
 	
-	_handle_camera_motion()
-	
-	interact_label.hide()
-	if interact_ray.is_colliding():
-		var collider = interact_ray.get_collider()
-		if collider.has_method("interact"):
-			interact_label.text = collider.label
-			interact_label.show()
-			if Input.is_action_just_pressed("interact"):
-				collider.interact()
-				interact_label.hide()
+	if GameOrchestrator.current_stat != GameOrchestrator.GAME_STATES.PAUSE_MENU:
+		_handle_camera_motion()
+			
+		interact_label.hide()
+		if interact_ray.is_colliding():
+			var collider = interact_ray.get_collider()
+			if collider.has_method("interact"):
+				interact_label.text = collider.label
+				interact_label.show()
+				if Input.is_action_just_pressed("interact"):
+					collider.interact()
+					interact_label.hide()
 
 
 func _physics_process(delta: float) -> void:
 	if not is_multiplayer_authority(): return
 	if !active: return
 	
-	var dir_vect = Input.get_vector(MOVE_LEFT, MOVE_RIGHT, MOVE_FORWARD, MOVE_BACK)
+	var dir_vect = Vector3.ZERO
+	var jump = null
+	var sprint = null
+	if GameOrchestrator.current_stat != GameOrchestrator.GAME_STATES.PAUSE_MENU:
+		dir_vect = Input.get_vector(MOVE_LEFT, MOVE_RIGHT, MOVE_FORWARD, MOVE_BACK)
+
+		sprint = Input.is_action_pressed(SPRINT)
+		jump = Input.is_action_just_pressed(JUMP)
+	
 	if dir_vect and !GlobalChat.is_shown:
 		input_direction = dir_vect
 	else:
 		input_direction = Vector2.ZERO
-
-	var sprint = Input.is_action_pressed(SPRINT)
-	var jump = Input.is_action_just_pressed(JUMP)
 	
 	var parent_gravity_area: Area3D = gravity_parents.back() if not gravity_parents.is_empty() else null
 	

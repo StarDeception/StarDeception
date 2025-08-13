@@ -48,17 +48,18 @@ metadata/_custom_type_script = "uid://7pymoxifok1q"
 
 [node name="PlayerSpawnPoint01" type="Marker3D" parent="PlayerSpawnPointsList"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2001, 0)
+gizmo_extents = 2.5
 script = ExtResource("5_0y0hx")
 metadata/_custom_type_script = "uid://3b53gu5cyf58"
 
 [node name="PlayerSpawnPoint02" type="Marker3D" parent="PlayerSpawnPointsList"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -63.996, 1989.93, 199.86)
-gizmo_extents = 5.0
+gizmo_extents = 2.5
 script = ExtResource("5_0y0hx")
 metadata/_custom_type_script = "uid://3b53gu5cyf58"
 
 [node name="PlayerSpawnPoint03" type="Marker3D" parent="PlayerSpawnPointsList"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 902.067, 1783.47, 100.043)
-gizmo_extents = 5.0
+gizmo_extents = 2.5
 script = ExtResource("5_0y0hx")
 metadata/_custom_type_script = "uid://3b53gu5cyf58"

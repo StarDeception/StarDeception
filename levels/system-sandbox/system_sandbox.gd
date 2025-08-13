@@ -10,14 +10,17 @@ var normal_player = preload("res://scenes/normal_player/normal_player.tscn")
 var spawn_points_list: Array[Vector3]
 
 func _ready() -> void:
+	Globals.print_rich_distinguished("[color=gold]Ready de system_sandox[/color]", [])
 	if has_node("PlayerSpawnPointsList"):
 		for child in get_node("PlayerSpawnPointsList").get_children():
 			spawn_points_list.append(child.global_position)
 	
-	Server.player_spawned.connect(on_player_spawn)
+	Globals.print_rich_distinguished("[color=gold]_game_server = %s[/color]", [GameOrchestrator._game_server.name])
+	GameOrchestrator._game_server.player_spawned.connect(on_player_spawn)
+	#Server.player_spawned.connect(on_player_spawn)
 	
 	if not OS.has_feature("dedicated_server") and Globals.onlineMode:
-		await Server.create_client()
+		await GameOrchestrator._game_server.create_client()
 	
 	
 	if multiplayer.is_server():
@@ -37,7 +40,7 @@ func spawn_player(id: int) -> void:
 	var player = normal_player.instantiate()
 	player.name = str(id)
 	spawn_node.add_child(player, true)
-	Server.players[id] = player
+	GameOrchestrator._game_server.players[id] = player
 	
 	var point = Vector3(randf_range(-.1, .1), 1.0, randf_range(-.2, .2))
 	print(point)
