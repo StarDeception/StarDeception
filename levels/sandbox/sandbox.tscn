@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://d1mhk3prnqywk"]
+[gd_scene load_steps=12 format=3 uid="uid://d1mhk3prnqywk"]
 
 [ext_resource type="Material" uid="uid://brpu7xylrg2l2" path="res://assets/materials/material_basic_blue.tres" id="1_fb2x7"]
 [ext_resource type="Script" uid="uid://u7bmtowwqmhu" path="res://levels/sandbox/sandbox.gd" id="1_fd0ol"]
@@ -6,8 +6,6 @@
 [ext_resource type="PackedScene" uid="uid://kqmbae0l4ewu" path="res://scenes/props/testblock/basic_block_2.tscn" id="4_1esxm"]
 [ext_resource type="PackedScene" uid="uid://bmk1yx4q5cewg" path="res://assets/models/CommemorativeBust/commemorativebust.res" id="6_uk6j5"]
 [ext_resource type="ArrayMesh" uid="uid://h02nelqdqrri" path="res://assets/models/Mountain/Jungle Mountain.obj" id="8_0psug"]
-[ext_resource type="PackedScene" uid="uid://ccme8rxijtf2s" path="res://scenes/normal_player/normal_player.tscn" id="9_2roq2"]
-[ext_resource type="PackedScene" uid="uid://cpju4tbxmjpwc" path="res://ui/global_chat/global_chat.tscn" id="9_fk1xc"]
 [ext_resource type="Shape3D" uid="uid://boud0upk1v46j" path="res://assets/models/Mountain/MountainCollision.shape" id="9_hrvvi"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_r6mis"]
@@ -30,7 +28,6 @@ size = Vector2(100, 100)
 
 [node name="Sandbox" type="Node3D"]
 script = ExtResource("1_fd0ol")
-player_scene = ExtResource("9_2roq2")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_aaj73")
@@ -108,8 +105,5 @@ _spawnable_scenes = PackedStringArray("uid://d37hc6ybk8fsj")
 spawn_path = NodePath("../Boxes50cm")
 
 [node name="Boxes50cm" type="Node3D" parent="."]
-
-[node name="GlobalChat" parent="." instance=ExtResource("9_fk1xc")]
-unique_name_in_owner = true
 
 [connection signal="ready" from="." to="." method="_on_ready"]

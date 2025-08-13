@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://ccme8rxijtf2s"]
+[gd_scene load_steps=13 format=3 uid="uid://ccme8rxijtf2s"]
 
 [ext_resource type="Script" uid="uid://b3ifoxj2c0cjt" path="res://scenes/normal_player/normal_player.gd" id="1_ll2l8"]
 [ext_resource type="PackedScene" uid="uid://vv063vdbl0aa" path="res://assets/models/astronaut/astronaut.res" id="2_rulc8"]
@@ -7,6 +7,7 @@
 [ext_resource type="Script" uid="uid://du8smr1o81j1c" path="res://scenes/normal_player/label_game_server_number_players.gd" id="5_dpwvv"]
 [ext_resource type="Script" uid="uid://cp4hqc0wqd0l0" path="res://scenes/normal_player/label_game_server_number.gd" id="6_ev378"]
 [ext_resource type="Script" uid="uid://bwj71lom8cof6" path="res://scenes/normal_player/label_universe_number_players.gd" id="7_82eon"]
+[ext_resource type="PackedScene" uid="uid://dk4le3cck03bg" path="res://ui/direct_chat/direct_chat.tscn" id="8_ikqc6"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_2jk7f"]
 radius = 0.26542
@@ -47,6 +48,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.9, 0)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6541, 0)
 
 [node name="Camera3D" type="Camera3D" parent="CameraPivot"]
+near = 0.1
+far = 40000.0
 
 [node name="InteractRay" type="RayCast3D" parent="CameraPivot/Camera3D"]
 target_position = Vector3(0, 0, -3)
@@ -218,6 +221,10 @@ grow_vertical = 0
 text = "Interact"
 label_settings = SubResource("LabelSettings_kcm5r")
 horizontal_alignment = 1
+
+[node name="DirectChat" parent="UserInterface" instance=ExtResource("8_ikqc6")]
+visible = false
+layout_mode = 1
 
 [node name="LabelPlayerName" type="Label3D" parent="."]
 unique_name_in_owner = true

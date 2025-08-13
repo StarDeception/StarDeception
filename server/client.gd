@@ -1,0 +1,84 @@
+extends Node
+
+var player_scene_path: String = "res://scenes/normal_player/normal_player.tscn"
+var ship_scene_path: String = "res://scenes/spaceship/test_spaceship/test_spaceship.tscn"
+
+var client_peer: ENetMultiplayerPeer = null
+var peer_id: int = -1
+
+var universe_scene: Node = null
+var player_instance: Node = null
+var spawn_point: Vector3 = Vector3.ZERO
+
+func _enter_tree() -> void:
+	pass
+
+func _ready() -> void:
+	pass
+
+func start_client(receveid_universe_scene: Node) -> void:
+	universe_scene = receveid_universe_scene
+	var spawn_points_list: Array[Vector3] = universe_scene.spawn_points_list
+	
+	if spawn_points_list.size() > 0:
+		spawn_point = spawn_points_list.pick_random()
+	
+	client_peer = ENetMultiplayerPeer.new()
+	client_peer.create_client("127.0.0.1", 7051)
+	universe_scene.multiplayer.multiplayer_peer = client_peer
+	peer_id = universe_scene.multiplayer.multiplayer_peer.get_unique_id()
+
+func on_connection_established() -> void:
+	request_spawn()
+
+func request_spawn() -> void:
+	NetworkOrchestrator.spawn_player.rpc_id(1, player_scene_path, GameOrchestrator.requested_spawn_point)
+
+func complete_client_initialization(entity) -> void:
+	player_instance = entity
+	player_instance.player_display_name = GameOrchestrator.login_player_name
+	player_instance.labelPlayerName.text = player_instance.player_display_name
+	player_instance.connect("client_action_requested", _on_client_action_requested)
+	player_instance.direct_chat.connect("send_message", _on_message_from_player)
+
+func receive_chat_message(message: ChatMessage) -> void:
+	player_instance.direct_chat.receive_message_from_server(message)
+
+func _on_client_action_requested(datas: Dictionary) -> void:
+	if datas.has("action"):
+		match datas["action"]:
+			"spawn":
+				if datas.has("entity"):
+					match datas["entity"]:
+						"ship":
+							var spawn_position: Vector3 = datas["spawn_position"] if datas.has("spawn_position") else player_instance.global_position + Vector3(10.0,10.0,10.0)
+							var spawn_rotation: Vector3 = datas["spawn_rotation"] if datas.has("spawn_rotation") else player_instance.global_transform.basis.y.normalized()
+							NetworkOrchestrator.spawn_ship.rpc_id(1, ship_scene_path, spawn_position, spawn_rotation)
+						"box50cm":
+							var spawn_position: Vector3 = datas["spawn_position"] if datas.has("spawn_position") else player_instance.global_position + Vector3(10.0,10.0,10.0)
+							NetworkOrchestrator.spawn_box50cm.rpc_id(1, spawn_position)
+						"box4m":
+							var spawn_position: Vector3 = datas["spawn_position"] if datas.has("spawn_position") else player_instance.global_position + Vector3(10.0,10.0,10.0)
+							var spawn_rotation: Vector3 = datas["spawn_rotation"] if datas.has("spawn_rotation") else player_instance.global_transform.basis.y.normalized()
+							NetworkOrchestrator.spawn_box4m.rpc_id(1, spawn_position, spawn_rotation)
+			"control":
+				if datas.has("entity"):
+					match datas["entity"]:
+						"ship":
+							var ship_instance_path: String = datas["entity_node"].get_path() if datas.has("entity_node") else ""
+							NetworkOrchestrator.request_control.rpc_id(1, player_instance.get_path(), ship_instance_path)
+			"release_control":
+				if datas.has("entity"):
+					match datas["entity"]:
+						"ship":
+							var ship_instance_path: String = datas["entity_node"].get_path() if datas.has("entity_node") else ""
+							NetworkOrchestrator.request_release.rpc_id(peer_id, player_instance.get_path(), ship_instance_path)
+
+func _on_message_from_player(message: ChatMessage) -> void:
+	var dictionnary_message = {
+		"content": message.content,
+		"author": player_instance.player_display_name,
+		"channel": message.channel,
+		"creation_schedule": message.creation_schedule
+	}
+	NetworkOrchestrator.send_chat_message_to_server.rpc_id(1, dictionnary_message)

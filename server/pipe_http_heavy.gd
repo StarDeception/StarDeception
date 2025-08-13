@@ -13,4 +13,4 @@ func _my_reponse(_result, _reponse_code, _headers, body):
 	print("Heavy request finished")
 	print(body.get_string_from_utf8())
 	var json = JSON.parse_string(body.get_string_from_utf8())
-	Server.httpresponse_server_heavy(json)
+	GameOrchestrator._game_server.httpresponse_server_heavy(json)

@@ -1,5 +1,5 @@
 @tool
-extends Node
+extends Node3D
 class_name PlayerSpawnPointsList
 
 const REQUIRED_CHILD_CLASS = preload("res://tools/spawn_points/player_spawn_point.gd")

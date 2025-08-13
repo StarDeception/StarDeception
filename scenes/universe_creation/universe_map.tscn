@@ -1,0 +1,22 @@
+[gd_scene load_steps=4 format=3 uid="uid://cnjarho0jr5y4"]
+
+[ext_resource type="Script" uid="uid://w7yp1ov6fevw" path="res://scenes/universe_creation/universe_map.gd" id="1_jub4r"]
+[ext_resource type="PackedScene" uid="uid://40vrf7beaa60" path="res://scenes/universe_creation/placeholders/planet_placeholder.tscn" id="1_pn8fr"]
+[ext_resource type="PackedScene" uid="uid://c6504x37xchsk" path="res://scenes/universe_creation/placeholders/station_placeholder.tscn" id="3_5ouan"]
+
+[node name="UniverseMap" type="Node3D"]
+script = ExtResource("1_jub4r")
+
+[node name="PlanetA" parent="." instance=ExtResource("1_pn8fr")]
+
+[node name="PlanetB" parent="." instance=ExtResource("1_pn8fr")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 43.6501, 36.22, 0)
+real_coordinates = Vector3(4365.01, 3622, 0)
+
+[node name="StationA" parent="." instance=ExtResource("3_5ouan")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 30, 0)
+real_coordinates = Vector3(0, 3000, 0)
+
+[node name="StationB" parent="." instance=ExtResource("3_5ouan")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.6501, 36.22, 0)
+real_coordinates = Vector3(1365.01, 3622, 0)

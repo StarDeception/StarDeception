@@ -1,6 +1,14 @@
-[gd_scene load_steps=2 format=3 uid="uid://cn1e5bp50weao"]
+[gd_scene load_steps=6 format=3 uid="uid://cn1e5bp50weao"]
 
 [ext_resource type="PackedScene" uid="uid://gxlfwbj17i1h" path="res://scenes/station/test_station/pads.tscn" id="1_53j1l"]
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_47354"]
+properties/0/path = NodePath(".:position")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath(".:rotation")
+properties/1/spawn = true
+properties/1/replication_mode = 1
 
 [node name="TestStation" type="Node3D"]
 
@@ -82,3 +90,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 47.124)
 
 [node name="PadGroup3" parent="." instance=ExtResource("1_53j1l")]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, -3.29602)
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+replication_config = SubResource("SceneReplicationConfig_47354")

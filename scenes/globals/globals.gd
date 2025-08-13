@@ -1,11 +1,24 @@
 extends Node
 
-var init_scene = "res://levels/system-sandbox/system_sandbox.tscn"
-
 var playerName: String = "I am an idiot !"
 var onlineMode: bool = false
 
-
+func print_rich_distinguished(message: String, extras: Array) -> void:
+	var peer_id: int = -1
+	var instance_color = "lightsteelblue"
+	var instance_name = "Not instantiated yet"
+	if GameOrchestrator and GameOrchestrator.current_network_role != null:
+		instance_color = GameOrchestrator.distinguish_instances[GameOrchestrator.current_network_role]["instance_color"]
+		instance_name = GameOrchestrator.distinguish_instances[GameOrchestrator.current_network_role]["instance_name"]
+		peer_id = NetworkOrchestrator.network_agent.peer_id if GameOrchestrator.current_network_role == GameOrchestrator.NETWORK_ROLE.PLAYER else 1
+	var prefix = "[color=" + instance_color + "][" + instance_name + "(" +  str(peer_id) + ")][/color]"
+	
+	var formatted_message = message
+	
+	if not extras.is_empty():
+		formatted_message = message % extras
+	
+	print_rich(prefix + formatted_message)
 
 func align_with_y(xform: Transform3D, new_y: Vector3) -> Transform3D:
 	xform.basis.y = new_y

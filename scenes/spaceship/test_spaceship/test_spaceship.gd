@@ -10,21 +10,29 @@ class_name Spaceship
 
 var active = false
 
+var spawn_position: Vector3 = Vector3.ZERO
+var spawn_rotation: Vector3 = Vector3.ZERO
+
 var force_multiplier = 1000
 var gravity_area: Area3D
-var pilot: Player
+var pilot: Player = null
 var pause_mode = false
 
 func _ready() -> void:
+	global_position = spawn_position
+	global_rotation = spawn_rotation
 	$StaticBody3D.add_collision_exception_with(self)
 	ship_console.interacted.connect(on_ship_console_interact)
 
-func on_ship_console_interact():
-	request_control.rpc_id(1)
+func on_ship_console_interact(interactor: Node):
+	if interactor is Player and not multiplayer.is_server():
+		interactor.emit_signal("client_action_requested", {"action": "control", "entity": "ship", "entity_node": self})
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not active:
 		return
+	
+	if not is_multiplayer_authority(): return
 	
 	if event.is_action_pressed("pause"):
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -34,11 +42,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		pause_mode = false
 	
-	
-	if not is_multiplayer_authority(): return
+	if GlobalChat.is_shown: return
 	
 	if Input.is_action_just_pressed("exit"):
-		release_control.rpc()
+		pilot.emit_signal("client_action_requested", {"action": "release_control", "entity": "ship", "entity_node": self})
 		
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		steer_ship_mouse(event.screen_relative)
@@ -82,43 +89,6 @@ func _process(delta: float) -> void:
 	
 	var roll_force = roll * roll_speed * force_multiplier * delta
 	apply_torque(global_transform.basis * roll_force)
-
-## Set the position of the ship after the spawn
-@rpc("authority", "call_local", "reliable")
-func position_ship(new_pos: Vector3, planet_normal: Vector3):
-	global_position = new_pos
-	global_transform = Globals.align_with_y(global_transform, planet_normal)
-
-## Request the control of the ship to the server
-@rpc("any_peer", "call_remote", "reliable")
-func request_control():
-	var peerid = multiplayer.get_remote_sender_id()
-	var player = Server.players[peerid]
-	prints("player", player, "take control of ship", name)
-	if not pilot_seat.remote_path.is_empty():
-		print("pilot is already controlling ship")
-		return
-		
-	take_control.rpc(peerid)
-
-## Notifies the pilot to take the control of the ship and become the authority
-@rpc("authority", "call_local", "reliable")
-func take_control(id):
-	pilot = get_tree().current_scene.spawn_node.get_node(str(id))
-	pilot.active = false
-	pilot.camera_pivot.rotation.x = 0
-	pilot_seat.remote_path = pilot.get_path()
-	
-	set_multiplayer_authority(id)
-
-## Release the control of ship from the pilot
-@rpc("authority", "call_local", "reliable")
-func release_control():
-	pilot.active = true
-	pilot = null
-	pilot_seat.remote_path = NodePath("")
-	active = false
-	set_multiplayer_authority(1)
 
 func _on_collision_area_entered(area: Area3D) -> void:
 	if area.is_in_group("gravity"):

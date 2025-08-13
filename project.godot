@@ -12,19 +12,24 @@ config_version=5
 
 config/name="StarDeception"
 config/version="0.0.1-dev"
-run/main_scene="uid://b7aajb2l3gvg5"
+run/main_scene="uid://dpderfrunb8lr"
 config/features=PackedStringArray("4.4", "C#", "Double Precision", "GL Compatibility")
 boot_splash/image="uid://bm7wkmcuwwpxn"
 config/icon="res://icon.svg"
 
 [autoload]
 
-Server="*res://server/server.gd"
-BackgroundMusic="*res://scenes/globals/background_music.tscn"
 Globals="*res://scenes/globals/globals.gd"
+GameOrchestrator="*res://scenes/globals/game_orchestrator.gd"
+NetworkOrchestrator="*res://scenes/globals/network_orchestrator.gd"
+BackgroundMusic="*res://scenes/globals/background_music.tscn"
 PipeHttpHeavy="*res://server/pipe_http_heavy.tscn"
 uuid="*res://addons/uuid/uuid.gd"
 ErrorManager="*res://ui/error_message/error_message.tscn"
+
+[debug]
+
+gdscript/warnings/native_method_override=1
 
 [display]
 

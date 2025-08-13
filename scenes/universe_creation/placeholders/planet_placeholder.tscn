@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3 uid="uid://40vrf7beaa60"]
+
+[ext_resource type="Script" uid="uid://nbuhkyxy5xp1" path="res://scenes/universe_creation/placeholders/planet_placeholder.gd" id="1_1k8ak"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_1k8ak"]
+radius = 20.0
+height = 40.0
+radial_segments = 16
+rings = 8
+
+[node name="Planet" type="MeshInstance3D"]
+mesh = SubResource("SphereMesh_1k8ak")
+script = ExtResource("1_1k8ak")

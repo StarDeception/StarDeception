@@ -1,8 +1,12 @@
-[gd_scene load_steps=6 format=3 uid="uid://rv6ugxi8n8pe"]
+[gd_scene load_steps=11 format=3 uid="uid://rv6ugxi8n8pe"]
 
+[ext_resource type="Script" uid="uid://bbfrhypa38dqh" path="res://scenes/planet/testplanet.gd" id="1_2pfeq"]
 [ext_resource type="Shape3D" uid="uid://w1svqnr3n3nh" path="res://scenes/planet/planet_collision.shape" id="1_lxi01"]
 [ext_resource type="Material" uid="uid://brpu7xylrg2l2" path="res://assets/materials/material_basic_blue.tres" id="1_q7o7h"]
 [ext_resource type="Script" uid="uid://2e1cf4ehx8s5" path="res://scenes/grid/grid.gd" id="2_c1vqx"]
+[ext_resource type="Script" uid="uid://7pymoxifok1q" path="res://tools/spawn_points/player_spawn_points_list.gd" id="5_6x306"]
+[ext_resource type="PackedScene" uid="uid://dtcsox8hfg83s" path="res://assets/models/spawn_kiosk/spawn_kiosk.tscn" id="5_mv8ka"]
+[ext_resource type="Script" uid="uid://3b53gu5cyf58" path="res://tools/spawn_points/player_spawn_point.gd" id="6_mv8ka"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_6wdpo"]
 radius = 2200.0
@@ -13,7 +17,16 @@ height = 4000.0
 radial_segments = 256
 rings = 128
 
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_c1vqx"]
+properties/0/path = NodePath(".:position")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath(".:rotation")
+properties/1/spawn = true
+properties/1/replication_mode = 1
+
 [node name="Planet" type="StaticBody3D"]
+script = ExtResource("1_2pfeq")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 shape = ExtResource("1_lxi01")
@@ -33,3 +46,37 @@ shape = SubResource("SphereShape3D_6wdpo")
 [node name="Planet" type="MeshInstance3D" parent="."]
 material_override = ExtResource("1_q7o7h")
 mesh = SubResource("SphereMesh_jp7ei")
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+replication_config = SubResource("SceneReplicationConfig_c1vqx")
+
+[node name="SpawnKiosk01" parent="." instance=ExtResource("5_mv8ka")]
+transform = Transform3D(-0.542368, 0, -0.840141, 0, 1, 0, 0.840141, 0, -0.542368, 9.04387, 1999.91, 3.71389)
+
+[node name="SpawnKiosk02" parent="." instance=ExtResource("5_mv8ka")]
+transform = Transform3D(0.626926, -0.0548489, 0.777146, 0.0871557, 0.996195, 0, -0.774189, 0.0677327, 0.62932, -69.7763, 1989.04, 195.918)
+
+[node name="SpawnKiosk03" parent="." instance=ExtResource("5_mv8ka")]
+transform = Transform3D(0.0287014, 0.456196, 0.889416, 0.0558469, 0.887661, -0.457098, -0.998027, 0.0627905, 5.4461e-17, 897.913, 1784.16, 100.043)
+
+[node name="PlayerSpawnPointsList" type="Node3D" parent="."]
+script = ExtResource("5_6x306")
+metadata/_custom_type_script = "uid://7pymoxifok1q"
+
+[node name="PlayerSpawnPoint01" type="Marker3D" parent="PlayerSpawnPointsList"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2001, 0)
+gizmo_extents = 2.5
+script = ExtResource("6_mv8ka")
+metadata/_custom_type_script = "uid://3b53gu5cyf58"
+
+[node name="PlayerSpawnPoint02" type="Marker3D" parent="PlayerSpawnPointsList"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -63.996, 1989.93, 199.86)
+gizmo_extents = 2.5
+script = ExtResource("6_mv8ka")
+metadata/_custom_type_script = "uid://3b53gu5cyf58"
+
+[node name="PlayerSpawnPoint03" type="Marker3D" parent="PlayerSpawnPointsList"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 902.067, 1783.47, 100.043)
+gizmo_extents = 2.5
+script = ExtResource("6_mv8ka")
+metadata/_custom_type_script = "uid://3b53gu5cyf58"

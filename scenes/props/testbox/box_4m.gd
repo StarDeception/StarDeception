@@ -2,11 +2,16 @@ extends RigidBody3D
 
 @export var inside_space: World3D
 
+var spawn_position: Vector3 = Vector3.ZERO
+var spawn_rotation: Vector3 = Vector3.UP
+
 func _ready() -> void:
 	$Area3D.body_entered.connect(_on_holeArea_entered)
+	
+	global_position = spawn_position
+	global_rotation = spawn_rotation
 
 func _on_holeArea_entered(body: Node3D):
-	print("Entrée avec body = " + body.name)
 	if body.name == "Player" or body.name == "box_50cm":
 		match body.isInsideBox4m:
 			false:
