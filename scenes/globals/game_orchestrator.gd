@@ -56,14 +56,14 @@ func change_game_state(new_state) -> int:
 		GAME_STATES.HOME_MENU:
 			Globals.print_rich_distinguished("[color=Darkorange] -> Changement de State pour HOME_MENU[/color]", [])
 			current_stat = new_state
-			_game_server = load("res://server/server_new.tscn").instantiate()
+			_game_server = load("res://server/server.tscn").instantiate()
 			get_tree().get_root().call_deferred("add_child",_game_server)
 			get_tree().call_deferred("change_scene_to_file","res://ui/login_page/login_page.tscn")
 			return CHANGE_STATE_RETURNS.OK
 		GAME_STATES.JUST_SERVER:
 			Globals.print_rich_distinguished("[color=Darkorange] -> Changement de State pour JUST_SERVER[/color]", [])
 			current_stat = new_state
-			_game_server = load("res://server/server_new.tscn").instantiate()
+			_game_server = load("res://server/server.tscn").instantiate()
 			get_tree().get_root().call_deferred("add_child",_game_server)
 			return CHANGE_STATE_RETURNS.OK
 		GAME_STATES.UNIVERSE_MENU:

@@ -64,7 +64,7 @@ func _start_server():
 		return
 		
 	multiplayer.multiplayer_peer = server_peer
-	#connect_chat_mqtt()
+	connect_chat_mqtt()
 	print("server loaded... \\o/")
 	multiplayer.peer_connected.connect(_on_player_connected)
 	multiplayer.peer_disconnected.connect(_on_player_disconnect)
