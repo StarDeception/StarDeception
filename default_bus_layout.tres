@@ -1,3 +1,26 @@
-[gd_resource type="AudioBusLayout" format=3 uid="uid://bdg3s0rx8isca"]
+[gd_resource type="AudioBusLayout" load_steps=3 format=3 uid="uid://bdg3s0rx8isca"]
+
+[sub_resource type="AudioEffectReverb" id="AudioEffectReverb_j3pel"]
+resource_name = "reverb"
+hipass = 1.0
+
+[sub_resource type="AudioEffectPanner" id="AudioEffectPanner_g28q7"]
+resource_name = "pan"
 
 [resource]
+bus/1/name = &"RaytracedReverb"
+bus/1/solo = false
+bus/1/mute = false
+bus/1/bypass_fx = false
+bus/1/volume_db = 0.0
+bus/1/send = &"Master"
+bus/1/effect/0/effect = SubResource("AudioEffectReverb_j3pel")
+bus/1/effect/0/enabled = true
+bus/2/name = &"RaytracedAmbient"
+bus/2/solo = false
+bus/2/mute = false
+bus/2/bypass_fx = false
+bus/2/volume_db = 0.0
+bus/2/send = &"Master"
+bus/2/effect/0/effect = SubResource("AudioEffectPanner_g28q7")
+bus/2/effect/0/enabled = true

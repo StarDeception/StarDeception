@@ -61,6 +61,10 @@ func _enter_tree() -> void:
 func _ready() -> void:
 	if not is_multiplayer_authority(): return
 
+	var rt_audio = RaytracedAudioListener.new()
+	camera.add_child(rt_audio, true)
+	rt_audio.owner = self
+
 	# Here: client have authority
 	if Globals.playerName == "":
 		labelPlayerName.text = "I'm an idiot!"

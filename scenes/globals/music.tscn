@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://c7b7t2nj7yajn"]
 
-[ext_resource type="AudioStream" uid="uid://j2cu4vpnwfds" path="res://assets/music/Espoir.mp3" id="1_3h6ak"]
+[ext_resource type="AudioStream" uid="uid://j2cu4vpnwfds" path="res://assets/audio/music/Espoir.mp3" id="1_3h6ak"]
 
 [node name="Music" type="Control"]
 layout_mode = 3
@@ -13,4 +13,3 @@ grow_vertical = 2
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("1_3h6ak")
 volume_db = -20.613
-autoplay = true

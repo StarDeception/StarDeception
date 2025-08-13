@@ -1,0 +1,23 @@
+[gd_scene load_steps=6 format=3 uid="uid://d1clu651lh30r"]
+
+[ext_resource type="AudioStream" uid="uid://j2cu4vpnwfds" path="res://assets/audio/music/Espoir.mp3" id="1_3e6hs"]
+[ext_resource type="Script" uid="uid://qvbtbl5b5n5f" path="res://scenes/station/test_station/speaker.gd" id="1_165ib"]
+[ext_resource type="Script" uid="uid://dkb8ltjc6067n" path="res://addons/raytraced_audio/raytraced_audio_player_3d.gd" id="2_165ib"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_165ib"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_53j1l"]
+
+[node name="Speaker" type="MeshInstance3D"]
+transform = Transform3D(1.91069e-15, 4.37114e-08, -1, 0, 1, 4.37114e-08, 1, 0, 1.91069e-15, 0, 0, 0)
+material_override = SubResource("StandardMaterial3D_165ib")
+mesh = SubResource("SphereMesh_53j1l")
+skeleton = NodePath("../StationMesh/MainBody/CSGCylinder3D5")
+script = ExtResource("1_165ib")
+
+[node name="RaytracedAudioPlayer3D" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("1_3e6hs")
+autoplay = true
+parameters/looping = true
+script = ExtResource("2_165ib")
+metadata/_custom_type_script = "uid://dkb8ltjc6067n"
