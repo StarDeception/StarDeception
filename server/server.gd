@@ -36,32 +36,28 @@ func _ready() -> void:
 	else:
 		print("OS doesn't have dedicated_server")
 
-
-
-func _physics_process(_delta: float) -> void:
-	if OS.has_feature("dedicated_server"):
-		pass
-
-func _display_type_of_var(variable):
-	print("TYPE OF VAR")
-	print(type_string(typeof(variable)))
-
-
-####################################################################################
-# Played on game server
-####################################################################################
-
 func _start_server():
-	print("Starting the server...")
 	# change to main scene
-	get_tree().call_deferred("change_scene_to_file", Globals.init_scene)
+	Globals.print_rich_distinguished("\t[color=Darkorange] -> Lancement du serveur[/color]", [])
+	if not GameOrchestrator.levels.is_empty():
+		Globals.print_rich_distinguished("\t[color=Darkorange] -> Scene à ouvrir : %s[/color]", [GameOrchestrator.levels[0].resource_path])
+		get_tree().call_deferred("change_scene_to_file", GameOrchestrator.levels[0].resource_path)
+	else:
+		Globals.print_rich_distinguished("\t[color=red] -> Tableau de scènes vide![/color]", [])
+		get_tree().quit()
 	await get_tree().process_frame
 	await get_tree().process_frame
 	loadServerConfig()
 	
 	entities_spawn_node = get_tree().get_current_scene().get_node("Planet")
-
+	
+	Globals.print_rich_distinguished("\t[color=gold]Création du server_peer[/color]", [])
 	var server_peer = ENetMultiplayerPeer.new()
+	if server_peer:
+		#server_peer.set_bind_ip("0.0.0.0")
+		pass
+	else:
+		Globals.print_rich_distinguished("\t[color=red] -> ERROR[/color]", [])
 	var res = server_peer.create_server(7051, 150)
 	if res != OK:
 		prints("creating server failed:", error_string(res))
@@ -105,25 +101,22 @@ func _on_player_disconnect(id):
 	players.erase(id)
 	player_ship.erase(id)
 
+####################################################################################
+# Played on client
+####################################################################################
 
-@rpc("any_peer", "call_remote", "reliable")
-func spawn_box50cm() -> void:
-	var senderid = multiplayer.get_remote_sender_id()
-	# server received and ths is played on all clients (rpc any_peer)
-	var box50cm_instance = box_50cm.instantiate()
-	
-	var player = players[senderid]
-	
-	var spawn_position = player.global_position + (-player.global_basis.z * 1.5) + player.global_basis.y * 2.0
-	
-	players[senderid].add_sibling(box50cm_instance, true)
-	box50cm_instance.global_position = spawn_position
-	
-	if isInsideBox4m:
-		box50cm_instance.set_collision_layer_value(1, false)
-		box50cm_instance.set_collision_layer_value(2, true)
-		box50cm_instance.set_collision_mask_value(1, false)
-		box50cm_instance.set_collision_mask_value(2, true)
+func create_client():
+	# create client
+	var client_peer = ENetMultiplayerPeer.new()
+	client_peer.create_client("127.0.0.1", 7051)
+	multiplayer.multiplayer_peer = client_peer
+
+@rpc("any_peer", "call_remote", "unreliable", 0)
+func receive_chat_message_from_server(message: String, pseudo: String, channel: String) -> void:
+	var sceneChat = get_tree().get_current_scene().get_node("GlobalChat")
+	var canvas = sceneChat.get_node("CanvasLayer")
+	var chatContainer = canvas.get_node("global_chat_container")
+	chatContainer.receive_message_from_server(message, pseudo, channel)
 
 ###################
 # Chat part       #
@@ -155,7 +148,6 @@ func _on_mqtt_broker_connected():
 
 func _on_mqtt_broker_connection_failed():
 	print("[chat] MQTT chat failed to connecte :(")
-
 @rpc("any_peer", "call_local", "reliable")
 func server_receive_chat_message(channelName, pseudo, message):
 	MQTTClient.publish("chat/" + channelName, JSON.stringify({
@@ -163,11 +155,30 @@ func server_receive_chat_message(channelName, pseudo, message):
 		"msg": message,
 	}))
 
+@rpc("any_peer", "call_remote", "reliable")
+func spawn_box50cm() -> void:
+	var senderid = multiplayer.get_remote_sender_id()
+	# server received and ths is played on all clients (rpc any_peer)
+	var box50cm_instance = box_50cm.instantiate()
+	
+	var player = players[senderid]
+	
+	var spawn_position = player.global_position + (-player.global_basis.z * 1.5) + player.global_basis.y * 2.0
+	
+	players[senderid].add_sibling(box50cm_instance, true)
+	box50cm_instance.global_position = spawn_position
+	
+	if isInsideBox4m:
+		box50cm_instance.set_collision_layer_value(1, false)
+		box50cm_instance.set_collision_layer_value(2, true)
+		box50cm_instance.set_collision_mask_value(1, false)
+		box50cm_instance.set_collision_mask_value(2, true)
 
 @rpc("any_peer", "call_remote", "reliable")
 func spawn_box4m() -> void:
-	var player = Server.players[multiplayer.get_remote_sender_id()]
+	var senderid = multiplayer.get_remote_sender_id()
 	var box4m_instance: RigidBody3D = box_4m.instantiate()
+	var player = players[senderid]
 	var spawn_position: Vector3 = player.global_position + (-player.global_basis.z * 3.0) + player.global_basis.y * 6.0
 	player.add_sibling(box4m_instance, true)
 	box4m_instance.global_position = spawn_position
@@ -177,12 +188,12 @@ func spawn_box4m() -> void:
 @rpc("any_peer", "call_remote", "reliable")
 func spawn_ship() -> void:
 	var id = multiplayer.get_remote_sender_id()
-	var player = Server.players[id]
+	var player = GameOrchestrator.game_server.players[id]
 	var ship_pos = player.global_position + -player.global_basis.z * 10 + player.global_basis.y * 3
 	
 	var spaceship = spaceship_scene.instantiate() as Spaceship
 	
-	Server.player_ship[id] = spaceship
+	GameOrchestrator.game_server.player_ship[id] = spaceship
 	player.add_sibling(spaceship, true)
 	
 	var planet_normal = get_tree().current_scene.global_position.direction_to(player.global_position)
@@ -190,28 +201,3 @@ func spawn_ship() -> void:
 	#spaceship.position_ship.rpc(ship_pos, planet_normal)
 	spaceship.global_position = ship_pos
 	spaceship.global_transform = Globals.align_with_y(spaceship.global_transform, planet_normal)
-
-#####################################################################################
-## Played on the very first game server (to manage all players positions)
-#####################################################################################
-
-
-
-
-
-####################################################################################
-# Played on client
-####################################################################################
-
-func create_client():
-	# create client
-	var client_peer = ENetMultiplayerPeer.new()
-	client_peer.create_client("127.0.0.1", 7051)
-	multiplayer.multiplayer_peer = client_peer
-
-@rpc("any_peer", "call_remote", "unreliable", 0)
-func receive_chat_message_from_server(message: String, pseudo: String, channel: String) -> void:
-	var sceneChat = get_tree().get_current_scene().get_node("GlobalChat")
-	var canvas = sceneChat.get_node("CanvasLayer")
-	var chatContainer = canvas.get_node("global_chat_container")
-	chatContainer.receive_message_from_server(message, pseudo, channel)

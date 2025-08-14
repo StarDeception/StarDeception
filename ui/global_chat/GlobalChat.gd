@@ -81,7 +81,7 @@ func _on_input_text_text_submitted(nt: String) -> void:
 func send_message_to_server(txt: String) -> void:
 	var channel_name := channel_selector.get_item_text(channel_selector.get_selected_id())
 	var _channel_value : int = ChannelE[channel_name]
-	Server.server_receive_chat_message.rpc_id(1, channel_name, Globals.playerName, txt)
+	GameOrchestrator.game_server.server_receive_chat_message.rpc_id(1, channel_name, Globals.playerName, txt)
 	logg("message envoyé au serveur :" + txt)
 
 # Receives a message from the server

@@ -93,7 +93,7 @@ func position_ship(new_pos: Vector3, planet_normal: Vector3):
 @rpc("any_peer", "call_remote", "reliable")
 func request_control():
 	var peerid = multiplayer.get_remote_sender_id()
-	var player = Server.players[peerid]
+	var player = GameOrchestrator.game_server.players[peerid]
 	prints("player", player, "take control of ship", name)
 	if not pilot_seat.remote_path.is_empty():
 		print("pilot is already controlling ship")
