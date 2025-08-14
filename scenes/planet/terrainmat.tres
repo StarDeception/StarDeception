@@ -1,0 +1,26 @@
+[gd_resource type="ShaderMaterial" load_steps=6 format=3 uid="uid://dme3tc3w002rt"]
+
+[ext_resource type="Shader" path="res://scenes/planet/terrain_generator.gdshader" id="1_qls5a"]
+
+[sub_resource type="Gradient" id="Gradient_tk31g"]
+offsets = PackedFloat32Array(0, 0.0550725, 0.0884058, 0.102899)
+colors = PackedColorArray(0.196703, 0.527931, 0.794271, 1, 0.860355, 0.826764, 0.507178, 1, 0.458333, 0.364238, 0.191773, 1, 0.378952, 0.380593, 0.434896, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_ox0in"]
+gradient = SubResource("Gradient_tk31g")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_tk31g"]
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_ox0in"]
+as_normal_map = true
+noise = SubResource("FastNoiseLite_tk31g")
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_qls5a")
+shader_parameter/gradient = SubResource("GradientTexture1D_ox0in")
+shader_parameter/normal_map = SubResource("NoiseTexture2D_ox0in")
+shader_parameter/normal_scale = 2.055
+shader_parameter/h_min = 1573.06
+shader_parameter/h_max = 10433.8
+shader_parameter/uv1_blend_sharpness = 0.0
