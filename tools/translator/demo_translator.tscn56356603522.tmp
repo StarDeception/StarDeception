@@ -1,0 +1,74 @@
+[gd_scene load_steps=4 format=3 uid="uid://bim6q22d2m88h"]
+
+[ext_resource type="Script" uid="uid://buay8m0nclbm8" path="res://tools/translator/demo_translator.gd" id="1_3du44"]
+[ext_resource type="Script" uid="uid://d0x4xgh6mq0fl" path="res://tools/translator/translator.gd" id="1_tqy3d"]
+[ext_resource type="Script" uid="uid://ckb8w47gbw0l1" path="res://tools/translator/translator_item.gd" id="3_5bh0e"]
+
+[node name="DemoTranslator" type="Node2D" node_paths=PackedStringArray("dropdown")]
+script = ExtResource("1_3du44")
+dropdown = NodePath("CanvasLayer/OptionButton")
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("1_tqy3d")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="Label" type="Label" parent="CanvasLayer"]
+offset_left = 60.0
+offset_top = 32.0
+offset_right = 376.0
+offset_bottom = 83.0
+theme_override_font_sizes/font_size = 30
+text = "main_menu"
+
+[node name="RichTextLabel" type="RichTextLabel" parent="CanvasLayer"]
+offset_left = 63.0
+offset_top = 152.0
+offset_right = 497.0
+offset_bottom = 303.0
+theme_override_font_sizes/normal_font_size = 30
+text = "rich_menu_desc"
+fit_content = true
+
+[node name="LineEdit" type="LineEdit" parent="CanvasLayer"]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -112.0
+offset_right = 593.0
+grow_vertical = 0
+size_flags_vertical = 0
+theme_override_font_sizes/font_size = 40
+placeholder_text = "input_nickname"
+
+[node name="PanelContainer" type="PanelContainer" parent="CanvasLayer"]
+offset_left = 433.0
+offset_top = 304.0
+offset_right = 1045.0
+offset_bottom = 557.0
+
+[node name="RichTextLabel_in_panel" type="RichTextLabel" parent="CanvasLayer/PanelContainer"]
+layout_mode = 2
+theme_override_font_sizes/normal_font_size = 30
+text = "rich_menu_desc_2"
+fit_content = true
+script = ExtResource("3_5bh0e")
+
+[node name="OptionButton" type="OptionButton" parent="CanvasLayer"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -460.0
+offset_bottom = 38.0
+grow_horizontal = 0
+item_count = 2
+popup/item_0/text = "en"
+popup/item_0/id = 0
+popup/item_1/text = "fr"
+popup/item_1/id = 1
+
+[connection signal="item_selected" from="CanvasLayer/OptionButton" to="." method="_on_option_button_item_selected"]

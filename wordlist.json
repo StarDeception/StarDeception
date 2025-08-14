@@ -1,0 +1,22 @@
+{
+	"input_nickname": {
+		"en": "Nickname...",
+		"fr": "Pseudo..."
+	},
+	"main_menu": {
+		"en": "main menu",
+		"fr": "menu principal"
+	},
+	"rich_menu_desc": {
+		"en": "a great rich text label desc !",
+		"fr": "ceci est une superbe description de l'étiquete de texte riche !"
+	},
+	"rich_menu_desc_2": {
+		"en": "another great rich text label desc !",
+		"fr": "ceci est une AUTRE superbe description de l'étiquete de texte riche !"
+	},
+	"this_will_be_translated": {
+		"en": "this will be translated",
+		"fr": "Ceci sera traduit !"
+	}
+}
