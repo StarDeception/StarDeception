@@ -1,0 +1,38 @@
+[gd_resource type="ShaderMaterial" load_steps=7 format=3 uid="uid://degky8mc31ncp"]
+
+[ext_resource type="Shader" uid="uid://cqo8jlsmx8n7n" path="res://scenes/planet/terrain2.gdshader" id="1_3iebd"]
+[ext_resource type="Texture2D" uid="uid://brgyw75mdxugt" path="res://assets/textures/rock/Rock029_2K_Color.jpg" id="2_4o7e0"]
+[ext_resource type="Texture2D" uid="uid://cmxvmps1gfe7p" path="res://assets/textures/rock/Rock029_2K_NormalGL.jpg" id="3_uks27"]
+[ext_resource type="Texture2D" uid="uid://tlqwrtnp20lv" path="res://assets/textures/rock/Rock029_2K_Roughness.jpg" id="4_qdhxs"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_pwywj"]
+noise_type = 0
+frequency = 1.0
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_mpfmm"]
+width = 128
+height = 128
+seamless = true
+noise = SubResource("FastNoiseLite_pwywj")
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_3iebd")
+shader_parameter/albedo = Color(1, 1, 1, 1)
+shader_parameter/texture_albedo = ExtResource("2_4o7e0")
+shader_parameter/albedo_texture_size = Vector2i(2048, 2048)
+shader_parameter/point_size = 1.0
+shader_parameter/roughness = 1.0
+shader_parameter/metallic_texture_channel = Vector4(1, 0, 0, 0)
+shader_parameter/texture_roughness = ExtResource("4_qdhxs")
+shader_parameter/specular = 0.5
+shader_parameter/metallic = 0.0
+shader_parameter/texture_normal = ExtResource("3_uks27")
+shader_parameter/normal_scale = 1.0
+shader_parameter/uv1_blend_sharpness = 1.0
+shader_parameter/uv1_scale = Vector3(1, 1, 1)
+shader_parameter/uv1_offset = Vector3(0, 0, 0)
+shader_parameter/uv2_scale = Vector3(1, 1, 1)
+shader_parameter/uv2_offset = Vector3(0, 0, 0)
+shader_parameter/noise = SubResource("NoiseTexture2D_mpfmm")
+shader_parameter/notile_offset = 0.41

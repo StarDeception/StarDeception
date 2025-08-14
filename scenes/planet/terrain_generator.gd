@@ -10,17 +10,21 @@ var focus_position_last: Vector3 = Vector3.ZERO
 @export var focus_position: Vector3 = Vector3.ZERO
 # Quadtree specific properties
 @export var material: Material
+@export var normal : Vector3
 
 var camera_dir: Vector3
 var last_cam_dir: Vector3
 
-@export var normal : Vector3
 
 var axisA: Vector3
 var axisB: Vector3
 
 var chunks_list = {}
 var chunks_list_current = {}
+var chunks_col_list = {}
+
+var update_thread = Thread.new()
+var semaphore = Semaphore.new()
 
 
 # Placeholder for the quadtree structure
@@ -169,10 +173,18 @@ func visualize_quadtree(chunk: QuadtreeChunk):
 		mi.mesh = mesh
 		mi.material_override = material
 		
-		(material as ShaderMaterial).set_shader_parameter("h_min", planet.min_height)
-		(material as ShaderMaterial).set_shader_parameter("h_max", planet.max_height)
+		if material is ShaderMaterial:
+			(material as ShaderMaterial).set_shader_parameter("h_min", planet.min_height)
+			(material as ShaderMaterial).set_shader_parameter("h_max", planet.max_height)
 		
-		add_child(mi)
+		# if at final LOD (highest)
+		if planet.lod_levels.size() == chunk.depth:
+			if !chunks_col_list.has(chunk.identifier):
+				await call_deferred("add_staticbody", chunk.identifier, mesh)
+			else:
+				await call_deferred("update_collision", chunk.identifier, mesh)
+		
+		add_child.call_deferred(mi)
 
 		#add this chunk to chunk list
 		chunks_list[chunk.identifier] = mi
@@ -181,7 +193,25 @@ func visualize_quadtree(chunk: QuadtreeChunk):
 	for child in chunk.children:
 		visualize_quadtree(child)
 
+
+func update_collision(id: String, mesh: ArrayMesh):
+	var col = chunks_col_list[id].get_child(0) as CollisionShape3D
+	col.disabled = false
+	col.shape = await mesh.call_deferred("create_trimesh_shape")
+
+func add_staticbody(id: String, mesh: ArrayMesh):
+	var staticbody = StaticBody3D.new()
+	var collision_shape = CollisionShape3D.new()
+	collision_shape.name = "ChunkColShape"
+	collision_shape.shape = mesh.create_trimesh_shape()
+	staticbody.add_child(collision_shape, true)
+	add_child(staticbody)
+	chunks_col_list[id] = staticbody
+
 func _ready():
+	
+	update_thread.start(update_process, Thread.PRIORITY_LOW)
+	
 	planet = get_parent()
 	axisA = Vector3(normal.y, normal.z, normal.x).normalized()
 	axisB = normal.cross(axisA).normalized()
@@ -199,18 +229,31 @@ func _ready():
 		update_chunks()
 	)
 	
+func _exit_tree() -> void:
+	update_thread.wait_to_finish()
+
+func update_process():
+	while true:
+		semaphore.wait() # Wait until posted.
+		
+		if focus_position == null: return
+		
+		if focus_position != focus_position_last:
+			if floor(focus_position) != focus_position_last:
+				update_chunks()
+				focus_position_last = floor(focus_position)
 
 func _process(delta):
-	focus_position = EditorInterface.get_editor_viewport_3d(0).get_camera_3d().global_position
-	camera_dir = EditorInterface.get_editor_viewport_3d(0).get_camera_3d().global_basis.z
+	var camera: Camera3D
+	if Engine.is_editor_hint():
+		camera = EditorInterface.get_editor_viewport_3d(0).get_camera_3d()
+	else:
+		camera = get_viewport().get_camera_3d()
 	
-	if focus_position != focus_position_last:
-		
-		if floor(focus_position) != focus_position_last:
-			update_chunks()
-			focus_position_last = floor(focus_position)
-			
-
+	focus_position = camera.global_position
+	camera_dir = camera.global_basis.z
+	
+	semaphore.post()
 
 func update_chunks():
 	var maxlod = planet.lod_levels.size() - 1
@@ -231,5 +274,11 @@ func update_chunks():
 		if not chunks_list_current.has(chunk_id):
 			chunks_to_remove.append(chunk_id)
 	for chunk_id in chunks_to_remove:
-		chunks_list[chunk_id].queue_free()
+		chunks_list[chunk_id].queue_free.call_deferred()
 		chunks_list.erase(chunk_id)
+		disable_col.call_deferred(chunk_id)
+
+func disable_col(chunk_id):
+	if chunk_id in chunks_col_list:
+		chunks_col_list[chunk_id].get_child(0).disabled = true
+	
