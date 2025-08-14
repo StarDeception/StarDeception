@@ -1,5 +1,4 @@
-
-[gd_scene load_steps=5 format=3 uid="uid://drqxadtx316hs"]
+[gd_scene load_steps=6 format=3 uid="uid://drqxadtx316hs"]
 
 [ext_resource type="Script" uid="uid://de1e8utjyqtod" path="res://levels/system-sandbox/system_sandbox.gd" id="1_6wdpo"]
 [ext_resource type="Script" uid="uid://cj5kd1hkfvjrg" path="res://server/persistance_manager/DataPlanete.gd" id="4_88c12"]
