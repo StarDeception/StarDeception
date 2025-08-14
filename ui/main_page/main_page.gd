@@ -1,6 +1,9 @@
 extends CanvasLayer
 
+var is_ready: bool = false
+
 func _ready() -> void:
+	is_ready = true
 	Globals.print_rich_distinguished("[color=gold]Chargement de la main page[/color]", [])
 
 func _on_button_pressed() -> void:

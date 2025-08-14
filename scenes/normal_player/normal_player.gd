@@ -77,9 +77,9 @@ func _ready() -> void:
 	
 	
 	await get_tree().create_timer(1).timeout
-	Globals.print_rich_distinguished("[color=gold]Spawn du ship et serveur = %s[/color]", [GameOrchestrator._game_server.name])
+	Globals.print_rich_distinguished("[color=gold]Spawn du ship et serveur = %s[/color]", [GameOrchestrator.game_server.name])
 	#Server.spawn_ship.rpc_id(1)
-	GameOrchestrator._game_server.spawn_ship.rpc_id(1)
+	GameOrchestrator.game_server.spawn_ship.rpc_id(1)
 	
 
 
@@ -102,10 +102,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		
 		if event.is_action_pressed("spawn_50cmbox"):
 			# action of client, send RPC request to server (id = 1)
-			GameOrchestrator._game_server.spawn_box50cm.rpc_id(1)
+			GameOrchestrator.game_server.spawn_box50cm.rpc_id(1)
 		
 		if event.is_action_pressed("spawn_4mbox"):
-			GameOrchestrator._game_server.spawn_box4m.rpc_id(1)
+			GameOrchestrator.game_server.spawn_box4m.rpc_id(1)
 		
 
 		if Input.is_action_just_pressed("ext_cam"):

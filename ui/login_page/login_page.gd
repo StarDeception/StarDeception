@@ -1,6 +1,9 @@
 extends Control
 
+var is_ready: bool = false
+
 func _on_ready() -> void:
+	is_ready = true
 	Globals.print_rich_distinguished("[color=gold]Chargement de la login page[/color]", [])
 	BackgroundMusic.play_music_level()
 

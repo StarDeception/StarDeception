@@ -188,12 +188,12 @@ func spawn_box4m() -> void:
 @rpc("any_peer", "call_remote", "reliable")
 func spawn_ship() -> void:
 	var id = multiplayer.get_remote_sender_id()
-	var player = GameOrchestrator._game_server.players[id]
+	var player = GameOrchestrator.game_server.players[id]
 	var ship_pos = player.global_position + -player.global_basis.z * 10 + player.global_basis.y * 3
 	
 	var spaceship = spaceship_scene.instantiate() as Spaceship
 	
-	GameOrchestrator._game_server.player_ship[id] = spaceship
+	GameOrchestrator.game_server.player_ship[id] = spaceship
 	player.add_sibling(spaceship, true)
 	
 	var planet_normal = get_tree().current_scene.global_position.direction_to(player.global_position)
