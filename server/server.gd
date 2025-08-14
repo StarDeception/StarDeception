@@ -29,7 +29,7 @@ var player_ship: Dictionary[int, Spaceship] = {}
 @onready var isInsideBox4m: bool = false
 
 func _ready() -> void:
-	
+
 	if OS.has_feature("dedicated_server"):
 		print("OS has dedicated_server")
 		_start_server()
@@ -58,7 +58,7 @@ func _start_server():
 	await get_tree().process_frame
 	await get_tree().process_frame
 	loadServerConfig()
-	
+
 	entities_spawn_node = get_tree().get_current_scene().get_node("Planet")
 
 	var server_peer = ENetMultiplayerPeer.new()
@@ -66,7 +66,7 @@ func _start_server():
 	if res != OK:
 		prints("creating server failed:", error_string(res))
 		return
-		
+
 	multiplayer.multiplayer_peer = server_peer
 	connect_chat_mqtt()
 	print("server loaded... \\o/")
@@ -89,7 +89,7 @@ func loadServerConfig():
 
 func _on_player_connected(id):
 	print("player " + str(id) + " connected, wouahou !")
-	
+
 	player_spawned.emit(id)
 
 func _on_player_disconnect(id):
@@ -97,11 +97,11 @@ func _on_player_disconnect(id):
 	var player = entities_spawn_node.get_node_or_null(str(id))
 	if player:
 		player.queue_free()
-	
+
 	var ship = player_ship[id]
 	if ship:
 		ship.queue_free()
-	
+
 	players.erase(id)
 	player_ship.erase(id)
 
@@ -111,14 +111,14 @@ func spawn_box50cm() -> void:
 	var senderid = multiplayer.get_remote_sender_id()
 	# server received and ths is played on all clients (rpc any_peer)
 	var box50cm_instance = box_50cm.instantiate()
-	
+
 	var player = players[senderid]
-	
+
 	var spawn_position = player.global_position + (-player.global_basis.z * 1.5) + player.global_basis.y * 2.0
-	
+
 	players[senderid].add_sibling(box50cm_instance, true)
 	box50cm_instance.global_position = spawn_position
-	
+
 	if isInsideBox4m:
 		box50cm_instance.set_collision_layer_value(1, false)
 		box50cm_instance.set_collision_layer_value(2, true)
@@ -179,14 +179,14 @@ func spawn_ship() -> void:
 	var id = multiplayer.get_remote_sender_id()
 	var player = Server.players[id]
 	var ship_pos = player.global_position + -player.global_basis.z * 10 + player.global_basis.y * 3
-	
+
 	var spaceship = spaceship_scene.instantiate() as Spaceship
-	
+
 	Server.player_ship[id] = spaceship
 	player.add_sibling(spaceship, true)
-	
+
 	var planet_normal = get_tree().current_scene.global_position.direction_to(player.global_position)
-	
+
 	#spaceship.position_ship.rpc(ship_pos, planet_normal)
 	spaceship.global_position = ship_pos
 	spaceship.global_transform = Globals.align_with_y(spaceship.global_transform, planet_normal)
