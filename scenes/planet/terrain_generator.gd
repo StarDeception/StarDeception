@@ -19,13 +19,19 @@ var last_cam_dir: Vector3
 var axisA: Vector3
 var axisB: Vector3
 
+var skirt_indices = 2
+
 var chunks_list = {}
 var chunks_list_current = {}
 var chunks_col_list = {}
 
-var update_thread = Thread.new()
-var semaphore = Semaphore.new()
+var update_thread: Thread
+var semaphore: Semaphore
+var exit_mutex: Mutex
+var should_exit = false
 
+
+var run_serverside = false
 
 # Placeholder for the quadtree structure
 var quadtree: QuadtreeChunk
@@ -57,7 +63,7 @@ class QuadtreeChunk:
 		# Generate a unique identifier for the chunk based on bounds and depth
 		return "%s_%s_%d" % [bounds.position, bounds.size, depth]
 
-	func subdivide(lod_center: Vector3, camera_dir: Vector3):
+	func subdivide(lod_center: Vector3, run_serverside: bool):
 		# Calculate new bounds for children
 		var half_size = bounds.size.x * 0.5
 		var quarter_size = bounds.size.x * 0.25
@@ -77,12 +83,12 @@ class QuadtreeChunk:
 			var h: Vector3 = planet.get_height(center_local_3d.normalized())
 			var distance = planet.get_height(center_local_3d.normalized()).distance_to(lod_center)
 			
-			if depth < max_chunk_depth and distance <= planet.lod_levels[depth]["distance"]:
+			if depth < max_chunk_depth and (distance <= planet.lod_levels[depth]["distance"] or run_serverside):
 				var child_bounds = AABB(Vector3(child_pos_2d.x, 0, child_pos_2d.y), half_extents)
 				var new_child = QuadtreeChunk.new(child_bounds, depth + 1, max_chunk_depth, planet, face_origin, axisA, axisB)
 				children.append(new_child)
 				
-				new_child.subdivide(lod_center, camera_dir)
+				new_child.subdivide(lod_center, run_serverside)
 			else:
 				var child_bounds = AABB(Vector3(child_pos_2d.x, 0, child_pos_2d.y) - Vector3(quarter_size, quarter_size, quarter_size), half_extents)
 				var new_child = QuadtreeChunk.new(child_bounds, depth + 1, max_chunk_depth, planet, face_origin, axisA, axisB)
@@ -99,7 +105,7 @@ func visualize_quadtree(chunk: QuadtreeChunk):
 		
 		var size = chunk.bounds.size.x
 		var offset = chunk.bounds.position
-		var resolution: int = planet.lod_levels[chunk.depth - 1]["resolution"]
+		var resolution: int = planet.lod_levels[chunk.depth - 1]["resolution"] + skirt_indices
 		var vertex_array := PackedVector3Array()
 		var normal_array := PackedVector3Array()
 		var index_array := PackedInt32Array()
@@ -116,7 +122,7 @@ func visualize_quadtree(chunk: QuadtreeChunk):
 		for y in range(resolution):
 			for x in range(resolution):
 				var i = x + y * resolution
-				var percent = Vector2(x, y) / float(resolution - 1)
+				var percent = Vector2(x, y) / float(resolution - skirt_indices - 1)
 				var local = Vector2(offset.x, offset.z) + percent * size
 				var point_on_plane = normal + local.x * axisA + local.y * axisB
 				# Project onto sphere and apply height
@@ -178,16 +184,17 @@ func visualize_quadtree(chunk: QuadtreeChunk):
 			(material as ShaderMaterial).set_shader_parameter("h_max", planet.max_height)
 		
 		# if at final LOD (highest)
-		if planet.lod_levels.size() == chunk.depth:
+		if planet.lod_levels.size() == chunk.depth and not Engine.is_editor_hint():
 			if !chunks_col_list.has(chunk.identifier):
 				await call_deferred("add_staticbody", chunk.identifier, mesh)
 			else:
 				await call_deferred("update_collision", chunk.identifier, mesh)
 		
-		add_child.call_deferred(mi)
+		if not run_serverside:
+			add_child.call_deferred(mi)
 
-		#add this chunk to chunk list
-		chunks_list[chunk.identifier] = mi
+			#add this chunk to chunk list
+			chunks_list[chunk.identifier] = mi
 		
 	# Recursively visualize children chunks
 	for child in chunk.children:
@@ -197,45 +204,76 @@ func visualize_quadtree(chunk: QuadtreeChunk):
 func update_collision(id: String, mesh: ArrayMesh):
 	var col = chunks_col_list[id].get_child(0) as CollisionShape3D
 	col.disabled = false
-	col.shape = await mesh.call_deferred("create_trimesh_shape")
+	prints("update shape for chunk", id)
 
 func add_staticbody(id: String, mesh: ArrayMesh):
+	var t =  Time.get_ticks_msec()
 	var staticbody = StaticBody3D.new()
 	var collision_shape = CollisionShape3D.new()
 	collision_shape.name = "ChunkColShape"
 	collision_shape.shape = mesh.create_trimesh_shape()
 	staticbody.add_child(collision_shape, true)
 	add_child(staticbody)
+	#logmsg("duration: %d ms" % (t - Time.get_ticks_msec()))
+#
+	#logmsg("add static body for chunk %s faces %d" % [id, (collision_shape.shape as ConcavePolygonShape3D).get_faces().size()])
+
 	chunks_col_list[id] = staticbody
 
+
+func logmsg(msg: String):
+	if Engine.is_editor_hint(): return
+	Globals.log(msg)
+
 func _ready():
+	update_thread = Thread.new()
+	semaphore = Semaphore.new()
+	exit_mutex = Mutex.new()
+
+	should_exit = false
 	
-	update_thread.start(update_process, Thread.PRIORITY_LOW)
-	
-	planet = get_parent()
-	axisA = Vector3(normal.y, normal.z, normal.x).normalized()
-	axisB = normal.cross(axisA).normalized()
+	run_serverside = not Engine.is_editor_hint() and multiplayer.is_server()
 	
 	# Clear existing children
 	for child in get_children():
 		remove_child(child)
 		child.queue_free()
-	update_chunks()
+	
+	update_thread.start(update_process)
+	
+	
+	planet = get_parent()
+	axisA = Vector3(normal.y, normal.z, normal.x).normalized()
+	axisB = normal.cross(axisA).normalized()
+	
+	update_chunks.call_deferred()
 	
 	planet.regenerate.connect(func():
 		for chunk in chunks_list:
 			chunks_list[chunk].queue_free()
 		chunks_list.clear()
-		update_chunks()
+		update_chunks.call_deferred()
 	)
 	
 func _exit_tree() -> void:
+	exit_mutex.lock()
+	should_exit = true # Protect with Mutex.
+	exit_mutex.unlock()
+
+	semaphore.post()
 	update_thread.wait_to_finish()
 
 func update_process():
 	while true:
 		semaphore.wait() # Wait until posted.
 		
+		exit_mutex.lock()
+		var must_exit = should_exit # Protect with Mutex.
+		exit_mutex.unlock()
+
+		if must_exit:
+			break
+
 		if focus_position == null: return
 		
 		if focus_position != focus_position_last:
@@ -244,15 +282,7 @@ func update_process():
 				focus_position_last = floor(focus_position)
 
 func _process(delta):
-	var camera: Camera3D
-	if Engine.is_editor_hint():
-		camera = EditorInterface.get_editor_viewport_3d(0).get_camera_3d()
-	else:
-		camera = get_viewport().get_camera_3d()
-	
-	focus_position = camera.global_position
-	camera_dir = camera.global_basis.z
-	
+	focus_position = global_transform.inverse() * planet.focus_position
 	semaphore.post()
 
 func update_chunks():
@@ -261,7 +291,7 @@ func update_chunks():
 	var bounds = AABB(Vector3(0, 0, 0), Vector3(2,2,2))
 	quadtree = QuadtreeChunk.new(bounds, 0, maxlod, planet, normal, axisA, axisB)
 	# Start the subdivision process
-	quadtree.subdivide(focus_position, camera_dir)
+	quadtree.subdivide(focus_position, run_serverside)
 
 	chunks_list_current = {}
 

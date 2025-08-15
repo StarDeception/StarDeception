@@ -1,7 +1,7 @@
 extends CharacterBody3D
 class_name Player
 
-@onready var camera = $CameraPivot/Camera3D
+@onready var camera: Camera3D = $CameraPivot/Camera3D
 
 @onready var labelx: Label = $UserInterface/LabelXValue
 @onready var labely: Label = $UserInterface/LabelYValue
@@ -60,21 +60,27 @@ func _enter_tree() -> void:
 
 func _ready() -> void:
 	if not is_multiplayer_authority(): return
-
+	Globals.log("player spawn")
+	
 	# Here: client have authority
 	if Globals.playerName == "":
 		labelPlayerName.text = "I'm an idiot!"
 		Globals.playerName = "I'm an idiot!"
 	else:
 		labelPlayerName.text = Globals.playerName
-		
+	
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-	camera.current = true
+	camera.current = false
+	$ExtCamera3D.current = false
 	# hide player name label for me only
 	labelPlayerName.visible = false
 	astronaut.visible = false
 	connect_area_detect()
-	
+	active = false
+
+func handle_spawn():
+	active = true
+	camera.current = true
 	
 	await get_tree().create_timer(1).timeout
 	Server.spawn_ship.rpc_id(1)
@@ -153,13 +159,7 @@ func _physics_process(delta: float) -> void:
 	if parent_gravity_area:
 		
 		if parent_gravity_area.gravity_point:
-			var space_state = get_world_3d().direct_space_state
-			var param = PhysicsRayQueryParameters3D.new()
-			param.from = global_position
-			param.to = parent_gravity_area.global_position
-			var result = space_state.intersect_ray(param)
-			if result:
-				up_direction = result.normal
+			up_direction = parent_gravity_area.global_position.direction_to(global_position)
 		else:
 			up_direction = parent_gravity_area.global_basis.y
 		

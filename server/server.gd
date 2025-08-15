@@ -203,11 +203,11 @@ func spawn_ship() -> void:
 # Played on client
 ####################################################################################
 
-func create_client():
+func create_client(node: Node3D):
 	# create client
 	var client_peer = ENetMultiplayerPeer.new()
 	client_peer.create_client("127.0.0.1", 7051)
-	multiplayer.multiplayer_peer = client_peer
+	node.multiplayer.multiplayer_peer = client_peer
 
 @rpc("any_peer", "call_remote", "unreliable", 0)
 func receive_chat_message_from_server(message: String, pseudo: String, channel: String) -> void:
