@@ -31,6 +31,8 @@ uniform vec3 uv2_offset;
 uniform sampler2D noise: source_color, filter_linear_mipmap, repeat_enable;
 uniform float notile_offset;
 
+uniform sampler2D noise_c_variation: source_color, filter_linear_mipmap, repeat_enable;
+
 void vertex() {
 	vec3 normal = NORMAL;
 

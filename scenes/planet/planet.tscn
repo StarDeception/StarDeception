@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://bcer07jbu28y1"]
+[gd_scene load_steps=12 format=3 uid="uid://bcer07jbu28y1"]
 
 [ext_resource type="PackedScene" uid="uid://b86xjxnhg5yhd" path="res://scenes/planet/terrain_generator.tscn" id="1_invnv"]
 [ext_resource type="Script" uid="uid://qav8e3vvh7vd" path="res://scenes/planet/planet.gd" id="1_q7o7h"]
@@ -43,60 +43,51 @@ metadata/_custom_type_script = "uid://d0532xwig15xf"
 [sub_resource type="SphereOccluder3D" id="SphereOccluder3D_xntnt"]
 radius = 3257.66
 
+[sub_resource type="SphereMesh" id="SphereMesh_25nq4"]
+
 [node name="Planet" type="Node3D"]
 script = ExtResource("1_q7o7h")
 radius = 2000
-lod_levels = Array[Dictionary]([{
-"distance": 8000,
-"resolution": 23
-}, {
-"distance": 2000,
-"resolution": 25
-}, {
-"distance": 1000,
-"resolution": 27
-}, {
-"distance": 800,
-"resolution": 32
-}, {
-"distance": 500,
-"resolution": 35
-}])
-min_height = 3300.33
-max_height = 3619.52
+min_height = 0.0
+max_height = 8813.13
 noise = SubResource("FastNoiseLite_q7o7h")
 noise_micro = SubResource("FastNoiseLite_25nq4")
 noise_maps = Array[ExtResource("2_xntnt")]([SubResource("Resource_42vvu"), SubResource("Resource_2vvio")])
 
 [node name="TerrainGeneratorFront" parent="." node_paths=PackedStringArray("planet") instance=ExtResource("1_invnv")]
 planet = NodePath("..")
-focus_position = Vector3(3384.82, 2631.32, -3698.58)
+focus_position = Vector3(-1677.06, 2628.13, -1457.46)
 normal = Vector3(0, 0, -1)
 
 [node name="TerrainGeneratorRight" parent="." node_paths=PackedStringArray("planet") instance=ExtResource("1_invnv")]
 planet = NodePath("..")
-focus_position = Vector3(3384.82, 2631.32, -3698.58)
+focus_position = Vector3(-1677.06, 2628.13, -1457.46)
 normal = Vector3(1, 0, 0)
 
 [node name="TerrainGeneratorLeft" parent="." node_paths=PackedStringArray("planet") instance=ExtResource("1_invnv")]
 planet = NodePath("..")
-focus_position = Vector3(3384.82, 2631.32, -3698.58)
+focus_position = Vector3(-1677.06, 2628.13, -1457.46)
 normal = Vector3(-1, 0, 0)
 
 [node name="TerrainGeneratorBack" parent="." node_paths=PackedStringArray("planet") instance=ExtResource("1_invnv")]
 planet = NodePath("..")
-focus_position = Vector3(3384.82, 2631.32, -3698.58)
+focus_position = Vector3(-1677.06, 2628.13, -1457.46)
 
 [node name="TerrainGeneratorTop" parent="." node_paths=PackedStringArray("planet") instance=ExtResource("1_invnv")]
 planet = NodePath("..")
-focus_position = Vector3(3384.82, 2631.32, -3698.58)
+focus_position = Vector3(-1677.06, 2628.13, -1457.46)
 normal = Vector3(0, 1, 0)
 
 [node name="TerrainGeneratorBottom" parent="." node_paths=PackedStringArray("planet") instance=ExtResource("1_invnv")]
 planet = NodePath("..")
-focus_position = Vector3(3384.82, 2631.32, -3698.58)
+focus_position = Vector3(-1677.06, 2628.13, -1457.46)
 normal = Vector3(0, -1, 0)
 
 [node name="OccluderInstance3D" type="OccluderInstance3D" parent="."]
 occluder = SubResource("SphereOccluder3D_xntnt")
 bake_simplification_distance = 0.01
+
+[node name="DebugFocusPos" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, -1.02818e-06, 0, 1.02818e-06, 1, -1677.06, 2628.13, -1457.46)
+visible = false
+mesh = SubResource("SphereMesh_25nq4")

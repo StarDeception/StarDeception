@@ -1,6 +1,6 @@
 [gd_scene load_steps=12 format=3 uid="uid://rv6ugxi8n8pe"]
 
-[ext_resource type="Script" uid="uid://bbfrhypa38dqh" path="res://scenes/planet/testplanet.gd" id="1_2pfeq"]
+[ext_resource type="Script" uid="uid://bbnhmkthrguhh" path="res://scenes/planet/testplanet.gd" id="1_83pno"]
 [ext_resource type="Shape3D" uid="uid://w1svqnr3n3nh" path="res://scenes/planet/planet_collision.shape" id="1_lxi01"]
 [ext_resource type="Script" uid="uid://2e1cf4ehx8s5" path="res://scenes/grid/grid.gd" id="2_c1vqx"]
 [ext_resource type="Script" uid="uid://cj5kd1hkfvjrg" path="res://server/persistance_manager/DataPlanet.gd" id="4_2pfeq"]
@@ -8,9 +8,10 @@
 [ext_resource type="Script" uid="uid://7pymoxifok1q" path="res://tools/spawn_points/player_spawn_points_list.gd" id="5_6x306"]
 [ext_resource type="PackedScene" uid="uid://dtcsox8hfg83s" path="res://assets/models/spawn_kiosk/spawn_kiosk.tscn" id="5_mv8ka"]
 [ext_resource type="Script" uid="uid://3b53gu5cyf58" path="res://tools/spawn_points/player_spawn_point.gd" id="6_mv8ka"]
+[ext_resource type="PackedScene" uid="uid://bcer07jbu28y1" path="res://scenes/planet/planet.tscn" id="4_2pfeq"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_6wdpo"]
-radius = 2200.0
+radius = 4200.0
 
 [sub_resource type="SphereMesh" id="SphereMesh_jp7ei"]
 radius = 2000.0
@@ -32,9 +33,19 @@ properties/2/replication_mode = 1
 [node name="Planet" type="StaticBody3D"]
 script = ExtResource("1_2pfeq")
 material_path = "uid://t823t2dw4owg"
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_83pno"]
+noise_type = 3
+seed = 1
+frequency = 0.004
+fractal_type = 2
+
+[node name="Planet" type="StaticBody3D"]
+script = ExtResource("1_83pno")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+visible = false
 shape = ExtResource("1_lxi01")
+disabled = true
 
 [node name="PlanetGravity" type="Area3D" parent="." groups=["gravity"]]
 collision_mask = 3
@@ -50,7 +61,9 @@ shape = SubResource("SphereShape3D_6wdpo")
 
 [node name="Planet" type="MeshInstance3D" parent="."]
 material_override = ExtResource("4_l6ihg")
+visible = false
 mesh = SubResource("SphereMesh_jp7ei")
+
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
 replication_config = SubResource("SceneReplicationConfig_c1vqx")
@@ -89,3 +102,8 @@ metadata/_custom_type_script = "uid://3b53gu5cyf58"
 [node name="DataPlanet" type="Node" parent="."]
 script = ExtResource("4_2pfeq")
 metadata/_custom_type_script = "uid://cj5kd1hkfvjrg"
+
+
+[node name="PlanetTerrain" parent="." instance=ExtResource("4_2pfeq")]
+min_height = 3300.24
+noise = SubResource("FastNoiseLite_83pno")
