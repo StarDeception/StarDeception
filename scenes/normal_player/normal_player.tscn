@@ -31,7 +31,7 @@ outline_color = Color(0, 0, 0, 1)
 [sub_resource type="BoxShape3D" id="BoxShape3D_kcm5r"]
 size = Vector3(0.53418, 1.39465, 0.44873)
 
-[node name="NormalPlayer" type="CharacterBody3D"]
+[node name="NormalPlayer" type="CharacterBody3D" groups=["player"]]
 script = ExtResource("1_ll2l8")
 walk_speed = 5.0
 sprint_speed = 10.0

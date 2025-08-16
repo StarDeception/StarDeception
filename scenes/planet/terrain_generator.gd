@@ -6,8 +6,9 @@ class_name QuadtreeNode
 
 @export var planet: Planet
 
-var focus_position_last: Vector3 = Vector3.ZERO
-@export var focus_position: Vector3 = Vector3.ZERO
+var focus_positions_last = []
+var focus_positions = []
+
 # Quadtree specific properties
 @export var material: Material
 @export var normal : Vector3
@@ -62,8 +63,20 @@ class QuadtreeChunk:
 	func generate_identifier() -> String:
 		# Generate a unique identifier for the chunk based on bounds and depth
 		return "%s_%s_%d" % [bounds.position, bounds.size, depth]
+	
+	
+	func within_lod_distance(lod_centers: Array, run_serverside: bool, center_local_3d: Vector3):
+		#if run_serverside:
+			#return true
+			
+		for pos in lod_centers:
+			var distance = planet.get_height(center_local_3d.normalized()).distance_to(pos)
+			if distance <= planet.lod_levels[depth]["distance"]:
+				return true
+		
+		return false
 
-	func subdivide(lod_center: Vector3, run_serverside: bool):
+	func subdivide(lod_centers: Array, run_serverside: bool):
 		# Calculate new bounds for children
 		var half_size = bounds.size.x * 0.5
 		var quarter_size = bounds.size.x * 0.25
@@ -75,20 +88,19 @@ class QuadtreeChunk:
 			Vector2(-quarter_size, quarter_size),
 			Vector2(quarter_size, quarter_size)
 		]
+		
 
 		for offset in child_offsets:
 			var child_pos_2d = Vector2(bounds.position.x, bounds.position.z) + offset
 			var center_local_3d = face_origin + child_pos_2d.x * axisA + child_pos_2d.y * axisB
 			
-			var h: Vector3 = planet.get_height(center_local_3d.normalized())
-			var distance = planet.get_height(center_local_3d.normalized()).distance_to(lod_center)
 			
-			if depth < max_chunk_depth and (distance <= planet.lod_levels[depth]["distance"] or run_serverside):
+			if depth < max_chunk_depth and within_lod_distance(lod_centers, run_serverside, center_local_3d):
 				var child_bounds = AABB(Vector3(child_pos_2d.x, 0, child_pos_2d.y), half_extents)
 				var new_child = QuadtreeChunk.new(child_bounds, depth + 1, max_chunk_depth, planet, face_origin, axisA, axisB)
 				children.append(new_child)
 				
-				new_child.subdivide(lod_center, run_serverside)
+				new_child.subdivide(lod_centers, run_serverside)
 			else:
 				var child_bounds = AABB(Vector3(child_pos_2d.x, 0, child_pos_2d.y) - Vector3(quarter_size, quarter_size, quarter_size), half_extents)
 				var new_child = QuadtreeChunk.new(child_bounds, depth + 1, max_chunk_depth, planet, face_origin, axisA, axisB)
@@ -204,7 +216,7 @@ func visualize_quadtree(chunk: QuadtreeChunk):
 func update_collision(id: String, mesh: ArrayMesh):
 	var col = chunks_col_list[id].get_child(0) as CollisionShape3D
 	col.disabled = false
-	prints("update shape for chunk", id)
+	#prints("update shape for chunk", id)
 
 func add_staticbody(id: String, mesh: ArrayMesh):
 	var t =  Time.get_ticks_msec()
@@ -216,7 +228,7 @@ func add_staticbody(id: String, mesh: ArrayMesh):
 	add_child(staticbody)
 	#logmsg("duration: %d ms" % (t - Time.get_ticks_msec()))
 #
-	#logmsg("add static body for chunk %s faces %d" % [id, (collision_shape.shape as ConcavePolygonShape3D).get_faces().size()])
+	# logmsg("add static body for chunk %s faces %d" % [id, (collision_shape.shape as ConcavePolygonShape3D).get_faces().size()])
 
 	chunks_col_list[id] = staticbody
 
@@ -274,16 +286,36 @@ func update_process():
 		if must_exit:
 			break
 
-		if focus_position == null: return
+		update_chunks()
 		
-		if focus_position != focus_position_last:
-			if floor(focus_position) != focus_position_last:
-				update_chunks()
-				focus_position_last = floor(focus_position)
+		focus_positions_last = []
+		for pos in focus_positions:
+			focus_positions_last.push_back(floor(pos))
 
+func positions_changed() -> bool:
+	if focus_positions.size() != focus_positions_last.size():
+		return true
+	
+	for i in focus_positions.size():
+		if focus_positions[i] != focus_positions_last[i]:
+			if floor(focus_positions[i]) != focus_positions_last[i]:
+				return true
+	
+	return false
+
+func transform_positions() -> Array:
+	focus_positions = []
+	for pos in planet.focus_positions:
+		focus_positions.push_back(global_transform.inverse() * pos)
+	
+	return focus_positions
+	
 func _process(delta):
-	focus_position = global_transform.inverse() * planet.focus_position
-	semaphore.post()
+	focus_positions = transform_positions()
+	
+	if focus_positions.is_empty(): return
+	if positions_changed():
+		semaphore.post()
 
 func update_chunks():
 	var maxlod = planet.lod_levels.size() - 1
@@ -291,7 +323,7 @@ func update_chunks():
 	var bounds = AABB(Vector3(0, 0, 0), Vector3(2,2,2))
 	quadtree = QuadtreeChunk.new(bounds, 0, maxlod, planet, normal, axisA, axisB)
 	# Start the subdivision process
-	quadtree.subdivide(focus_position, run_serverside)
+	quadtree.subdivide(focus_positions, run_serverside)
 
 	chunks_list_current = {}
 

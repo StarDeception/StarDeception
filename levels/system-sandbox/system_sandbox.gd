@@ -34,22 +34,34 @@ func on_player_spawn(id):
 	
 
 func spawn_player(id: int) -> void:
-	var player = normal_player.instantiate()
+	var player = normal_player.instantiate() as Player
 	player.name = str(id)
 	spawn_node.add_child(player, true)
+	
 	Server.players[id] = player
+	
 	
 	var point = Vector3(randf_range(-.1, .1), 1.0, randf_range(-.2, .2))
 	print(point)
 	var planet_normal = point.normalized()
 	
+	# place the player on the server temporarily at the planet radius to trigger the collision shape generation
+	player.global_position = planet_normal * 3000 # TODO: replace hardcoded distance by the planet radius
+	Globals.log("player positionned temporarily at: %s" % str(player.global_position))
+	
+	# wait for collision to generate
+	await get_tree().create_timer(5).timeout
+	
+	# cast ray to planet to get a spawn position
 	var space_state = get_world_3d().direct_space_state
 	Globals.log("Space state is " + str(space_state))
 	var param = PhysicsRayQueryParameters3D.new()
-	param.from = planet_normal * 10000
+	param.from = planet_normal * 10000 # TODO: replace by offset from planet radius
 	param.to = Vector3.ZERO
 	var res = space_state.intersect_ray(param)
-	
+	if res.is_empty():
+		print("failed to find a spawn point")
+		return
 	var spawn_point: Vector3 = res["position"] + planet_normal * 5
 	
 	# Le joueur spawn à une des positions de la liste. La liste est remplie avec les coordonnées de ses enfants de type PlayerSpawnPoint
@@ -58,6 +70,8 @@ func spawn_player(id: int) -> void:
 	
 	print_rich("[color=green]Spawn point : %.2v[/color]" % spawn_point)
 	
+	
+	# trigger change of position on server + client
 	set_player_position.rpc(id, spawn_point, planet_normal)
 
 
@@ -75,8 +89,9 @@ func set_player_position(id: int, player_position: Vector3, planet_normal: Vecto
 	player.global_position = player_position
 	player.global_transform = Globals.align_with_y(player.global_transform, planet_normal)
 	
-	await get_tree().create_timer(1).timeout
-	player.handle_spawn()
+	if not multiplayer.is_server():
+		await get_tree().create_timer(1).timeout
+		player.handle_spawn()
 	
 
 

@@ -53,7 +53,7 @@ var mouse_motion: Vector2
 var gravity_parents: Array[Area3D]
 
 # to disable player input when piloting vehicule/ship
-var active = true
+var active = false
 
 func _enter_tree() -> void:
 	set_multiplayer_authority(str(name).to_int())

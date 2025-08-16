@@ -14,7 +14,6 @@ func align_with_y(xform: Transform3D, new_y: Vector3) -> Transform3D:
 	return xform
 
 func log(message: String):
-	if Engine.is_editor_hint(): return
 	 
 	var header = "[color=green][lb]client[rb][/color]"
 	if multiplayer.is_server():
