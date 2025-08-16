@@ -9,17 +9,18 @@ var normal_player = preload("res://scenes/normal_player/normal_player.tscn")
 
 var spawn_points_list: Array[Vector3]
 
+func _enter_tree() -> void:
+	if not OS.has_feature("dedicated_server") and Globals.onlineMode:
+		Server.create_client(self)
+
+
 func _ready() -> void:
 	if has_node("PlayerSpawnPointsList"):
 		for child in get_node("PlayerSpawnPointsList").get_children():
 			spawn_points_list.append(child.global_position)
 	
 	Server.player_spawned.connect(on_player_spawn)
-	
-	if not OS.has_feature("dedicated_server") and Globals.onlineMode:
-		await Server.create_client()
-	
-	
+
 	if multiplayer.is_server():
 		# spawn station on the server
 		spawn_station()

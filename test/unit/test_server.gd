@@ -8,35 +8,35 @@ func after_each():
 
 func before_all():
 	# define players
-	Server.players = {
-		"c7b06780-7100-4c5d-8841-90985eea8b6d": {
-			"id": 4,
-			"name": "jeronimo",
-			"server_id": 5,
-			"client_uuid": "c7b06780-7100-4c5d-8841-90985eea8b6d",
-			"x": "-25.934005737305",
-			"y": "-0.014608105644584",
-			"z": "3.0809617042541"
-		},
-		"30be488b-2c60-473d-9595-b9ff551dcf80": {
-			"id": 4,
-			"name": "jeronimo",
-			"server_id": 5,
-			"client_uuid": "30be488b-2c60-473d-9595-b9ff551dcf80",
-			"x": "-25.934005737305",
-			"y": "-0.014608105644584",
-			"z": "56.0809617042541"
-		},
-		"6ebb847c-9c25-466a-989f-c1cf5ad3366f": {
-			"id": 4,
-			"name": "jeronimo",
-			"server_id": 5,
-			"client_uuid": "30be488b-2c60-473d-9595-b9ff551dcf80",
-			"x": "-25.934005737305",
-			"y": "-0.014608105644584",
-			"z": "-56.0809617042541"
-		}
-	}
+	#Server.players = {
+		#"c7b06780-7100-4c5d-8841-90985eea8b6d": {
+			#"id": 4,
+			#"name": "jeronimo",
+			#"server_id": 5,
+			#"client_uuid": "c7b06780-7100-4c5d-8841-90985eea8b6d",
+			#"x": "-25.934005737305",
+			#"y": "-0.014608105644584",
+			#"z": "3.0809617042541"
+		#},
+		#"30be488b-2c60-473d-9595-b9ff551dcf80": {
+			#"id": 4,
+			#"name": "jeronimo",
+			#"server_id": 5,
+			#"client_uuid": "30be488b-2c60-473d-9595-b9ff551dcf80",
+			#"x": "-25.934005737305",
+			#"y": "-0.014608105644584",
+			#"z": "56.0809617042541"
+		#},
+		#"6ebb847c-9c25-466a-989f-c1cf5ad3366f": {
+			#"id": 4,
+			#"name": "jeronimo",
+			#"server_id": 5,
+			#"client_uuid": "30be488b-2c60-473d-9595-b9ff551dcf80",
+			#"x": "-25.934005737305",
+			#"y": "-0.014608105644584",
+			#"z": "-56.0809617042541"
+		#}
+	#}
 	# define server information
 	Server.ServerSDOInfo = {
 		"id": 5,
