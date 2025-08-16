@@ -80,6 +80,7 @@ folder_colors={
 
 gravity=""
 containable=""
+player=""
 
 [input]
 
