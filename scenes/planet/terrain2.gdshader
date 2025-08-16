@@ -60,13 +60,13 @@ float sum( vec3 v ) { return v.x+v.y+v.z; }
 
 vec3 textureNoTile(sampler2D tex, in vec2 x, float v ) {
     float k = texture( noise, 0.005*x ).x; // cheap (cache friendly) lookup
-    
+
     vec2 duvdx = dFdx( x );
     vec2 duvdy = dFdy( x );
-    
+
     float l = k*8.0;
     float f = fract(l);
-    
+
 //#if 1
     //float ia = floor(l); // my method
     //float ib = ia + 1.0;
@@ -74,14 +74,14 @@ vec3 textureNoTile(sampler2D tex, in vec2 x, float v ) {
     float ia = floor(l+0.5); // suslik's method (see comments)
     float ib = floor(l);
     f = min(f, 1.0-f)*2.0;
-//#endif    
-    
+//#endif
+
     vec2 offa = sin(vec2(3.0,7.0)*ia); // can replace with any other hash
     vec2 offb = sin(vec2(3.0,7.0)*ib); // can replace with any other hash
 
     vec3 cola = textureGrad(tex, x + v*offa, duvdx, duvdy ).xyz;
     vec3 colb = textureGrad(tex, x + v*offb, duvdx, duvdy ).xyz;
-    
+
     return mix( cola, colb, smoothstep(0.2,0.8,f-0.1*sum(cola-colb)) );
 }
 

@@ -50,7 +50,7 @@ func spawn_player(id: int) -> void:
 	Globals.log("player positionned temporarily at: %s" % str(player.global_position))
 	
 	# wait for collision to generate
-	await get_tree().create_timer(5).timeout
+	await get_tree().create_timer(1).timeout
 	
 	# cast ray to planet to get a spawn position
 	var space_state = get_world_3d().direct_space_state

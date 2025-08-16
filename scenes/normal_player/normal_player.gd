@@ -56,40 +56,42 @@ var gravity_parents: Array[Area3D]
 var active = false
 
 func _enter_tree() -> void:
-	set_multiplayer_authority(str(name).to_int())
+    set_multiplayer_authority(str(name).to_int())
 
 func _ready() -> void:
-	if not is_multiplayer_authority(): return
-	Globals.log("player spawn")
-	
-	# Here: client have authority
-	if Globals.playerName == "":
-		labelPlayerName.text = "I'm an idiot!"
-		Globals.playerName = "I'm an idiot!"
-	else:
-		labelPlayerName.text = Globals.playerName
-	
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-	camera.current = false
-	$ExtCamera3D.current = false
-	# hide player name label for me only
-	labelPlayerName.visible = false
-	astronaut.visible = false
-	connect_area_detect()
-	active = false
+    if not is_multiplayer_authority(): return
+    Globals.log("player spawn")
+    
+    # Here: client have authority
+    if Globals.playerName == "":
+        labelPlayerName.text = "I'm an idiot!"
+        Globals.playerName = "I'm an idiot!"
+    else:
+        labelPlayerName.text = Globals.playerName
+    
+    Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+    camera.current = false
+    $ExtCamera3D.current = false
+    # hide player name label for me only
+    labelPlayerName.visible = false
+    astronaut.visible = false
+    connect_area_detect()
+    active = false
 
 func handle_spawn():
-	active = true
-	camera.current = true
-	
-	await get_tree().create_timer(1).timeout
-	Server.spawn_ship.rpc_id(1)
-	
+    if not is_multiplayer_authority(): return
+    
+    active = true
+    camera.current = true
+    
+    await get_tree().create_timer(1).timeout
+    Server.spawn_ship.rpc_id(1)
+    
 
 
 func connect_area_detect():
-	$AreaDetector.area_entered.connect(_on_area_detector_area_entered)
-	$AreaDetector.area_exited.connect(_on_area_detector_area_exited)
+    $AreaDetector.area_entered.connect(_on_area_detector_area_entered)
+    $AreaDetector.area_exited.connect(_on_area_detector_area_exited)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not is_multiplayer_authority(): return
@@ -116,13 +118,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		Server.spawn_box4m.rpc_id(1)
 	
 
-	if Input.is_action_just_pressed("ext_cam"):
-		if $ExtCamera3D.current:
-			camera.make_current()
-			astronaut.visible = false
-		else: 
-			astronaut.visible = true
-			$ExtCamera3D.make_current()
+    if Input.is_action_just_pressed("ext_cam"):
+        if $ExtCamera3D.current:
+            camera.make_current()
+            astronaut.visible = false
+        else: 
+            astronaut.visible = true
+            $ExtCamera3D.make_current()
 
 func _process(_delta: float) -> void:
 	if not is_multiplayer_authority(): return
@@ -198,48 +200,48 @@ func _physics_process(delta: float) -> void:
 	elif not is_on_floor():
 		velocity -= up_direction * gravity * 2.0 * delta
 
-	#prints("player vel", velocity, multiplayer.get_unique_id())
-	
-	#prints("player pos", position, rotation, multiplayer.get_unique_id())
-	move_and_slide()
-	
-	labelx.text = str("%0.2f" % global_position[0])
-	labely.text = str("%0.2f" % global_position[1])
-	labelz.text = str("%0.2f" % global_position[2])
+    #prints("player vel", velocity, multiplayer.get_unique_id())
+    
+    #prints("player pos", position, rotation, multiplayer.get_unique_id())
+    move_and_slide()
+    
+    labelx.text = str("%0.2f" % global_position[0])
+    labely.text = str("%0.2f" % global_position[1])
+    labelz.text = str("%0.2f" % global_position[2])
 
 func _handle_camera_motion():
-	if gravity == 0:
-		camera_pivot.rotation.x = 0
-		rotate_object_local(Vector3.UP, mouse_motion.x  * camera_sensitivity)
-		rotate_object_local(Vector3.RIGHT, mouse_motion.y  * camera_sensitivity)
-	else:
-		orient_player()
-		global_basis = global_basis.rotated(global_basis.y, mouse_motion.x * camera_sensitivity)
-		camera_pivot.rotate_object_local(Vector3.RIGHT, mouse_motion.y  * camera_sensitivity)
-		camera_pivot.rotation_degrees.x = clamp(camera_pivot.rotation_degrees.x, -80, 80)
-	mouse_motion = Vector2.ZERO
+    if gravity == 0:
+        camera_pivot.rotation.x = 0
+        rotate_object_local(Vector3.UP, mouse_motion.x  * camera_sensitivity)
+        rotate_object_local(Vector3.RIGHT, mouse_motion.y  * camera_sensitivity)
+    else:
+        orient_player()
+        global_basis = global_basis.rotated(global_basis.y, mouse_motion.x * camera_sensitivity)
+        camera_pivot.rotate_object_local(Vector3.RIGHT, mouse_motion.y  * camera_sensitivity)
+        camera_pivot.rotation_degrees.x = clamp(camera_pivot.rotation_degrees.x, -80, 80)
+    mouse_motion = Vector2.ZERO
 
 func orient_player():
-	global_transform = global_transform.interpolate_with(Globals.align_with_y(global_transform, up_direction), 0.3)
+    global_transform = global_transform.interpolate_with(Globals.align_with_y(global_transform, up_direction), 0.3)
 
 func set_player_name(player_name):
 	labelPlayerName.text = str(player_name)
 	
 func get_player_name():
-	print(labelPlayerName.text)
+    print(labelPlayerName.text)
 
 
 
 func _on_area_detector_area_entered(area: Area3D) -> void:
-	if area.is_in_group("gravity"):
-		gravity_parents.push_back(area)
-		prints("player entered gravity area", area)
-		#disconnect_area_detect()
-		#await call_deferred("reparent", self, area)
-		#connect_area_detect()
+    if area.is_in_group("gravity"):
+        gravity_parents.push_back(area)
+        prints("player entered gravity area", area)
+        #disconnect_area_detect()
+        #await call_deferred("reparent", self, area)
+        #connect_area_detect()
 
 func _on_area_detector_area_exited(area: Area3D) -> void:
-	if area.is_in_group("gravity"):
-		if gravity_parents.has(area):
-			prints("player left gravity area", area)
-			gravity_parents.erase(area)
+    if area.is_in_group("gravity"):
+        if gravity_parents.has(area):
+            prints("player left gravity area", area)
+            gravity_parents.erase(area)
