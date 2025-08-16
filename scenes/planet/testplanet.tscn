@@ -1,10 +1,12 @@
-[gd_scene load_steps=9 format=3 uid="uid://rv6ugxi8n8pe"]
+[gd_scene load_steps=27 format=3 uid="uid://rv6ugxi8n8pe"]
 
 [ext_resource type="Script" uid="uid://bbnhmkthrguhh" path="res://scenes/planet/testplanet.gd" id="1_83pno"]
 [ext_resource type="Shape3D" uid="uid://w1svqnr3n3nh" path="res://scenes/planet/planet_collision.shape" id="1_lxi01"]
 [ext_resource type="Material" uid="uid://brpu7xylrg2l2" path="res://assets/materials/material_basic_blue.tres" id="1_q7o7h"]
 [ext_resource type="Script" uid="uid://2e1cf4ehx8s5" path="res://scenes/grid/grid.gd" id="2_c1vqx"]
 [ext_resource type="PackedScene" uid="uid://bcer07jbu28y1" path="res://scenes/planet/planet.tscn" id="4_2pfeq"]
+[ext_resource type="PackedScene" uid="uid://bb0fma643hacs" path="res://addons/extremely_fast_atmosphere/atmosphere/atmosphere.tscn" id="6_mv8ka"]
+[ext_resource type="Shader" uid="uid://dsu80023m2ier" path="res://addons/extremely_fast_atmosphere/atmosphere/atmosphere_fbcosentino.gdshader" id="7_l6ihg"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_6wdpo"]
 radius = 4200.0
@@ -20,6 +22,76 @@ noise_type = 3
 seed = 1
 frequency = 0.004
 fractal_type = 2
+domain_warp_enabled = true
+domain_warp_amplitude = 3.0
+domain_warp_frequency = 0.003
+
+[sub_resource type="Gradient" id="Gradient_ge052"]
+offsets = PackedFloat32Array(0.503401, 0.57483)
+colors = PackedColorArray(0.0873382, 1.82897e-06, 0.450119, 1, 0, 0.791469, 0.587378, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_f8q4h"]
+gradient = SubResource("Gradient_ge052")
+
+[sub_resource type="Curve" id="Curve_0lcug"]
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.421162, 0.206226), 1.05027, 1.05027, 0, 0, Vector2(0.574689, 1), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="CurveTexture_utdev"]
+curve = SubResource("Curve_0lcug")
+
+[sub_resource type="Gradient" id="Gradient_o7yqh"]
+offsets = PackedFloat32Array(0.377551, 0.530612, 0.651613)
+colors = PackedColorArray(0, 0, 0, 1, 0.98, 0.711317, 0.5194, 1, 1, 1, 1, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_24slt"]
+gradient = SubResource("Gradient_o7yqh")
+
+[sub_resource type="Gradient" id="Gradient_q6jia"]
+offsets = PackedFloat32Array(0, 0.0133929, 0.102041, 0.557823, 1)
+colors = PackedColorArray(0, 0, 0, 1, 1, 0.199517, 0.159956, 1, 1, 0.904724, 0.795297, 1, 0.79, 0.716267, 0.632, 1, 0, 0, 0, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_gfhus"]
+gradient = SubResource("Gradient_q6jia")
+
+[sub_resource type="Curve" id="Curve_50f0x"]
+_data = [Vector2(0, 1), 0.0, -5.45596, 0, 0, Vector2(0.246888, 0.330739), -1.25032, -1.25032, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="CurveTexture_hltm3"]
+curve = SubResource("Curve_50f0x")
+
+[sub_resource type="Gradient" id="Gradient_8cxus"]
+offsets = PackedFloat32Array(0, 0.111828)
+colors = PackedColorArray(0.716146, 0.61538, 0.323156, 1, 0.99759, 0.857527, 0.479443, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_kghk6"]
+gradient = SubResource("Gradient_8cxus")
+
+[sub_resource type="Gradient" id="Gradient_wsl8f"]
+colors = PackedColorArray(1.49205e-06, 0.489553, 0.503481, 1, 0.00948865, 0.232265, 0.294271, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_tfj6s"]
+gradient = SubResource("Gradient_wsl8f")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_7o858"]
+render_priority = 2
+shader = ExtResource("7_l6ihg")
+shader_parameter/height_profile_curve = SubResource("CurveTexture_hltm3")
+shader_parameter/height_profile_main_colors = SubResource("GradientTexture1D_kghk6")
+shader_parameter/height_profile_back_colors = SubResource("GradientTexture1D_gfhus")
+shader_parameter/direction_profile_curve = SubResource("CurveTexture_utdev")
+shader_parameter/direction_profile_main_colors = SubResource("GradientTexture1D_24slt")
+shader_parameter/direction_profile_back_colors = SubResource("GradientTexture1D_f8q4h")
+shader_parameter/water_depth_profile_colors = SubResource("GradientTexture1D_tfj6s")
+shader_parameter/sea_level = 3344.31
+shader_parameter/atmosphere_radius = 4244.31
+shader_parameter/atmosphere_density = 0.215
+shader_parameter/water_density_factor = -0.205
+
+[sub_resource type="BoxMesh" id="BoxMesh_642k6"]
+flip_faces = true
+size = Vector3(8913.05, 8913.05, 8913.05)
 
 [node name="Planet" type="StaticBody3D"]
 script = ExtResource("1_83pno")
@@ -39,6 +111,7 @@ gravity_direction = Vector3(0, 0, 0)
 script = ExtResource("2_c1vqx")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="PlanetGravity"]
+visible = false
 shape = SubResource("SphereShape3D_6wdpo")
 
 [node name="Planet" type="MeshInstance3D" parent="."]
@@ -49,3 +122,10 @@ mesh = SubResource("SphereMesh_jp7ei")
 [node name="PlanetTerrain" parent="." instance=ExtResource("4_2pfeq")]
 min_height = 3300.24
 noise = SubResource("FastNoiseLite_83pno")
+
+[node name="Atmosphere" parent="." instance=ExtResource("6_mv8ka")]
+transform = Transform3D(1, 0, 0, 0, -0.77332, 0.634015, 0, -0.634015, -0.77332, 0, 0, 0)
+material_override = SubResource("ShaderMaterial_7o858")
+mesh = SubResource("BoxMesh_642k6")
+planet_radius = 3344.31
+atmosphere_height = 900.0

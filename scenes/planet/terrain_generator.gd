@@ -187,7 +187,7 @@ func visualize_quadtree(chunk: QuadtreeChunk):
 		arrays[Mesh.ARRAY_INDEX] = index_array
 
 		
-		process_mesh.call_deferred(arrays, chunk)
+		generate_mesh.call_deferred(arrays, chunk)
 		chunks_generating[chunk.identifier] = true
 		
 		
@@ -195,7 +195,7 @@ func visualize_quadtree(chunk: QuadtreeChunk):
 	for child in chunk.children:
 		visualize_quadtree(child)
 
-func process_mesh(arrays: Array, chunk: QuadtreeChunk):
+func generate_mesh(arrays: Array, chunk: QuadtreeChunk):
 	# Create and instance mesh
 	var mesh = ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
@@ -275,7 +275,9 @@ func _ready():
 	planet.regenerate.connect(func():
 		for chunk in chunks_list:
 			chunks_list[chunk].queue_free()
+			
 		chunks_list.clear()
+		chunks_generating.clear()
 		update_chunks.call_deferred()
 	)
 	
@@ -344,7 +346,7 @@ func update_chunks():
 	var bounds = AABB(Vector3(0, 0, 0), Vector3(2,2,2))
 	quadtree = QuadtreeChunk.new(bounds, 0, maxlod, planet, normal, axisA, axisB)
 	# Start the subdivision process
-	quadtree.subdivide(focus_positions, run_serverside)
+	quadtree.subdivide(focus_positions.duplicate(), run_serverside)
 
 	chunks_list_current = {}
 

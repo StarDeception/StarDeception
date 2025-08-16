@@ -38,7 +38,7 @@ project/assembly_name="StarDeception"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/awaitable_http_request/plugin.cfg", "res://addons/gut/plugin.cfg", "res://addons/open-world-database/plugin.cfg", "res://addons/uuid/plugin.cfg")
+enabled=PackedStringArray("res://addons/awaitable_http_request/plugin.cfg", "res://addons/extremely_fast_atmosphere/plugin.cfg", "res://addons/gut/plugin.cfg", "res://addons/open-world-database/plugin.cfg", "res://addons/uuid/plugin.cfg")
 
 [file_customization]
 
