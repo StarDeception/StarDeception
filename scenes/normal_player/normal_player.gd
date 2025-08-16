@@ -102,17 +102,19 @@ func _ready() -> void:
 	active = false
 
 func handle_spawn():
-	active = true
-	camera.current = true
-	
-	await get_tree().create_timer(1).timeout
-	Server.spawn_ship.rpc_id(1)
-	
+    if not is_multiplayer_authority(): return
+    
+    active = true
+    camera.current = true
+    
+    await get_tree().create_timer(1).timeout
+    Server.spawn_ship.rpc_id(1)
+    
 
 
 func connect_area_detect():
-	$AreaDetector.area_entered.connect(_on_area_detector_area_entered)
-	$AreaDetector.area_exited.connect(_on_area_detector_area_exited)
+    $AreaDetector.area_entered.connect(_on_area_detector_area_entered)
+    $AreaDetector.area_exited.connect(_on_area_detector_area_exited)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not is_multiplayer_authority(): return
@@ -239,19 +241,19 @@ func should_listen_input() -> bool:
 	return not (direct_chat.is_shown || MenuConfig.is_shown)
 
 func _handle_camera_motion():
-	if gravity == 0:
-		camera_pivot.rotation.x = 0
-		rotate_object_local(Vector3.UP, mouse_motion.x  * camera_sensitivity)
-		rotate_object_local(Vector3.RIGHT, mouse_motion.y  * camera_sensitivity)
-	else:
-		orient_player()
-		global_basis = global_basis.rotated(global_basis.y, mouse_motion.x * camera_sensitivity)
-		camera_pivot.rotate_object_local(Vector3.RIGHT, mouse_motion.y  * camera_sensitivity)
-		camera_pivot.rotation_degrees.x = clamp(camera_pivot.rotation_degrees.x, -80, 80)
-	mouse_motion = Vector2.ZERO
+    if gravity == 0:
+        camera_pivot.rotation.x = 0
+        rotate_object_local(Vector3.UP, mouse_motion.x  * camera_sensitivity)
+        rotate_object_local(Vector3.RIGHT, mouse_motion.y  * camera_sensitivity)
+    else:
+        orient_player()
+        global_basis = global_basis.rotated(global_basis.y, mouse_motion.x * camera_sensitivity)
+        camera_pivot.rotate_object_local(Vector3.RIGHT, mouse_motion.y  * camera_sensitivity)
+        camera_pivot.rotation_degrees.x = clamp(camera_pivot.rotation_degrees.x, -80, 80)
+    mouse_motion = Vector2.ZERO
 
 func orient_player():
-	global_transform = global_transform.interpolate_with(Globals.align_with_y(global_transform, up_direction), 0.3)
+    global_transform = global_transform.interpolate_with(Globals.align_with_y(global_transform, up_direction), 0.3)
 
 func set_player_name(player_name):
 	labelPlayerName.text = str(player_name)

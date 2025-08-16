@@ -24,11 +24,14 @@ var skirt_indices = 2
 
 var chunks_list = {}
 var chunks_list_current = {}
+# collision shape for chunks
 var chunks_col_list = {}
+# chunks that do not have a meshinstance yet
+var chunks_generating = {}
 
 var update_thread: Thread
 var semaphore: Semaphore
-var exit_mutex: Mutex
+var mutex: Mutex
 var should_exit = false
 
 
@@ -112,7 +115,7 @@ func visualize_quadtree(chunk: QuadtreeChunk):
 
 		chunks_list_current[chunk.identifier] = true
 		#if chunk.identifier already exists leave it
-		if chunks_list.has(chunk.identifier):
+		if chunks_generating.has(chunk.identifier):
 			return
 		
 		var size = chunk.bounds.size.x
@@ -183,10 +186,28 @@ func visualize_quadtree(chunk: QuadtreeChunk):
 		arrays[Mesh.ARRAY_NORMAL] = normal_array
 		arrays[Mesh.ARRAY_INDEX] = index_array
 
-		# Create and instance mesh
-		var mesh = ArrayMesh.new()
-		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+		
+		process_mesh.call_deferred(arrays, chunk)
+		chunks_generating[chunk.identifier] = true
+		
+		
+	# Recursively visualize children chunks
+	for child in chunk.children:
+		visualize_quadtree(child)
 
+func process_mesh(arrays: Array, chunk: QuadtreeChunk):
+	# Create and instance mesh
+	var mesh = ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+
+	# if at final LOD (highest)
+	if planet.lod_levels.size() == chunk.depth and not Engine.is_editor_hint():
+		if !chunks_col_list.has(chunk.identifier):
+			add_staticbody(chunk.identifier, mesh)
+		else:
+			update_collision(chunk.identifier, mesh)
+	
+	if not run_serverside:
 		var mi = MeshInstance3D.new()
 		mi.mesh = mesh
 		mi.material_override = material
@@ -195,23 +216,11 @@ func visualize_quadtree(chunk: QuadtreeChunk):
 			(material as ShaderMaterial).set_shader_parameter("h_min", planet.min_height)
 			(material as ShaderMaterial).set_shader_parameter("h_max", planet.max_height)
 		
-		# if at final LOD (highest)
-		if planet.lod_levels.size() == chunk.depth and not Engine.is_editor_hint():
-			if !chunks_col_list.has(chunk.identifier):
-				await call_deferred("add_staticbody", chunk.identifier, mesh)
-			else:
-				await call_deferred("update_collision", chunk.identifier, mesh)
-		
-		if not run_serverside:
-			add_child.call_deferred(mi)
+		add_child(mi)
 
-			#add this chunk to chunk list
-			chunks_list[chunk.identifier] = mi
-		
-	# Recursively visualize children chunks
-	for child in chunk.children:
-		visualize_quadtree(child)
-
+		#add this chunk to chunk list
+		chunks_list[chunk.identifier] = mi
+	
 
 func update_collision(id: String, mesh: ArrayMesh):
 	var col = chunks_col_list[id].get_child(0) as CollisionShape3D
@@ -221,6 +230,7 @@ func update_collision(id: String, mesh: ArrayMesh):
 func add_staticbody(id: String, mesh: ArrayMesh):
 	var t =  Time.get_ticks_msec()
 	var staticbody = StaticBody3D.new()
+	#staticbody.position = mesh.get_aabb().get_center()
 	var collision_shape = CollisionShape3D.new()
 	collision_shape.name = "ChunkColShape"
 	collision_shape.shape = mesh.create_trimesh_shape()
@@ -237,10 +247,12 @@ func logmsg(msg: String):
 	if Engine.is_editor_hint(): return
 	Globals.log(msg)
 
-func _ready():
+func _enter_tree() -> void:
 	update_thread = Thread.new()
 	semaphore = Semaphore.new()
-	exit_mutex = Mutex.new()
+	mutex = Mutex.new()
+
+func _ready():
 
 	should_exit = false
 	
@@ -268,9 +280,9 @@ func _ready():
 	)
 	
 func _exit_tree() -> void:
-	exit_mutex.lock()
+	mutex.lock()
 	should_exit = true # Protect with Mutex.
-	exit_mutex.unlock()
+	mutex.unlock()
 
 	semaphore.post()
 	update_thread.wait_to_finish()
@@ -279,24 +291,32 @@ func update_process():
 	while true:
 		semaphore.wait() # Wait until posted.
 		
-		exit_mutex.lock()
+		mutex.lock()
 		var must_exit = should_exit # Protect with Mutex.
-		exit_mutex.unlock()
+		mutex.unlock()
 
 		if must_exit:
 			break
 
 		update_chunks()
 		
+		mutex.lock()
 		focus_positions_last = []
 		for pos in focus_positions:
 			focus_positions_last.push_back(floor(pos))
+		mutex.unlock()
+		
 
 func positions_changed() -> bool:
 	if focus_positions.size() != focus_positions_last.size():
 		return true
 	
 	for i in focus_positions.size():
+		if !focus_positions_last.has(i):
+			return true
+		if !focus_positions.has(i):
+			return true
+		
 		if focus_positions[i] != focus_positions_last[i]:
 			if floor(focus_positions[i]) != focus_positions_last[i]:
 				return true
@@ -304,14 +324,15 @@ func positions_changed() -> bool:
 	return false
 
 func transform_positions() -> Array:
-	focus_positions = []
+	var transformed_positions = []
 	for pos in planet.focus_positions:
-		focus_positions.push_back(global_transform.inverse() * pos)
-	
-	return focus_positions
-	
+		transformed_positions.push_back(global_transform.inverse() * pos)
+	return transformed_positions
+
 func _process(delta):
+	mutex.lock()
 	focus_positions = transform_positions()
+	mutex.unlock()
 	
 	if focus_positions.is_empty(): return
 	if positions_changed():
@@ -336,11 +357,23 @@ func update_chunks():
 		if not chunks_list_current.has(chunk_id):
 			chunks_to_remove.append(chunk_id)
 	for chunk_id in chunks_to_remove:
-		chunks_list[chunk_id].queue_free.call_deferred()
-		chunks_list.erase(chunk_id)
-		disable_col.call_deferred(chunk_id)
+		if chunk_id in chunks_list:
+			chunks_list[chunk_id].queue_free.call_deferred()
+			chunks_list.erase(chunk_id)
+			chunks_generating.erase(chunk_id)
+			
+			disable_col.call_deferred(chunk_id)
+
+func any_player_near(body: StaticBody3D, distance = 1000):
+	for pos: Vector3 in focus_positions:
+		if pos.distance_squared_to(body.global_position) < distance*distance:
+			return true
+	return false
 
 func disable_col(chunk_id):
 	if chunk_id in chunks_col_list:
 		chunks_col_list[chunk_id].get_child(0).disabled = true
+		
+		#if not any_player_near(chunks_col_list[chunk_id]):
+			#chunks_col_list[chunk_id].queue_free.call_deferred()
 	
