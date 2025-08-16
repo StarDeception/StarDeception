@@ -112,10 +112,10 @@ vec4 triplanar_texture(sampler2D p_sampler, vec3 p_weights, vec3 p_triplanar_pos
 
 void fragment() {
 	vec3 albedo = triplanar_texture(noise_c_variation, uv1_power_normal, uv1_triplanar_pos * 0.0002).rgb;
-	
-	
+
+
 	float var = log(vertical_amount * 1.3);
-	
+
 	vec3 albedo_tex = triplanar_texture_notile(texture_albedo, uv1_power_normal, uv1_triplanar_pos);
 	ALBEDO = albedo.rgb; //mix(albedo.rgb * albedo_tex.r, albedo_var.rgb, clamp(var, 0.0, 1.0));
 

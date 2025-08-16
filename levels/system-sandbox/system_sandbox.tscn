@@ -35,7 +35,7 @@ environment = SubResource("Environment_jp7ei")
 sun = NodePath("../DirectionalLight3D")
 
 [node name="ChrisR_01" parent="Planet" instance=ExtResource("4_0y0hx")]
-transform = Transform3D(0.858298, 0.513152, 0, -0.513152, 0.858298, 0, 0, 0, 1, 900.824, 1783.63, 79.3835)
+transform = Transform3D(-0.127888, 0.639145, -0.758379, 0.0284484, 0.766708, 0.641366, 0.991381, 0.0604486, -0.116235, 2011.5, 2607.1, 397.068)
 
 [node name="SmallPropsMultiplayerSpawner" type="MultiplayerSpawner" parent="."]
 _spawnable_scenes = PackedStringArray("uid://ccme8rxijtf2s", "uid://xud5xo51ir5r", "uid://d37hc6ybk8fsj", "uid://cptjp55tlikyl")
