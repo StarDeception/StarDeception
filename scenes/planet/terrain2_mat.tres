@@ -1,4 +1,4 @@
-[gd_resource type="ShaderMaterial" load_steps=7 format=3 uid="uid://degky8mc31ncp"]
+[gd_resource type="ShaderMaterial" load_steps=10 format=3 uid="uid://degky8mc31ncp"]
 
 [ext_resource type="Shader" uid="uid://cqo8jlsmx8n7n" path="res://scenes/planet/terrain2.gdshader" id="1_3iebd"]
 [ext_resource type="Texture2D" uid="uid://brgyw75mdxugt" path="res://assets/textures/rock/Rock029_2K_Color.jpg" id="2_4o7e0"]
@@ -7,7 +7,7 @@
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_pwywj"]
 noise_type = 0
-frequency = 1.0
+frequency = 0.8952
 
 [sub_resource type="NoiseTexture2D" id="NoiseTexture2D_mpfmm"]
 width = 128
@@ -15,10 +15,20 @@ height = 128
 seamless = true
 noise = SubResource("FastNoiseLite_pwywj")
 
+[sub_resource type="Gradient" id="Gradient_3iebd"]
+offsets = PackedFloat32Array(0, 0.438384, 0.69495, 1)
+colors = PackedColorArray(0.328125, 0.224896, 0.120598, 1, 0.677083, 0.464071, 0.248852, 1, 0.510417, 0.25774, 0.188616, 1, 0.440382, 0.453666, 0.507813, 1)
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_4o7e0"]
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_uks27"]
+seamless = true
+color_ramp = SubResource("Gradient_3iebd")
+noise = SubResource("FastNoiseLite_4o7e0")
+
 [resource]
 render_priority = 0
 shader = ExtResource("1_3iebd")
-shader_parameter/albedo = Color(1, 1, 1, 1)
 shader_parameter/texture_albedo = ExtResource("2_4o7e0")
 shader_parameter/albedo_texture_size = Vector2i(2048, 2048)
 shader_parameter/point_size = 1.0
@@ -35,4 +45,6 @@ shader_parameter/uv1_offset = Vector3(0, 0, 0)
 shader_parameter/uv2_scale = Vector3(1, 1, 1)
 shader_parameter/uv2_offset = Vector3(0, 0, 0)
 shader_parameter/noise = SubResource("NoiseTexture2D_mpfmm")
-shader_parameter/notile_offset = 0.41
+shader_parameter/notile_offset = 0.73
+shader_parameter/albedo_var = Color(0.664063, 0.550762, 0.351307, 1)
+shader_parameter/noise_c_variation = SubResource("NoiseTexture2D_uks27")

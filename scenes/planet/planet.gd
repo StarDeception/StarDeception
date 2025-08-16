@@ -28,7 +28,7 @@ signal regenerate()
 
 func _ready() -> void:
 	lod_levels = [
-		{ "distance": 3000, "resolution": 80 },
+		{ "distance": 3000, "resolution": 100 },
 		{ "distance": 1500, "resolution": 80 },
 		{ "distance": 800, "resolution": 60 },
 		 { "distance": 500, "resolution": 60 },

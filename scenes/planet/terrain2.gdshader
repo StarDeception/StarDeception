@@ -3,7 +3,6 @@
 shader_type spatial;
 render_mode blend_mix, depth_draw_opaque, cull_back, diffuse_burley, specular_schlick_ggx;
 
-uniform vec4 albedo : source_color;
 uniform sampler2D texture_albedo : source_color, filter_linear_mipmap, repeat_enable;
 uniform ivec2 albedo_texture_size;
 uniform float point_size : hint_range(0.1, 128.0, 0.1);
@@ -31,10 +30,18 @@ uniform vec3 uv2_offset;
 uniform sampler2D noise: source_color, filter_linear_mipmap, repeat_enable;
 uniform float notile_offset;
 
+uniform vec3 albedo_var: source_color;
+
 uniform sampler2D noise_c_variation: source_color, filter_linear_mipmap, repeat_enable;
 
+varying float vertical_amount;
+varying vec3 normal;
+
+
 void vertex() {
-	vec3 normal = NORMAL;
+	normal = NORMAL;
+	vec3 global_normal = normalize(VERTEX);
+	vertical_amount = dot(global_normal, normal);
 
 	TANGENT = vec3(0.0, 0.0, -1.0) * abs(normal.x);
 	TANGENT += vec3(1.0, 0.0, 0.0) * abs(normal.y);
@@ -104,8 +111,13 @@ vec4 triplanar_texture(sampler2D p_sampler, vec3 p_weights, vec3 p_triplanar_pos
 }
 
 void fragment() {
+	vec3 albedo = triplanar_texture(noise_c_variation, uv1_power_normal, uv1_triplanar_pos * 0.0002).rgb;
+	
+	
+	float var = log(vertical_amount * 1.3);
+	
 	vec3 albedo_tex = triplanar_texture_notile(texture_albedo, uv1_power_normal, uv1_triplanar_pos);
-	ALBEDO = albedo.rgb * albedo_tex.rgb;
+	ALBEDO = albedo.rgb; //mix(albedo.rgb * albedo_tex.r, albedo_var.rgb, clamp(var, 0.0, 1.0));
 
 	SPECULAR = specular;
 
@@ -115,5 +127,5 @@ void fragment() {
 
 	// Normal Map: Enabled
 	NORMAL_MAP = triplanar_texture_notile(texture_normal, uv1_power_normal, uv1_triplanar_pos).rgb;
-	NORMAL_MAP_DEPTH = normal_scale;
+	NORMAL_MAP_DEPTH = normal_scale * var * 3.0;
 }
