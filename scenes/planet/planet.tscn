@@ -45,9 +45,10 @@ radius = 500000.0
 
 [sub_resource type="SphereMesh" id="SphereMesh_25nq4"]
 
-[node name="Planet" type="Node3D"]
+[node name="Planet" type="StaticBody3D"]
 script = ExtResource("1_q7o7h")
 radius = 500000
+elev_scale = 8000.0
 min_height = 0.0
 max_height = 881774.0
 noise = SubResource("FastNoiseLite_q7o7h")

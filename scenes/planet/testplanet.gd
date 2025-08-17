@@ -1,4 +1,4 @@
-extends StaticBody3D
+extends Node3D
 
 var spawn_position: Vector3 = Vector3.ZERO
 @onready var planet_meshinstance: MeshInstance3D = $Planet
@@ -17,6 +17,6 @@ func _ready() -> void:
 	
 
 func _physics_process(delta: float) -> void:
-	pass
+	planet_terrain.rotation.y += 0.001 * delta
 	#planet_gravity.gravity_point_unit_distance = planet_terrain.min_height
 	
