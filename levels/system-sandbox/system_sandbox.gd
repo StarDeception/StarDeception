@@ -4,20 +4,16 @@ var spaceship_scene = preload("res://scenes/spaceship/test_spaceship/test_spaces
 var station_scene = preload("res://scenes/station/test_station/test_station.tscn")
 var normal_player = preload("res://scenes/normal_player/normal_player.tscn")
 
+@export var spawn_points: Node
 
 @export var spawn_node: Node
 
-
-var spawn_points_list: Array[Vector3]
 
 func _enter_tree() -> void:
 	if not OS.has_feature("dedicated_server") and Globals.onlineMode:
 		Server.create_client(self)
 
 func _ready() -> void:
-	if has_node("PlayerSpawnPointsList"):
-		for child in get_node("PlayerSpawnPointsList").get_children():
-			spawn_points_list.append(child.global_position)
 	
 	Server.player_spawned.connect(on_player_spawn)
 	
@@ -42,12 +38,12 @@ func spawn_player(id: int) -> void:
 	Server.players[id] = player
 	
 	
-	var point = Vector3(randf_range(-.1, .1), 1.0, randf_range(-.2, .2))
-	print(point)
-	var planet_normal = point.normalized()
-	
-	# place the player on the server temporarily at the planet radius to trigger the collision shape generation
-	player.global_position = planet_normal * 500000 # TODO: replace hardcoded distance by the planet radius
+	#var point = Vector3(randf_range(-.1, .1), 1.0, randf_range(-.2, .2))
+	#print(point)
+	#var planet_normal = point.normalized()
+	#
+	## place the player on the server temporarily at the planet radius to trigger the collision shape generation
+	#player.global_position = planet_normal * 500000 # TODO: replace hardcoded distance by the planet radius
 	Globals.log("player positionned temporarily at: %s" % str(player.global_position))
 	
 	# wait for collision to generate
@@ -66,14 +62,13 @@ func spawn_player(id: int) -> void:
 	var spawn_point: Vector3 # = res["position"] + planet_normal * 5
 	
 	# Le joueur spawn à une des positions de la liste. La liste est remplie avec les coordonnées de ses enfants de type PlayerSpawnPoint
-	if spawn_points_list.size() > 0:
-		spawn_point = spawn_points_list.pick_random()
+
 	
 	print_rich("[color=green]Spawn point : %.2v[/color]" % spawn_point)
 	
 	
 	# trigger change of position on server + client
-	set_player_position.rpc(id, spawn_point, planet_normal)
+	set_player_position.rpc(id, spawn_point, Vector3.ZERO)
 
 
 @rpc("authority", "call_remote", "reliable")
@@ -85,17 +80,15 @@ func spawn_station():
 
 
 @rpc("authority", "call_local", "reliable")
-func set_player_position(id: int, player_position: Vector3, planet_normal: Vector3):
-	var player = spawn_node.get_node(str(id)) as Node3D
-	player.global_position = player_position
-	player.global_transform = Globals.align_with_y(player.global_transform, planet_normal)
+func set_player_position(id: int, _player_position: Vector3, _planet_normal: Vector3):
+	var player = spawn_node.get_node(str(id)) as Player
+	var spawn_point = spawn_points.get_children().pick_random()
 	
 	if not multiplayer.is_server():
+		player.global_position = spawn_point.global_position
+		print("position at", spawn_point.global_position)
 		await get_tree().create_timer(3).timeout
+		#player.global_position = spawn_point.global_position
+		print("position at", spawn_point.global_position)
+		player.global_transform = Globals.align_with_y(player.global_transform, spawn_point.global_position.normalized())
 		player.handle_spawn()
-	
-
-
-func _physics_process(delta: float) -> void:
-	pass
-	spawn_node.rotation.y += 0.01 * delta

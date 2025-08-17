@@ -21,6 +21,7 @@ var axisA: Vector3
 var axisB: Vector3
 
 var skirt_indices = 2
+var chunk_resolution = 90
 
 var chunks_list = {}
 var chunks_list_current = {}
@@ -68,7 +69,7 @@ class QuadtreeChunk:
 		return "%s_%s_%d" % [bounds.position, bounds.size, depth]
 	
 	
-	func within_lod_distance(lod_centers: Array, run_serverside: bool, center_local_3d: Vector3):
+	func within_lod_distance(lod_centers: Array, _run_serverside: bool, center_local_3d: Vector3):
 		#if run_serverside:
 			#return true
 			
@@ -77,7 +78,8 @@ class QuadtreeChunk:
 			var h = planet.get_height(center_local_3d.normalized())
 			var distance = h.distance_to(pos)
 			#prints("dist", distance, depth)
-			if distance <= planet.get_adapted_lod(depth)["distance"]:
+			if distance <= planet.radius * bounds.size.x * 0.5:
+			#if distance <= planet.get_adapted_lod(depth)["distance"]:
 				return true
 		
 		return false
@@ -123,7 +125,7 @@ func visualize_quadtree(chunk: QuadtreeChunk):
 		
 		var size = chunk.bounds.size.x
 		var offset = chunk.bounds.position
-		var resolution: int = planet.get_adapted_lod(chunk.depth - 1)["resolution"] + skirt_indices
+		var resolution: int = chunk_resolution + skirt_indices
 		var vertex_array := PackedVector3Array()
 		var normal_array := PackedVector3Array()
 		var index_array := PackedInt32Array()
@@ -135,6 +137,8 @@ func visualize_quadtree(chunk: QuadtreeChunk):
 		# Build vertices & normals (initialized zero)
 		vertex_array.resize(resolution * resolution)
 		normal_array.resize(resolution * resolution)
+		
+		var chunk_global_pos = (normal + offset.x * axisA + offset.z * axisB).normalized() * planet.radius
 
 		var tri_idx: int = 0
 		for y in range(resolution):
@@ -145,7 +149,7 @@ func visualize_quadtree(chunk: QuadtreeChunk):
 				var point_on_plane = normal + local.x * axisA + local.y * axisB
 				# Project onto sphere and apply height
 				var sphere_pos = planet.get_height(point_on_plane.normalized())
-				vertex_array[i] = sphere_pos
+				vertex_array[i] = sphere_pos - chunk_global_pos
 				normal_array[i] = Vector3.ZERO
 
 				# Track height extremes
@@ -170,9 +174,9 @@ func visualize_quadtree(chunk: QuadtreeChunk):
 			var a = index_array[t]
 			var b = index_array[t + 1]
 			var c = index_array[t + 2]
-			var v0 = vertex_array[a]
-			var v1 = vertex_array[b]
-			var v2 = vertex_array[c]
+			var v0 = vertex_array[a] + chunk_global_pos
+			var v1 = vertex_array[b] + chunk_global_pos
+			var v2 = vertex_array[c] + chunk_global_pos
 			var face_normal = -(v1 - v0).cross(v2 - v0).normalized()
 			
 			normal_array[a] += face_normal
@@ -190,7 +194,7 @@ func visualize_quadtree(chunk: QuadtreeChunk):
 		arrays[Mesh.ARRAY_INDEX] = index_array
 
 		
-		generate_mesh.call_deferred(arrays, chunk)
+		generate_mesh.call_deferred(arrays, chunk, chunk_global_pos)
 		chunks_generating[chunk.identifier] = true
 		
 		
@@ -198,27 +202,33 @@ func visualize_quadtree(chunk: QuadtreeChunk):
 	for child in chunk.children:
 		visualize_quadtree(child)
 
-func generate_mesh(arrays: Array, chunk: QuadtreeChunk):
+func generate_mesh(arrays: Array, chunk: QuadtreeChunk, chunk_pos: Vector3):
 	#prints("generating mesh for chunk", chunk.identifier)
 	# Create and instance mesh
 	var mesh = ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	chunk.bounds.get_center()
+	
 
 	# if at final LOD (highest)
 	if planet.lod_levels.size() == chunk.depth and not Engine.is_editor_hint():
 		if !chunks_col_list.has(chunk.identifier):
-			add_staticbody(chunk.identifier, mesh)
+			add_staticbody(chunk.identifier, mesh, chunk_pos)
 		else:
 			update_collision(chunk.identifier, mesh)
 	
 	if not run_serverside:
 		var mi = MeshInstance3D.new()
+		mi.position = chunk_pos
 		mi.mesh = mesh
 		mi.material_override = material
+		mi.set_instance_shader_parameter("offset_pos", chunk_pos)
 		
 		if material is ShaderMaterial:
-			(material as ShaderMaterial).set_shader_parameter("h_min", planet.min_height)
-			(material as ShaderMaterial).set_shader_parameter("h_max", planet.max_height)
+			var mat = material as ShaderMaterial
+			
+			#(material as ShaderMaterial).set_shader_parameter("h_min", planet.min_height)
+			#(material as ShaderMaterial).set_shader_parameter("h_max", planet.max_height)
 		
 		add_child(mi)
 
@@ -226,25 +236,25 @@ func generate_mesh(arrays: Array, chunk: QuadtreeChunk):
 		chunks_list[chunk.identifier] = mi
 	
 
-func update_collision(id: String, mesh: ArrayMesh):
-	var col = chunks_col_list[id].get_child(0) as CollisionShape3D
+func update_collision(id: String, _mesh: ArrayMesh):
+	var col = chunks_col_list[id] as CollisionShape3D
 	col.disabled = false
 	#prints("update shape for chunk", id)
 
-func add_staticbody(id: String, mesh: ArrayMesh):
-	var t =  Time.get_ticks_msec()
-	var staticbody = StaticBody3D.new()
+func add_staticbody(id: String, mesh: ArrayMesh, chunk_pos: Vector3):
+	var _t =  Time.get_ticks_msec()
 	#staticbody.position = mesh.get_aabb().get_center()
 	var collision_shape = CollisionShape3D.new()
+	collision_shape.position = chunk_pos
 	collision_shape.name = "ChunkColShape"
 	collision_shape.shape = mesh.create_trimesh_shape()
-	staticbody.add_child(collision_shape, true)
-	add_child(staticbody)
+	planet.add_child(collision_shape, true)
+	
 	#logmsg("duration: %d ms" % (t - Time.get_ticks_msec()))
 #
 	logmsg("add static body for chunk %s faces %d" % [id, (collision_shape.shape as ConcavePolygonShape3D).get_faces().size()])
 
-	chunks_col_list[id] = staticbody
+	chunks_col_list[id] = collision_shape
 
 
 func logmsg(msg: String):
@@ -286,12 +296,13 @@ func _ready():
 	)
 	
 func _exit_tree() -> void:
-	mutex.lock()
-	should_exit = true # Protect with Mutex.
-	mutex.unlock()
+	if update_thread.is_started():
+		mutex.lock()
+		should_exit = true # Protect with Mutex.
+		mutex.unlock()
 
-	semaphore.post()
-	update_thread.wait_to_finish()
+		semaphore.post()
+		update_thread.wait_to_finish()
 
 func update_process():
 	while true:
@@ -343,7 +354,7 @@ func transform_positions() -> Array:
 		transformed_positions.push_back(global_transform.inverse() * pos)
 	return transformed_positions
 
-func _process(delta):
+func _process(_delta):
 	mutex.lock()
 	focus_positions = transform_positions()
 	mutex.unlock()
@@ -391,7 +402,7 @@ func any_player_near(body: StaticBody3D, distance = 1000):
 
 func disable_col(chunk_id):
 	if chunk_id in chunks_col_list:
-		chunks_col_list[chunk_id].get_child(0).disabled = true
+		chunks_col_list[chunk_id].disabled = true
 		
 		#if not any_player_near(chunks_col_list[chunk_id]):
 			#chunks_col_list[chunk_id].queue_free.call_deferred()

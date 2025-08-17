@@ -37,11 +37,15 @@ uniform sampler2D noise_c_variation: source_color, filter_linear_mipmap, repeat_
 varying float vertical_amount;
 varying vec3 normal;
 
+instance uniform vec3 offset_pos;
+
+
 
 void vertex() {
 	normal = NORMAL;
-	vec3 global_normal = normalize(VERTEX);
+	vec3 global_normal = normalize(VERTEX + offset_pos);
 	vertical_amount = dot(global_normal, normal);
+	
 
 	TANGENT = vec3(0.0, 0.0, -1.0) * abs(normal.x);
 	TANGENT += vec3(1.0, 0.0, 0.0) * abs(normal.y);
@@ -55,9 +59,17 @@ void vertex() {
 
 	// UV1 Triplanar: Enabled
 	uv1_power_normal = pow(abs(NORMAL), vec3(uv1_blend_sharpness));
-	uv1_triplanar_pos = VERTEX * uv1_scale + uv1_offset;
+	uv1_triplanar_pos = (VERTEX + offset_pos) * uv1_scale + uv1_offset;
 	uv1_power_normal /= dot(uv1_power_normal, vec3(1.0));
 	uv1_triplanar_pos *= vec3(1.0, -1.0, 1.0);
+}
+
+vec4 triplanar_texture(sampler2D p_sampler, vec3 p_weights, vec3 p_triplanar_pos) {
+	vec4 samp = vec4(0.0);
+	samp += texture(p_sampler, p_triplanar_pos.xy) * p_weights.z;
+	samp += texture(p_sampler, p_triplanar_pos.xz) * p_weights.y;
+	samp += texture(p_sampler, p_triplanar_pos.zy * vec2(-1.0, 1.0)) * p_weights.x;
+	return samp;
 }
 
 
@@ -102,15 +114,18 @@ vec3 triplanar_texture_notile(sampler2D p_sampler, vec3 p_weights, vec3 p_tripla
 }
 
 
-vec4 triplanar_texture(sampler2D p_sampler, vec3 p_weights, vec3 p_triplanar_pos) {
-	vec4 samp = vec4(0.0);
-	samp += texture(p_sampler, p_triplanar_pos.xy) * p_weights.z;
-	samp += texture(p_sampler, p_triplanar_pos.xz) * p_weights.y;
-	samp += texture(p_sampler, p_triplanar_pos.zy * vec2(-1.0, 1.0)) * p_weights.x;
-	return samp;
-}
+
 
 void fragment() {
+	
+	//vec3 n = normalize(vert);
+    //float u = atan(n.z, n.x) / (2.0 * PI) + 0.5;
+    //float v = acos(n.y) / PI;
+    //vec2 uv = vec2(u, v) * 3.0;
+//
+    //vec3 base_col = texture(noise_c_variation, uv).rgb;
+	
+	
 	vec3 albedo = triplanar_texture(noise_c_variation, uv1_power_normal, uv1_triplanar_pos * 0.00001).rgb;
 
 
@@ -127,5 +142,5 @@ void fragment() {
 
 	// Normal Map: Enabled
 	NORMAL_MAP = triplanar_texture_notile(texture_normal, uv1_power_normal, uv1_triplanar_pos).rgb;
-	NORMAL_MAP_DEPTH = normal_scale * var * 3.0;
+	NORMAL_MAP_DEPTH = normal_scale;
 }

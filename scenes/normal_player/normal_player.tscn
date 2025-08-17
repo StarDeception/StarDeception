@@ -47,7 +47,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.9, 0)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6541, 0)
 
 [node name="Camera3D" type="Camera3D" parent="CameraPivot"]
-far = 20000.0
+far = 1e+08
 
 [node name="InteractRay" type="RayCast3D" parent="CameraPivot/Camera3D"]
 target_position = Vector3(0, 0, -3)
@@ -95,14 +95,14 @@ layout_mode = 2
 mouse_filter = 2
 
 [node name="Label" type="Label" parent="UserInterface"]
-layout_mode = 2
+layout_mode = 0
 offset_left = 100.0
 offset_right = 312.0
 offset_bottom = 23.0
 text = "Connected to game server: "
 
 [node name="Label4" type="Label" parent="UserInterface"]
-layout_mode = 2
+layout_mode = 0
 offset_left = 1.0
 offset_top = 20.0
 offset_right = 311.0
@@ -110,7 +110,7 @@ offset_bottom = 43.0
 text = "Number of players on this game server: "
 
 [node name="Label2" type="Label" parent="UserInterface"]
-layout_mode = 2
+layout_mode = 0
 offset_left = 62.0
 offset_top = 40.0
 offset_right = 312.0
@@ -118,21 +118,21 @@ offset_bottom = 63.0
 text = "Number of active game servers: "
 
 [node name="Label3" type="Label" parent="UserInterface"]
-layout_mode = 2
+layout_mode = 0
 offset_top = 60.0
 offset_right = 313.0
 offset_bottom = 83.0
 text = "Number of total players in the universe: "
 
 [node name="Labelx" type="Label" parent="UserInterface"]
-layout_mode = 2
+layout_mode = 0
 offset_top = 80.0
 offset_right = 20.0
 offset_bottom = 103.0
 text = "x: "
 
 [node name="Labely" type="Label" parent="UserInterface"]
-layout_mode = 2
+layout_mode = 0
 offset_left = 188.0
 offset_top = 80.0
 offset_right = 208.0
@@ -140,7 +140,7 @@ offset_bottom = 103.0
 text = "y: "
 
 [node name="Labelz" type="Label" parent="UserInterface"]
-layout_mode = 2
+layout_mode = 0
 offset_left = 376.0
 offset_top = 80.0
 offset_right = 396.0
@@ -148,7 +148,7 @@ offset_bottom = 103.0
 text = "z: "
 
 [node name="LabelGameServerName" type="Label" parent="UserInterface"]
-layout_mode = 2
+layout_mode = 0
 offset_left = 320.0
 offset_right = 442.0
 offset_bottom = 23.0
@@ -156,7 +156,7 @@ text = "Soon™"
 script = ExtResource("4_ikqc6")
 
 [node name="LabelGameServerNumberPlayers" type="Label" parent="UserInterface"]
-layout_mode = 2
+layout_mode = 0
 offset_left = 320.0
 offset_top = 20.0
 offset_right = 442.0
@@ -165,7 +165,7 @@ text = "Soon™"
 script = ExtResource("5_dpwvv")
 
 [node name="LabelGameServerNumber" type="Label" parent="UserInterface"]
-layout_mode = 2
+layout_mode = 0
 offset_left = 320.0
 offset_top = 40.0
 offset_right = 442.0
@@ -174,7 +174,7 @@ text = "Soon™"
 script = ExtResource("6_ev378")
 
 [node name="LabelUniverseNumberPlayers" type="Label" parent="UserInterface"]
-layout_mode = 2
+layout_mode = 0
 offset_left = 320.0
 offset_top = 60.0
 offset_right = 442.0
@@ -183,21 +183,21 @@ text = "Soon™"
 script = ExtResource("7_82eon")
 
 [node name="LabelXValue" type="Label" parent="UserInterface"]
-layout_mode = 2
+layout_mode = 0
 offset_left = 18.0
 offset_top = 80.0
 offset_right = 178.0
 offset_bottom = 103.0
 
 [node name="LabelYValue" type="Label" parent="UserInterface"]
-layout_mode = 2
+layout_mode = 0
 offset_left = 205.0
 offset_top = 80.0
 offset_right = 365.0
 offset_bottom = 103.0
 
 [node name="LabelZValue" type="Label" parent="UserInterface"]
-layout_mode = 2
+layout_mode = 0
 offset_left = 393.0
 offset_top = 80.0
 offset_right = 553.0
