@@ -196,6 +196,7 @@ locale/translations=PackedStringArray("res://tools/localization/localisation.en.
 
 common/physics_ticks_per_second=30
 3d/physics_engine="Jolt Physics"
+jolt_physics_3d/limits/world_boundary_shape_size=1e+06
 3d/default_gravity=0.0
 
 [rendering]
