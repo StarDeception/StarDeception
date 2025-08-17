@@ -1,0 +1,238 @@
+[gd_scene load_steps=12 format=3 uid="uid://ccme8rxijtf2s"]
+
+[ext_resource type="Script" uid="uid://b3ifoxj2c0cjt" path="res://scenes/normal_player/normal_player.gd" id="1_ll2l8"]
+[ext_resource type="PackedScene" uid="uid://vv063vdbl0aa" path="res://assets/models/astronaut/astronaut.res" id="2_rulc8"]
+[ext_resource type="Script" uid="uid://cfwy76dpxuvoj" path="res://scenes/normal_player/player_ui.gd" id="3_kcm5r"]
+[ext_resource type="Script" uid="uid://c62vv4kkvwuk1" path="res://scenes/normal_player/label_game_server_name.gd" id="4_ikqc6"]
+[ext_resource type="Script" uid="uid://du8smr1o81j1c" path="res://scenes/normal_player/label_game_server_number_players.gd" id="5_dpwvv"]
+[ext_resource type="Script" uid="uid://cp4hqc0wqd0l0" path="res://scenes/normal_player/label_game_server_number.gd" id="6_ev378"]
+[ext_resource type="Script" uid="uid://bwj71lom8cof6" path="res://scenes/normal_player/label_universe_number_players.gd" id="7_82eon"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_2jk7f"]
+radius = 0.26542
+height = 1.8
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_ll2l8"]
+properties/0/path = NodePath("LabelPlayerName:text")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath(".:position")
+properties/1/spawn = true
+properties/1/replication_mode = 1
+properties/2/path = NodePath(".:rotation")
+properties/2/spawn = true
+properties/2/replication_mode = 1
+
+[sub_resource type="LabelSettings" id="LabelSettings_kcm5r"]
+font_size = 24
+outline_size = 2
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_kcm5r"]
+size = Vector3(0.53418, 1.39465, 0.44873)
+
+[node name="NormalPlayer" type="CharacterBody3D"]
+script = ExtResource("1_ll2l8")
+walk_speed = 5.0
+sprint_speed = 10.0
+
+[node name="Placeholder_Collider" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.08165e-12, 0.9, 2.08165e-12)
+shape = SubResource("CapsuleShape3D_2jk7f")
+
+[node name="Astronaut" parent="Placeholder_Collider" instance=ExtResource("2_rulc8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.9, 0)
+
+[node name="CameraPivot" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6541, 0)
+
+[node name="Camera3D" type="Camera3D" parent="CameraPivot"]
+
+[node name="InteractRay" type="RayCast3D" parent="CameraPivot/Camera3D"]
+target_position = Vector3(0, 0, -3)
+collide_with_areas = true
+collide_with_bodies = false
+
+[node name="Torch" type="SpotLight3D" parent="CameraPivot/Camera3D"]
+light_energy = 2.0
+spot_range = 200.0
+spot_angle = 41.4246
+
+[node name="PlayerSync" type="MultiplayerSynchronizer" parent="."]
+replication_config = SubResource("SceneReplicationConfig_ll2l8")
+
+[node name="UserInterface" type="Control" parent="."]
+top_level = true
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(576, 324)
+mouse_filter = 2
+script = ExtResource("3_kcm5r")
+
+[node name="ColorRect" type="ColorRect" parent="UserInterface"]
+layout_mode = 0
+offset_right = 657.0
+offset_bottom = 125.0
+color = Color(0, 0, 0, 0.690196)
+
+[node name="CrosshairContainer" type="CenterContainer" parent="UserInterface"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Crosshair" type="Control" parent="UserInterface/CrosshairContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Label" type="Label" parent="UserInterface"]
+layout_mode = 2
+offset_left = 100.0
+offset_right = 312.0
+offset_bottom = 23.0
+text = "Connected to game server: "
+
+[node name="Label4" type="Label" parent="UserInterface"]
+layout_mode = 2
+offset_left = 1.0
+offset_top = 20.0
+offset_right = 311.0
+offset_bottom = 43.0
+text = "Number of players on this game server: "
+
+[node name="Label2" type="Label" parent="UserInterface"]
+layout_mode = 2
+offset_left = 62.0
+offset_top = 40.0
+offset_right = 312.0
+offset_bottom = 63.0
+text = "Number of active game servers: "
+
+[node name="Label3" type="Label" parent="UserInterface"]
+layout_mode = 2
+offset_top = 60.0
+offset_right = 313.0
+offset_bottom = 83.0
+text = "Number of total players in the universe: "
+
+[node name="Labelx" type="Label" parent="UserInterface"]
+layout_mode = 2
+offset_top = 80.0
+offset_right = 20.0
+offset_bottom = 103.0
+text = "x: "
+
+[node name="Labely" type="Label" parent="UserInterface"]
+layout_mode = 2
+offset_left = 188.0
+offset_top = 80.0
+offset_right = 208.0
+offset_bottom = 103.0
+text = "y: "
+
+[node name="Labelz" type="Label" parent="UserInterface"]
+layout_mode = 2
+offset_left = 376.0
+offset_top = 80.0
+offset_right = 396.0
+offset_bottom = 103.0
+text = "z: "
+
+[node name="LabelGameServerName" type="Label" parent="UserInterface"]
+layout_mode = 2
+offset_left = 320.0
+offset_right = 442.0
+offset_bottom = 23.0
+text = "Soon™"
+script = ExtResource("4_ikqc6")
+
+[node name="LabelGameServerNumberPlayers" type="Label" parent="UserInterface"]
+layout_mode = 2
+offset_left = 320.0
+offset_top = 20.0
+offset_right = 442.0
+offset_bottom = 43.0
+text = "Soon™"
+script = ExtResource("5_dpwvv")
+
+[node name="LabelGameServerNumber" type="Label" parent="UserInterface"]
+layout_mode = 2
+offset_left = 320.0
+offset_top = 40.0
+offset_right = 442.0
+offset_bottom = 63.0
+text = "Soon™"
+script = ExtResource("6_ev378")
+
+[node name="LabelUniverseNumberPlayers" type="Label" parent="UserInterface"]
+layout_mode = 2
+offset_left = 320.0
+offset_top = 60.0
+offset_right = 442.0
+offset_bottom = 83.0
+text = "Soon™"
+script = ExtResource("7_82eon")
+
+[node name="LabelXValue" type="Label" parent="UserInterface"]
+layout_mode = 2
+offset_left = 18.0
+offset_top = 80.0
+offset_right = 178.0
+offset_bottom = 103.0
+
+[node name="LabelYValue" type="Label" parent="UserInterface"]
+layout_mode = 2
+offset_left = 205.0
+offset_top = 80.0
+offset_right = 365.0
+offset_bottom = 103.0
+
+[node name="LabelZValue" type="Label" parent="UserInterface"]
+layout_mode = 2
+offset_left = 393.0
+offset_top = 80.0
+offset_right = 553.0
+offset_bottom = 103.0
+
+[node name="InteractLabel" type="Label" parent="UserInterface"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -83.0
+offset_top = -67.0
+offset_right = 85.0
+offset_bottom = -44.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "Interact"
+label_settings = SubResource("LabelSettings_kcm5r")
+horizontal_alignment = 1
+
+[node name="LabelPlayerName" type="Label3D" parent="."]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, 0)
+billboard = 1
+text = "Dummy"
+
+[node name="AreaDetector" type="Area3D" parent="."]
+monitorable = false
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="AreaDetector"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.702767, 0.0593262)
+shape = SubResource("BoxShape3D_kcm5r")
+
+[node name="ExtCamera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.793608, 0.608429, 0, -0.608429, 0.793608, 0, 1.87897, 1.33817)
+
+[connection signal="draw" from="UserInterface/CrosshairContainer/Crosshair" to="UserInterface" method="_on_crosshair_draw"]

@@ -1,45 +1,34 @@
 extends Node
 
+var normal_player = preload("res://scenes/normal_player/normal_player.tscn")
+var box_50cm = preload("res://scenes/props/testbox/box_50cm.tscn")
+const box_4m = preload("res://scenes/props/testbox/box_4m.tscn")
+var spaceship_scene = preload("res://scenes/spaceship/test_spaceship/test_spaceship.tscn")
+
+## triggered when a new player has spawned
+signal player_spawned(id)
+
+var entities_spawn_node: Node3D
+
 var SDOServerUrl = ""
-var SDOServerId = 0
 var ServerName = ""
 var ServerPort = ""
-var players = {}
-var otherServers = {}
-var uniqidPlayer = 0
 
-var ServerInternalPlayers = {}
-var ServerFirstConnection
-var ServerMaxPlayersAllowed = 32 # 32
-var ServerTickGetZone = 5
-var ServerTickServers = 15
-var ServerTickSendPlayersToSDO = 15
-var ServerTickGetAllPlayersFromSDO = 15
-var ServerTickTooManyPlayers = 30
-var ServerTickZeroPlayers = 30
-# the data of this server, got from the SDO
-var ServerSDOInfo = {}
-# the liste of all active servers, got from the SDO
-var ServersSDOList = []
+var ServerMQTTUrl
+var ServerMQTTPort
+var ServerMQTTUsername
+var ServerMQTTPasword
+var ServerMQTTVerboseLevel
 
-var FirstServerPlayers = {}
-var FirstServerGameServers = {}
+const mqtt = preload("res://addons/mqtt/mqtt.tscn")
+var MQTTClient
 
-var player_scene_object
-var clientPlayers = {}
-var clientId = 0
+var players: Dictionary[int, Player] = {}
+var player_ship: Dictionary[int, Spaceship] = {}
 
-signal set_gameserver_name(server_name)
-signal set_gameserver_numberPlayers(number_players_server_name)
-signal set_gameserver_numberServers(nbServers)
-signal set_gameserver_numberPlayersUniverse(nbPlayers)
-
-const uuid_util = preload('res://addons/uuid/uuid.gd')
-
-var http_client: AwaitableHTTPRequest
+@onready var isInsideBox4m: bool = false
 
 func _ready() -> void:
-	http_client = AwaitableHTTPRequest.new()
 	
 	if OS.has_feature("dedicated_server"):
 		print("OS has dedicated_server")
@@ -49,21 +38,13 @@ func _ready() -> void:
 
 
 
-func _physics_process(delta: float) -> void:
+func _physics_process(_delta: float) -> void:
 	if OS.has_feature("dedicated_server"):
-		rpc("client_receive_players", players)
-		getRefreshZone()
-		getServersList()
-		_send_players_to_sdo()
-		_get_players_from_sdo()
-		_is_server_has_too_many_players()
-		_is_server_has_no_players()
-
+		pass
 
 func _display_type_of_var(variable):
 	print("TYPE OF VAR")
 	print(type_string(typeof(variable)))
-
 
 
 ####################################################################################
@@ -72,290 +53,147 @@ func _display_type_of_var(variable):
 
 func _start_server():
 	print("Starting the server...")
+	# change to main scene
+	get_tree().call_deferred("change_scene_to_file", Globals.init_scene)
+	await get_tree().process_frame
+	await get_tree().process_frame
 	loadServerConfig()
 	
-	var headers = ["Content-Type: application/x-www-form-urlencoded"]
-	var resp := await http_client.async_request('http://' + SDOServerUrl + '/sdo/servers/register', headers, HTTPClient.METHOD_POST, 'name=' + ServerName + '&port=' + str(ServerPort))
-	if resp.success() and resp.status_ok():
-		#print(resp.status)
-		var json = resp.body_as_json()
-		#print(json)
-		ServerSDOInfo = json
-		
-		SDOServerId = int(json.id)
-		print('ID: ')
-		print(SDOServerId)
+	entities_spawn_node = get_tree().get_current_scene().get_node("Planet")
 
-	var peer = ENetMultiplayerPeer.new()
-	peer.create_server(ServerPort, 150)
-	multiplayer.multiplayer_peer = peer
+	var server_peer = ENetMultiplayerPeer.new()
+	var res = server_peer.create_server(7051, 150)
+	if res != OK:
+		prints("creating server failed:", error_string(res))
+		return
+		
+	multiplayer.multiplayer_peer = server_peer
+	connect_chat_mqtt()
 	print("server loaded... \\o/")
 	multiplayer.peer_connected.connect(_on_player_connected)
 	multiplayer.peer_disconnected.connect(_on_player_disconnect)
 
+## Load configuration from server.ini file
 func loadServerConfig():
 	var config = ConfigFile.new()
 	config.load("server.ini")
-	for conf in config.get_sections():
-		SDOServerUrl = config.get_value(conf, "SDO")
-		ServerPort = config.get_value(conf, "port")
-		ServerName = config.get_value(conf, "name")
+	SDOServerUrl = config.get_value("server", "SDO")
+	ServerPort = config.get_value("server", "port")
+	ServerName = config.get_value("server", "name")
+	# Load chat config
+	ServerMQTTUrl = config.get_value("chat", "url")
+	ServerMQTTPort = config.get_value("chat", "port")
+	ServerMQTTUsername = config.get_value("chat", "username")
+	ServerMQTTPasword = config.get_value("chat", "password")
+	ServerMQTTVerboseLevel = config.get_value("chat", "verbose_level")
 
 func _on_player_connected(id):
 	print("player " + str(id) + " connected, wouahou !")
-	rpc("get_server_name", ServerName)
-
+	
+	player_spawned.emit(id)
 
 func _on_player_disconnect(id):
-	# get uniqidPlayer based on internal mapping
-	var myUniqidPlayer = "";
-	for puuid in ServerInternalPlayers.keys():
-		if ServerInternalPlayers[puuid] == id:
-			myUniqidPlayer = puuid
-			break
+	print("player " + str(id) + " disconnected")
+	var player = entities_spawn_node.get_node_or_null(str(id))
+	if player:
+		player.queue_free()
 	
-	print("player " + str(myUniqidPlayer) + " disconnected")
-	players.erase(myUniqidPlayer)
-	print(players)
-
-
-
-func _is_server_has_no_players():
-	if ServerTickZeroPlayers > 0:
-		ServerTickZeroPlayers -= 1
-	else:
-		var thisServerPlayers = _get_players_of_this_server()
-		if thisServerPlayers.size() == 0:
-			var headers = ["Content-Type: application/x-www-form-urlencoded"]
-			var resp := await http_client.async_request('http://' + SDOServerUrl + '/sdo/servers/' + str(SDOServerId) + '/free', headers, HTTPClient.METHOD_POST)
-			if resp.success() and resp.status_ok():
-				#print(resp.status)
-				#print(resp.body_as_string())
-				ServerTickZeroPlayers = 30
-		ServerTickZeroPlayers = 30
-
-func _get_players_of_this_server():
-	var playersOfThisServer = {}
-	for puuid in players.keys():
-		if players[puuid].server_id == SDOServerId:
-			playersOfThisServer[puuid] = players[puuid]
-	return playersOfThisServer
+	var ship = player_ship[id]
+	if ship:
+		ship.queue_free()
 	
-func _is_server_has_too_many_players():
-	if ServerTickTooManyPlayers > 0:
-		ServerTickTooManyPlayers -= 1
+	players.erase(id)
+	player_ship.erase(id)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func spawn_box50cm() -> void:
+	var senderid = multiplayer.get_remote_sender_id()
+	# server received and ths is played on all clients (rpc any_peer)
+	var box50cm_instance = box_50cm.instantiate()
+	
+	var player = players[senderid]
+	
+	var spawn_position = player.global_position + (-player.global_basis.z * 1.5) + player.global_basis.y * 2.0
+	
+	players[senderid].add_sibling(box50cm_instance, true)
+	box50cm_instance.global_position = spawn_position
+	
+	if isInsideBox4m:
+		box50cm_instance.set_collision_layer_value(1, false)
+		box50cm_instance.set_collision_layer_value(2, true)
+		box50cm_instance.set_collision_mask_value(1, false)
+		box50cm_instance.set_collision_mask_value(2, true)
+
+###################
+# Chat part       #
+
+func connect_chat_mqtt():
+	MQTTClient = mqtt.instantiate()
+	get_tree().get_current_scene().add_child(MQTTClient)
+
+	MQTTClient.broker_connected.connect(_on_mqtt_broker_connected)
+	MQTTClient.broker_connection_failed.connect(_on_mqtt_broker_connection_failed)
+	MQTTClient.received_message.connect(_on_mqtt_received_message)
+	MQTTClient.verbose_level = ServerMQTTVerboseLevel
+	#MQTTClient.connect_to_broker("tcp://", "192.168.20.158", 1883)
+	MQTTClient.connect_to_broker("ws://", ServerMQTTUrl, ServerMQTTPort)
+
+func _on_mqtt_received_message(topic, message):
+	print("[chat] received MQTT message")
+	if topic == "chat/GENERAL":
+		var chatData = JSON.parse_string(message)
+		rpc("receive_chat_message_from_server", chatData.msg, chatData.pseudo, "GENERAL")
 	else:
-		var playersOfThisServer = _get_players_of_this_server()
-		if playersOfThisServer.size() > ServerMaxPlayersAllowed:
-			var playersData = []
-			for value in playersOfThisServer.values():
-				playersData.append({"x": int(value.x), "y": int(value.y), "z": int(value.z)})
-			var playersDataJson = JSON.new().stringify(playersData)
-			print("Too many players, need split")
-			var headers = ["Content-Type: application/x-www-form-urlencoded"]
-			PipeHttpHeavy.do_request(playersDataJson, SDOServerUrl, SDOServerId)
-		ServerTickTooManyPlayers = 30
+		print(topic)
+		print(message)
 
-func httpresponse_server_heavy(json):
-	# loop on coordinates of new server
-	var xStart = json['coordinate_x_start']
-	var xEnd = json['coordinate_x_end']
-	var yStart = json['coordinate_y_start']
-	var yEnd = json['coordinate_y_end']
-	var zStart = json['coordinate_z_start']
-	var zEnd = json['coordinate_z_end']
-	print("x: " + str(xStart) + " " + str(xEnd))
-	print("y: " + str(yStart) + " " + str(yEnd))
-	print("z: " + str(zStart) + " " + str(zEnd))
-	for puuid in players.keys():
-		print("player position: ")
-		print(players[puuid])
-		if players[puuid].x < xStart or players[puuid].x > xEnd:
-			print("Expulse player X: " + str(puuid))
-			rpc_id(ServerInternalPlayers[puuid], "change_server", [json['ip'], json['port']])
-			return
-		if players[puuid].y < yStart or players[puuid].y > yEnd:
-			print("Expulse player Y: " + str(puuid))
-			rpc_id(ServerInternalPlayers[puuid], "change_server", [json['ip'], json['port']])
-			return
-		if players[puuid].z < zStart or players[puuid].z > zEnd:
-			print("Expulse player Z: " + str(puuid))
-			rpc_id(ServerInternalPlayers[puuid], "change_server", [json['ip'], json['port']])
-			return
+func _on_mqtt_broker_connected():
+	print("[chat] MQTT chat connected")
+	MQTTClient.subscribe("chat/GENERAL")
+	MQTTClient.publish("test", "I'm here NOW")
+
+func _on_mqtt_broker_connection_failed():
+	print("[chat] MQTT chat failed to connecte :(")
+
+@rpc("any_peer", "call_local", "reliable")
+func server_receive_chat_message(channelName, pseudo, message):
+	MQTTClient.publish("chat/" + channelName, JSON.stringify({
+		"pseudo": pseudo,
+		"msg": message,
+	}))
 
 
-func getRefreshZone():
-	if ServerTickGetZone > 0:
-		ServerTickGetZone -= 1
-	else:
-		var headers = ["Content-Type: application/x-www-form-urlencoded"]
-		var resp := await http_client.async_request('http://' + SDOServerUrl + '/sdo/servers/' + str(SDOServerId), headers, HTTPClient.METHOD_GET)
-		if resp.success() and resp.status_ok():
-			#print(resp.status)
-			var json = resp.body_as_json()
-			#print("Re98+freshZone")
-			#print(json)
-			ServerSDOInfo = json
-			# update zone (x, y, z) this server manage
-		ServerTickGetZone = 30
+@rpc("any_peer", "call_remote", "reliable")
+func spawn_box4m() -> void:
+	var player = Server.players[multiplayer.get_remote_sender_id()]
+	var box4m_instance: RigidBody3D = box_4m.instantiate()
+	var spawn_position: Vector3 = player.global_position + (-player.global_basis.z * 3.0) + player.global_basis.y * 6.0
+	player.add_sibling(box4m_instance, true)
+	box4m_instance.global_position = spawn_position
+	var to_player = (player.global_transform.origin - spawn_position)
+	box4m_instance.rotate_y(atan2(to_player.x, to_player.z) + PI)
 
-func getServersList():
-	if ServerTickServers > 0:
-		ServerTickServers -= 1
-	else:
-		var headers = ["Content-Type: application/x-www-form-urlencoded"]
-		var resp := await http_client.async_request('http://' + SDOServerUrl + '/sdo/servers/onlyactive', headers, HTTPClient.METHOD_GET)
-		if resp.success() and resp.status_ok():
-			#print(resp.status)
-			var json = resp.body_as_json()
-			print("List of all servers")
-			print(json)
-			ServersSDOList = json
-			rpc("client_receive_nbservers", json.size())
-		ServerTickServers = 30
+@rpc("any_peer", "call_remote", "reliable")
+func spawn_ship() -> void:
+	var id = multiplayer.get_remote_sender_id()
+	var player = Server.players[id]
+	var ship_pos = player.global_position + -player.global_basis.z * 10 + player.global_basis.y * 3
+	
+	var spaceship = spaceship_scene.instantiate() as Spaceship
+	
+	Server.player_ship[id] = spaceship
+	player.add_sibling(spaceship, true)
+	
+	var planet_normal = get_tree().current_scene.global_position.direction_to(player.global_position)
+	
+	#spaceship.position_ship.rpc(ship_pos, planet_normal)
+	spaceship.global_position = ship_pos
+	spaceship.global_transform = Globals.align_with_y(spaceship.global_transform, planet_normal)
 
-func _send_players_to_sdo():
-	if ServerTickSendPlayersToSDO > 0:
-		ServerTickSendPlayersToSDO -= 1
-	else:
-		var playersData = []
-		for puuid in players.keys():
-			var value = players[puuid]
-			# only the players of this server
-			if value.server_id == SDOServerId:
-				playersData.append({"client_uuid": puuid, "name": value.name, "x": value.x, "y": value.y, "z": value.z})
-		var playersDataJson = JSON.new().stringify(playersData)
-		var headers = ["Content-Type: application/x-www-form-urlencoded"]
-		var resp := await http_client.async_request('http://' + SDOServerUrl + '/sdo/servers/' + str(SDOServerId) + '/players', headers, HTTPClient.METHOD_POST, 'players=' + playersDataJson)
-		if resp.success() and resp.status_ok():
-			#print(resp.body_as_string())
-			var json = resp.body_as_json()
-			#print(json)
-		ServerTickSendPlayersToSDO = 15
-
-func _get_players_from_sdo():
-	if ServerTickGetAllPlayersFromSDO > 0:
-		ServerTickGetAllPlayersFromSDO -= 1
-	else:
-		var headers = ["Content-Type: application/x-www-form-urlencoded"]
-		var resp := await http_client.async_request('http://' + SDOServerUrl + '/sdo/players', headers, HTTPClient.METHOD_GET)
-		if resp.success() and resp.status_ok():
-			#print(resp.status)
-			var json = resp.body_as_json()
-			#print(json)
-			rpc("client_receive_nbplayers", json.size())
-			_dispatch_all_players_of_sdo(json)
-		ServerTickGetAllPlayersFromSDO = 16
-
-func _dispatch_all_players_of_sdo(playerList):
-	# we receive all players of all the universe (each 15 tickrates)
-	# we displatch into variable players
-	set_gameserver_numberPlayers.emit(playerList.size())
-	# we generate a list of player in another format to be more quickly to delete
-	var playerListForDelete = {}
-	for player in playerList:
-		playerListForDelete[player["client_uuid"]] = 1
-	# We loop to update the variable players
-	for myplayer in playerList:
-		if myplayer.server_id == SDOServerId:
-			# case for players of this server
-			pass
-			
-		else:
-			# case for players of other servers
-			players[myplayer.client_uuid] = myplayer
-
-	# delete players no more here
-	for puuid in players.keys():
-		if players[puuid].server_id != SDOServerId:
-			if not playerListForDelete.has(puuid):
-				players.erase(puuid)
-
-
-
-func _check_player_must_change_server(playerUniqId):
-	if _check_player_in_zone(playerUniqId) == false:
-		print("1 joueur en dehors")
-		var serverFound = _check_server_have_zone_contain_server_position(playerUniqId)
-		if serverFound == false:
-			print("Pas de serveurs trouve, anormal :/")
-		else:
-			print("Expulse player: " + str(playerUniqId))
-			rpc_id(ServerInternalPlayers[playerUniqId], "change_server", [serverFound.ip, serverFound.port])	
-
-
-
-func _check_player_in_zone(playerUniqId):
-	if int(players[playerUniqId].x) < int(ServerSDOInfo.coordinate_x_start):
-		return false
-	if int(players[playerUniqId].x) > int(ServerSDOInfo.coordinate_x_end):
-		return false
-	if int(players[playerUniqId].y) < int(ServerSDOInfo.coordinate_y_start):
-		return false
-	if int(players[playerUniqId].y) > int(ServerSDOInfo.coordinate_y_end):
-		return false
-	if int(players[playerUniqId].z) < int(ServerSDOInfo.coordinate_z_start):
-		return false
-	if int(players[playerUniqId].z) > int(ServerSDOInfo.coordinate_z_end):
-		return false
-	return true
-
-func _check_server_have_zone_contain_server_position(playerUniqId):
-	for server in ServersSDOList:
-		if int(players[playerUniqId].x) > int(server.coordinate_x_start):
-			if int(players[playerUniqId].x) < int(server.coordinate_x_end):
-				if int(players[playerUniqId].y) > int(server.coordinate_y_start):
-					if int(players[playerUniqId].y) < int(server.coordinate_y_end):
-						if int(players[playerUniqId].z) > int(server.coordinate_z_start):
-							if int(players[playerUniqId].z) < int(server.coordinate_z_end):
-								return server
-	return false
-
-
-
-
-# server send RPC functions
-
-
-# server receiver RPC functions
-
-@rpc("any_peer", "call_remote", "unreliable", 0)
-func send_my_playerName(playerName, puuid):
-	players[puuid].name = playerName
-
-@rpc("any_peer", "call_remote", "unreliable", 0)
-func server_receive_client_uuid(puuid):
-	pass
-
-@rpc("any_peer", "call_remote", "unreliable", 0)
-func remote_set_position(position, playerUniqId):
-	ServerInternalPlayers[playerUniqId] = multiplayer.get_remote_sender_id()
-	if players.has(playerUniqId):
-		players[playerUniqId].x = position[0]
-		players[playerUniqId].y = position[1]
-		players[playerUniqId].z = position[2]
-	else:
-		players[playerUniqId] = {
-			"name": "",
-			"server_id": SDOServerId,
-			"client_uuid": playerUniqId,
-			"x": position[0],
-			"y": position[1],
-			"z": position[2],
-		}
-	# check if position in the serve zone, otherwise find the server and expulse it
-	_check_player_must_change_server(playerUniqId)
-
-####################################################################################
-# Played on the very first game server (to manage all players positions)
-####################################################################################
-
-func am_I_first_server():
-	if SDOServerId == 1:
-		return true
-	return false
-
-
+#####################################################################################
+## Played on the very first game server (to manage all players positions)
+#####################################################################################
 
 
 
@@ -365,75 +203,15 @@ func am_I_first_server():
 # Played on client
 ####################################################################################
 
-func create_client(player_scene):
+func create_client(client_tree: Node):
 	# create client
-	var peer = ENetMultiplayerPeer.new()
-	peer.create_client("87.90.5.157", 7050)
-	multiplayer.multiplayer_peer = peer
-	clientId = peer.get_unique_id()
-	# Load player scene, used for display other remote players
-	player_scene_object = player_scene
-	uniqidPlayer = uuid_util.v4()
-	rpc_id(1, "server_receive_client_uuid", uniqidPlayer)
-
-# client send RPC functions
-
-func send_to_server_position(text):
-	rpc_id(1, "remote_set_position", text, uniqidPlayer)
-	rpc_id(1, "send_my_playerName",Globals.playerName, uniqidPlayer)
-
-
-# client receiver RPC functions
+	var client_peer = ENetMultiplayerPeer.new()
+	client_peer.create_client("127.0.0.1", 7051)
+	client_tree.multiplayer.multiplayer_peer = client_peer
 
 @rpc("any_peer", "call_remote", "unreliable", 0)
-func change_server(position):
-	print("I am expulsed :/")
-	_changeServer(position)
-
-#@rpc("any_peer", "call_remote", "unreliable", 0)
-#func from_server_playersNames(PlayersNames):
-	#for playerId in PlayersNames:
-		#if clientPlayers.has(playerId):
-			#clientPlayers[playerId].set_player_name(PlayersNames[playerId])
-
-@rpc("any_peer", "call_remote", "unreliable", 0)
-func client_receive_players(playerList):
-	# we receive all players of this game server only (each 1 tickrate)
-	set_gameserver_numberPlayers.emit(playerList.size())
-	for playerId in playerList.keys():
-		var pvalue = playerList[playerId]
-		if clientPlayers.has(playerId) and playerId != uniqidPlayer:
-			clientPlayers[playerId].global_position = Vector3(float(pvalue.x), float(pvalue.y), float(pvalue.z))
-			clientPlayers[playerId].set_player_name(pvalue.name)
-		elif playerId != uniqidPlayer:
-			var newPlayer = player_scene_object.instantiate()
-			newPlayer.name = pvalue.name
-			call_deferred("add_child", newPlayer)
-			newPlayer.global_position = Vector3(float(pvalue.x), float(pvalue.y), float(pvalue.z))
-			clientPlayers[playerId] = newPlayer
-			clientPlayers[playerId].set_player_name(pvalue.name)
-	# delete players no more here
-	for playerId in clientPlayers.keys():
-		if not playerList.has(playerId):
-			call_deferred("remove_child", clientPlayers[playerId])
-			clientPlayers.erase(playerId)
-
-@rpc("any_peer", "call_remote", "unreliable", 0)
-func client_receive_nbservers(nbServers):
-	set_gameserver_numberServers.emit(nbServers)
-
-@rpc("any_peer", "call_remote", "unreliable", 0)
-func client_receive_nbplayers(nbPlayers):
-	set_gameserver_numberPlayersUniverse.emit(nbPlayers)
-
-@rpc("any_peer", "call_local", "unreliable")
-func get_server_name(remoteServerName):
-	set_gameserver_name.emit(remoteServerName)
-
-# All internal functions
-
-func _changeServer(newServerInfo):
-	multiplayer.multiplayer_peer.close()
-	var peer = ENetMultiplayerPeer.new()
-	peer.create_client(newServerInfo[0], int(newServerInfo[1]))
-	multiplayer.multiplayer_peer = peer
+func receive_chat_message_from_server(message: String, pseudo: String, channel: String) -> void:
+	var sceneChat = get_tree().get_current_scene().get_node("GlobalChat")
+	var canvas = sceneChat.get_node("CanvasLayer")
+	var chatContainer = canvas.get_node("global_chat_container")
+	chatContainer.receive_message_from_server(message, pseudo, channel)
