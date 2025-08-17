@@ -7,6 +7,7 @@ var normal_player = preload("res://scenes/normal_player/normal_player.tscn")
 
 @export var spawn_node: Node
 
+
 var spawn_points_list: Array[Vector3]
 
 func _enter_tree() -> void:
@@ -46,23 +47,23 @@ func spawn_player(id: int) -> void:
 	var planet_normal = point.normalized()
 	
 	# place the player on the server temporarily at the planet radius to trigger the collision shape generation
-	player.global_position = planet_normal * 3000 # TODO: replace hardcoded distance by the planet radius
+	player.global_position = planet_normal * 500000 # TODO: replace hardcoded distance by the planet radius
 	Globals.log("player positionned temporarily at: %s" % str(player.global_position))
 	
 	# wait for collision to generate
 	await get_tree().create_timer(1).timeout
 	
 	# cast ray to planet to get a spawn position
-	var space_state = get_world_3d().direct_space_state
-	Globals.log("Space state is " + str(space_state))
-	var param = PhysicsRayQueryParameters3D.new()
-	param.from = planet_normal * 10000 # TODO: replace by offset from planet radius
-	param.to = Vector3.ZERO
-	var res = space_state.intersect_ray(param)
-	if res.is_empty():
-		print("failed to find a spawn point")
-		return
-	var spawn_point: Vector3 = res["position"] + planet_normal * 5
+	#var space_state = get_world_3d().direct_space_state
+	#Globals.log("Space state is " + str(space_state))
+	#var param = PhysicsRayQueryParameters3D.new()
+	#param.from = planet_normal * 800000 # TODO: replace by offset from planet radius
+	#param.to = Vector3.ZERO
+	#var res = space_state.intersect_ray(param)
+	#if res.is_empty():
+		#print("failed to find a spawn point")
+		#return
+	var spawn_point: Vector3 # = res["position"] + planet_normal * 5
 	
 	# Le joueur spawn à une des positions de la liste. La liste est remplie avec les coordonnées de ses enfants de type PlayerSpawnPoint
 	if spawn_points_list.size() > 0:
@@ -80,7 +81,7 @@ func spawn_station():
 	prints("spawn station from", multiplayer.get_unique_id())
 	var station = station_scene.instantiate() as Node3D
 	spawn_node.add_child(station, true)
-	station.global_position = spawn_node.global_basis.y * 5000
+	station.global_position = spawn_node.global_basis.y * 10000
 
 
 @rpc("authority", "call_local", "reliable")
@@ -90,7 +91,7 @@ func set_player_position(id: int, player_position: Vector3, planet_normal: Vecto
 	player.global_transform = Globals.align_with_y(player.global_transform, planet_normal)
 	
 	if not multiplayer.is_server():
-		await get_tree().create_timer(1).timeout
+		await get_tree().create_timer(3).timeout
 		player.handle_spawn()
 	
 

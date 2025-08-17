@@ -13,7 +13,7 @@ config_version=5
 config/name="StarDeception"
 config/version="0.0.1-dev"
 run/main_scene="uid://b7aajb2l3gvg5"
-config/features=PackedStringArray("4.4", "Double Precision", "GL Compatibility")
+config/features=PackedStringArray("4.4", "C#", "Double Precision", "GL Compatibility")
 boot_splash/image="uid://bm7wkmcuwwpxn"
 config/icon="res://icon.svg"
 
@@ -150,6 +150,7 @@ exit={
 
 2d/run_on_separate_thread=true
 3d/physics_engine="Jolt Physics"
+jolt_physics_3d/limits/world_boundary_shape_size=1e+06
 3d/default_gravity=0.0
 
 [rendering]

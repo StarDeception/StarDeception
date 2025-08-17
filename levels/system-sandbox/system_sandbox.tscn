@@ -39,7 +39,7 @@ environment = SubResource("Environment_jp7ei")
 sun = NodePath("../DirectionalLight3D")
 
 [node name="ChrisR_01" parent="Planet" instance=ExtResource("4_0y0hx")]
-transform = Transform3D(-0.127888, 0.639145, -0.758379, 0.0284484, 0.766708, 0.641366, 0.991381, 0.0604486, -0.116235, 2011.5, 2607.1, 397.068)
+transform = Transform3D(-0.964283, 0.170926, -0.202346, 0.17398, 0.984746, 0.00273231, 0.199726, -0.0325696, -0.97931, 72975.3, 501015, 17054)
 
 [node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="."]
 _spawnable_scenes = PackedStringArray("uid://ccme8rxijtf2s", "uid://xud5xo51ir5r", "uid://d37hc6ybk8fsj", "uid://cptjp55tlikyl")
@@ -52,19 +52,19 @@ script = ExtResource("4_y6v83")
 metadata/_custom_type_script = "uid://7pymoxifok1q"
 
 [node name="PlayerSpawnPoint01" type="Marker3D" parent="PlayerSpawnPointsList"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 62.8008, 3309.17, 27.9532)
+transform = Transform3D(-0.928097, 0.052371, 0.368636, 0.0095003, 0.993067, -0.117163, -0.372217, -0.105236, -0.922161, 49961.9, 495124, -95029.8)
 gizmo_extents = 2.5
 script = ExtResource("5_0y0hx")
 metadata/_custom_type_script = "uid://3b53gu5cyf58"
 
 [node name="PlayerSpawnPoint02" type="Marker3D" parent="PlayerSpawnPointsList"]
-transform = Transform3D(0.9457, 0.32504, 0, -0.32504, 0.9457, 0, 0, 0, 1, 1108.31, 3227.85, -217.684)
+transform = Transform3D(0.955809, -0.00794907, -0.29388, 6.93889e-18, 0.999634, -0.0270388, 0.293988, 0.0258431, 0.95546, 27757.6, 505010, -36937.5)
 gizmo_extents = 2.5
 script = ExtResource("5_0y0hx")
 metadata/_custom_type_script = "uid://3b53gu5cyf58"
 
 [node name="PlayerSpawnPoint03" type="Marker3D" parent="PlayerSpawnPointsList"]
-transform = Transform3D(-0.0823723, 0.571137, -0.816712, -0.0825871, 0.812766, 0.576707, 0.993174, 0.114954, -0.0197809, 2005.76, 2615.11, 396.855)
+transform = Transform3D(-0.999686, 0.0167015, -0.018714, 0.0142424, 0.992105, 0.124598, 0.0206473, 0.124292, -0.992031, 72973.8, 501020, 17038.3)
 gizmo_extents = 2.5
 script = ExtResource("5_0y0hx")
 metadata/_custom_type_script = "uid://3b53gu5cyf58"

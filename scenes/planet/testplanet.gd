@@ -9,5 +9,6 @@ func _ready() -> void:
 	$Atmosphere.sun_object = sun
 
 func _physics_process(delta: float) -> void:
-	planet_gravity.gravity_point_unit_distance = planet_terrain.min_height
+	pass
+	#planet_gravity.gravity_point_unit_distance = planet_terrain.min_height
 	

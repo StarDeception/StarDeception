@@ -73,8 +73,11 @@ class QuadtreeChunk:
 			#return true
 			
 		for pos in lod_centers:
-			var distance = planet.get_height(center_local_3d.normalized()).distance_to(pos)
-			if distance <= planet.lod_levels[depth]["distance"]:
+			
+			var h = planet.get_height(center_local_3d.normalized())
+			var distance = h.distance_to(pos)
+			#prints("dist", distance, depth)
+			if distance <= planet.get_adapted_lod(depth)["distance"]:
 				return true
 		
 		return false
@@ -120,7 +123,7 @@ func visualize_quadtree(chunk: QuadtreeChunk):
 		
 		var size = chunk.bounds.size.x
 		var offset = chunk.bounds.position
-		var resolution: int = planet.lod_levels[chunk.depth - 1]["resolution"] + skirt_indices
+		var resolution: int = planet.get_adapted_lod(chunk.depth - 1)["resolution"] + skirt_indices
 		var vertex_array := PackedVector3Array()
 		var normal_array := PackedVector3Array()
 		var index_array := PackedInt32Array()
@@ -196,6 +199,7 @@ func visualize_quadtree(chunk: QuadtreeChunk):
 		visualize_quadtree(child)
 
 func generate_mesh(arrays: Array, chunk: QuadtreeChunk):
+	#prints("generating mesh for chunk", chunk.identifier)
 	# Create and instance mesh
 	var mesh = ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
@@ -238,7 +242,7 @@ func add_staticbody(id: String, mesh: ArrayMesh):
 	add_child(staticbody)
 	#logmsg("duration: %d ms" % (t - Time.get_ticks_msec()))
 #
-	# logmsg("add static body for chunk %s faces %d" % [id, (collision_shape.shape as ConcavePolygonShape3D).get_faces().size()])
+	logmsg("add static body for chunk %s faces %d" % [id, (collision_shape.shape as ConcavePolygonShape3D).get_faces().size()])
 
 	chunks_col_list[id] = staticbody
 
@@ -309,15 +313,23 @@ func update_process():
 		mutex.unlock()
 		
 
+# func positions_changed() -> bool:
+# 	if focus_positions.size() != focus_positions_last.size():
+# 		return true
+	
+# 	for i in focus_positions.size():
+# 		if abs((focus_positions[i] - focus_positions_last[i]).length()) > 1:
+# 			return true
+
 func positions_changed() -> bool:
 	if focus_positions.size() != focus_positions_last.size():
 		return true
 	
 	for i in focus_positions.size():
-		if !focus_positions_last.has(i):
-			return true
-		if !focus_positions.has(i):
-			return true
+		# if !focus_positions_last.has(i):
+		# 	return true
+		# if !focus_positions.has(i):
+		# 	return true
 		
 		if focus_positions[i] != focus_positions_last[i]:
 			if floor(focus_positions[i]) != focus_positions_last[i]:
@@ -337,8 +349,13 @@ func _process(delta):
 	mutex.unlock()
 	
 	if focus_positions.is_empty(): return
+	
+	mutex.lock()
 	if positions_changed():
+		#prints("positions changed", focus_positions, focus_positions_last)
+		
 		semaphore.post()
+	mutex.unlock()
 
 func update_chunks():
 	var maxlod = planet.lod_levels.size() - 1
