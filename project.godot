@@ -24,6 +24,8 @@ BackgroundMusic="*res://scenes/globals/background_music.tscn"
 Globals="*res://scenes/globals/globals.gd"
 PipeHttpHeavy="*res://server/pipe_http_heavy.tscn"
 uuid="*res://addons/uuid/uuid.gd"
+PersistanceManager="res://server/persistance_manager/PersistanceManager.cs"
+EntityManager="*res://server/persistance/entity_manager.gd"
 
 [display]
 

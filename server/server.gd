@@ -59,7 +59,7 @@ func _start_server():
 	await get_tree().process_frame
 	loadServerConfig()
 	
-	entities_spawn_node = get_tree().get_current_scene().get_node("Planet")
+	EntityManager.entity_loaded.connect(_on_entity_loaded)
 
 	var server_peer = ENetMultiplayerPeer.new()
 	var res = server_peer.create_server(7051, 150)
@@ -91,6 +91,8 @@ func _on_player_connected(id):
 	print("player " + str(id) + " connected, wouahou !")
 	
 	player_spawned.emit(id)
+	
+	EntityManager.load_entity_arround_player(players[id])
 
 func _on_player_disconnect(id):
 	print("player " + str(id) + " disconnected")
@@ -105,6 +107,9 @@ func _on_player_disconnect(id):
 	players.erase(id)
 	player_ship.erase(id)
 
+func _on_entity_loaded(id: String, data: Dictionary) -> void:
+	print("need entity loaded")
+	var entity = load(data.type)
 
 @rpc("any_peer", "call_remote", "reliable")
 func spawn_box50cm() -> void:
@@ -124,6 +129,18 @@ func spawn_box50cm() -> void:
 		box50cm_instance.set_collision_layer_value(2, true)
 		box50cm_instance.set_collision_mask_value(1, false)
 		box50cm_instance.set_collision_mask_value(2, true)
+	
+	EntityManager.store_entity(box50cm_instance)
+
+@rpc("any_peer", "call_remote", "reliable")
+func spawn_box4m() -> void:
+	var player = Server.players[multiplayer.get_remote_sender_id()]
+	var box4m_instance: RigidBody3D = box_4m.instantiate()
+	var spawn_position: Vector3 = player.global_position + (-player.global_basis.z * 3.0) + player.global_basis.y * 6.0
+	player.add_sibling(box4m_instance, true)
+	box4m_instance.global_position = spawn_position
+	var to_player = (player.global_transform.origin - spawn_position)
+	box4m_instance.rotate_y(atan2(to_player.x, to_player.z) + PI)
 
 ###################
 # Chat part       #
@@ -162,17 +179,6 @@ func server_receive_chat_message(channelName, pseudo, message):
 		"pseudo": pseudo,
 		"msg": message,
 	}))
-
-
-@rpc("any_peer", "call_remote", "reliable")
-func spawn_box4m() -> void:
-	var player = Server.players[multiplayer.get_remote_sender_id()]
-	var box4m_instance: RigidBody3D = box_4m.instantiate()
-	var spawn_position: Vector3 = player.global_position + (-player.global_basis.z * 3.0) + player.global_basis.y * 6.0
-	player.add_sibling(box4m_instance, true)
-	box4m_instance.global_position = spawn_position
-	var to_player = (player.global_transform.origin - spawn_position)
-	box4m_instance.rotate_y(atan2(to_player.x, to_player.z) + PI)
 
 @rpc("any_peer", "call_remote", "reliable")
 func spawn_ship() -> void:
@@ -215,3 +221,38 @@ func receive_chat_message_from_server(message: String, pseudo: String, channel: 
 	var canvas = sceneChat.get_node("CanvasLayer")
 	var chatContainer = canvas.get_node("global_chat_container")
 	chatContainer.receive_message_from_server(message, pseudo, channel)
+
+
+####################################################################################
+# Global celestial entities
+####################################################################################
+@rpc("authority", "call_remote", "reliable")
+func spawn_celestial_entity(entities: Dictionary):
+	print("spawn celestial entity", entities)
+	for entity in entities.values():
+		if (entity.has("scene")):
+			var node = _instantiate_node(entity, get_tree().current_scene)
+			node.global_position = Vector3(
+				entity.get("position_x"),
+				entity.get("position_y"),
+				entity.get("position_z")
+			)
+			
+			for child in entity.get("children"):
+				_instantiate_node(child, node)
+	
+	entities_spawn_node = get_tree().current_scene.get_node("Planet")
+	get_tree().current_scene.spawn_node = entities_spawn_node
+	get_tree().current_scene.get_node("MultiplayerSpawner").spawn_path = entities_spawn_node.get_path()
+
+func _instantiate_node(data: Dictionary, parent: Node) -> Node3D:
+	var node
+	if parent.has_node(data.get("name")):
+		node = parent.get_node(data.get("name"))
+	else :
+		print("spawn ici : ", data)
+		var resource = load(data.get("scene", ""))
+		node = resource.instantiate()
+		parent.add_child(node)
+		
+	return node

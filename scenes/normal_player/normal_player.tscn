@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://ccme8rxijtf2s"]
+[gd_scene load_steps=13 format=3 uid="uid://ccme8rxijtf2s"]
 
 [ext_resource type="Script" uid="uid://b3ifoxj2c0cjt" path="res://scenes/normal_player/normal_player.gd" id="1_ll2l8"]
 [ext_resource type="PackedScene" uid="uid://vv063vdbl0aa" path="res://assets/models/astronaut/astronaut.res" id="2_rulc8"]
@@ -7,6 +7,7 @@
 [ext_resource type="Script" uid="uid://du8smr1o81j1c" path="res://scenes/normal_player/label_game_server_number_players.gd" id="5_dpwvv"]
 [ext_resource type="Script" uid="uid://cp4hqc0wqd0l0" path="res://scenes/normal_player/label_game_server_number.gd" id="6_ev378"]
 [ext_resource type="Script" uid="uid://bwj71lom8cof6" path="res://scenes/normal_player/label_universe_number_players.gd" id="7_82eon"]
+[ext_resource type="Script" uid="uid://b8fr7k8n7jqy3" path="res://scenes/normal_player/persistence_debug.gd" id="8_ikqc6"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_2jk7f"]
 radius = 0.26542
@@ -234,5 +235,8 @@ shape = SubResource("BoxShape3D_kcm5r")
 
 [node name="ExtCamera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.793608, 0.608429, 0, -0.608429, 0.793608, 0, 1.87897, 1.33817)
+
+[node name="PersistenceDebug" type="Node3D" parent="."]
+script = ExtResource("8_ikqc6")
 
 [connection signal="draw" from="UserInterface/CrosshairContainer/Crosshair" to="UserInterface" method="_on_crosshair_draw"]

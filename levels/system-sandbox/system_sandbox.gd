@@ -1,7 +1,6 @@
 extends Node3D
 
 var spaceship_scene = preload("res://scenes/spaceship/test_spaceship/test_spaceship.tscn")
-var station_scene = preload("res://scenes/station/test_station/test_station.tscn")
 var normal_player = preload("res://scenes/normal_player/normal_player.tscn")
 
 
@@ -10,6 +9,9 @@ var normal_player = preload("res://scenes/normal_player/normal_player.tscn")
 var spawn_points_list: Array[Vector3]
 
 func _ready() -> void:
+	var initializer = SystemSandboxInitializer.new()
+	add_child(initializer)
+	
 	if has_node("PlayerSpawnPointsList"):
 		for child in get_node("PlayerSpawnPointsList").get_children():
 			spawn_points_list.append(child.global_position)
@@ -18,17 +20,19 @@ func _ready() -> void:
 	
 	if not OS.has_feature("dedicated_server") and Globals.onlineMode:
 		await Server.create_client()
-	
-	
-	if multiplayer.is_server():
-		# spawn station on the server
-		spawn_station()
+		
+	await loadServerCelestial()
 
+func loadServerCelestial():
+	print("loadServerCelestial")
+	EntityManager.celestial_entity_loaded.connect(Server.spawn_celestial_entity)
+	EntityManager.entity_manager_ready.connect(func ():
+		EntityManager.load_celestial_entities()
+	)
+	await get_tree().process_frame
+	await get_tree().process_frame
 
 func on_player_spawn(id):
-	# spawn station for the new connected player
-	spawn_station.rpc_id(id)
-	
 	# spawn player on server
 	spawn_player(id)
 	
@@ -52,22 +56,23 @@ func spawn_player(id: int) -> void:
 	
 	set_player_position.rpc(id, spawn_point, planet_normal)
 
-
 @rpc("authority", "call_remote", "reliable")
 func spawn_station():
 	prints("spawn station from", multiplayer.get_unique_id())
-	var station = station_scene.instantiate() as Node3D
-	spawn_node.add_child(station, true)
-	station.global_position = spawn_node.global_basis.y * 3000
+	#var station = station_scene.instantiate() as Node3D
+	#spawn_node.add_child(station, true)
+	#station.global_position = spawn_node.global_basis.y * 3000
 
 
 @rpc("authority", "call_local", "reliable")
 func set_player_position(id: int, player_position: Vector3, planet_normal: Vector3):
-	var player = spawn_node.get_node(str(id)) as Node3D
-	player.global_position = player_position
-	player.global_transform = Globals.align_with_y(player.global_transform, planet_normal)
+	if spawn_node:
+		var player = spawn_node.get_node(str(id)) as Node3D
+		player.global_position = player_position
+		player.global_transform = Globals.align_with_y(player.global_transform, planet_normal)
 
 
 func _physics_process(delta: float) -> void:
 	pass
-	spawn_node.rotation.y += 0.01 * delta
+	if spawn_node:
+		spawn_node.rotation.y += 0.01 * delta
