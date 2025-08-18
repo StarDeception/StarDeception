@@ -4,8 +4,8 @@ class_name GlobalChat
 @export var input_field: LineEdit
 @export var output_field: RichTextLabel
 @export var channel_selector: OptionButton
-static var is_shown := false
 var loggin := "all"
+static var is_shown
 
 # Definition of an internal “class” for Message
 class Message:
@@ -41,9 +41,22 @@ var forced_colors := {
 # Prevents keyboard input from being sent to the game if the chat is visible
 func _unhandled_input(event):
 	if event is InputEventKey and event.is_pressed():
-		if is_shown and input_field.has_focus():
+		if visible and input_field.has_focus():
 			get_viewport().set_input_as_handled()
 
+func _input(ev):
+	if ev.is_action_pressed("toggle_chat"):
+		visible = not visible
+		is_shown = visible
+		logg("swap de la visibilité du chat: " + str(visible))
+
+		#FIX : messages were parsed only if not visible :(
+		if visible:
+			input_field.grab_focus()
+			for m in messages_waiting:
+				parse_message(m)
+			messages_waiting.clear()
+			get_viewport().set_input_as_handled()
 
 func _ready():
 	visible = false
@@ -55,21 +68,6 @@ func _ready():
 		channel_selector.add_item(channel_name)
 	logg("selection du canal par défautl: " + str(ChannelE.keys()[0]))
 	channel_selector.selected = 0
-
-# Boucle principale qui vérifie que l'on appuie sur F12 ou pas
-func _process(_delta):
-	if Input.is_action_just_pressed("toggle_chat"):
-		is_shown = not is_shown
-		visible = is_shown
-		logg("swap de la visibilité du chat: " + str(is_shown))
-
-	#FIX : messages were parsed only if not visible :(
-	if is_shown:
-		input_field.grab_focus()
-		for m in messages_waiting:
-			parse_message(m)
-		messages_waiting.clear()
-		get_viewport().set_input_as_handled()
 
 func _on_input_text_text_submitted(nt: String) -> void:
 	if nt.strip_edges() == "":
@@ -92,7 +90,7 @@ func receive_message_from_server(message: String, user_nick: String, channel: St
 	msg.author = user_nick
 	msg.channel = ChannelE[channel]
 	logg("nouveau message du serveur : " + msg.content)
-	if is_shown:
+	if visible:
 		messages.append(msg)
 		parse_message(msg)
 	else:

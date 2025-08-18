@@ -1,7 +1,9 @@
-[gd_scene load_steps=8 format=3 uid="uid://drqxadtx316hs"]
+[gd_scene load_steps=11 format=3 uid="uid://drqxadtx316hs"]
 
 [ext_resource type="Script" uid="uid://de1e8utjyqtod" path="res://levels/system-sandbox/system_sandbox.gd" id="1_6wdpo"]
 [ext_resource type="PackedScene" uid="uid://cpju4tbxmjpwc" path="res://ui/global_chat/global_chat.tscn" id="3_6wdpo"]
+[ext_resource type="PackedScene" uid="uid://bmk1yx4q5cewg" path="res://assets/models/CommemorativeBust/commemorativebust.res" id="4_0y0hx"]
+[ext_resource type="PackedScene" uid="uid://drbfy20lnxnl0" path="res://ui/menu_config/MenuConfig.tscn" id="4_88c12"]
 [ext_resource type="Script" uid="uid://7pymoxifok1q" path="res://tools/spawn_points/player_spawn_points_list.gd" id="4_y6v83"]
 [ext_resource type="Script" uid="uid://3b53gu5cyf58" path="res://tools/spawn_points/player_spawn_point.gd" id="5_0y0hx"]
 
@@ -55,3 +57,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 902.067, 1783.47, 100.043)
 gizmo_extents = 2.5
 script = ExtResource("5_0y0hx")
 metadata/_custom_type_script = "uid://3b53gu5cyf58"
+
+[node name="InputSettings" parent="." instance=ExtResource("4_88c12")]
+visible = false

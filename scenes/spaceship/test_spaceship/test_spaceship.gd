@@ -34,7 +34,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		pause_mode = false
 	
-	if GlobalChat.is_shown: return
+	
 	if not is_multiplayer_authority(): return
 	
 	if Input.is_action_just_pressed("exit"):
@@ -51,7 +51,7 @@ func steer_ship_mouse(dir: Vector2) -> void:
 func _process(delta: float) -> void:
 	if not is_multiplayer_authority(): return
 	
-	if GlobalChat.is_shown: return
+	if GlobalChat.is_shown or MenuConfig.is_shown: return
 	
 	if pilot:
 		active = true

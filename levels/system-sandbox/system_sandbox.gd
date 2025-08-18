@@ -8,6 +8,11 @@ var normal_player = preload("res://scenes/normal_player/normal_player.tscn")
 
 var spawn_points_list: Array[Vector3]
 
+func _enter_tree() -> void:
+	if not OS.has_feature("dedicated_server") and Globals.onlineMode:
+		Server.create_client(self)
+
+
 func _ready() -> void:
 	var initializer = SystemSandboxInitializer.new()
 	add_child(initializer)
