@@ -1,0 +1,130 @@
+[gd_scene load_steps=10 format=3 uid="uid://e3f2wl711yep"]
+
+[ext_resource type="Script" uid="uid://dpe7pqce1r38d" path="res://ui/error_message/error_message.gd" id="1_5vj24"]
+[ext_resource type="FontFile" uid="uid://gshjh75aeopi" path="res://assets/fonts/Iceland/Iceland-Regular.ttf" id="1_cusoq"]
+[ext_resource type="Texture2D" uid="uid://disurq6a4omve" path="res://assets/textures/explosion-rays.svg" id="2_05o8w"]
+[ext_resource type="PackedScene" uid="uid://b7aajb2l3gvg5" path="res://ui/login_page/login_page.tscn" id="2_cfbt7"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_05o8w"]
+bg_color = Color(0.25, 0.0525, 0.0525, 0.937255)
+border_width_top = 6
+border_width_bottom = 4
+border_color = Color(0.8, 0.248, 0.248, 1)
+corner_radius_top_left = 25
+corner_radius_bottom_right = 20
+corner_detail = 1
+
+[sub_resource type="LabelSettings" id="LabelSettings_2xb8d"]
+font = ExtResource("1_cusoq")
+font_size = 47
+
+[sub_resource type="LabelSettings" id="LabelSettings_rlngi"]
+font = ExtResource("1_cusoq")
+font_size = 24
+font_color = Color(1, 1, 1, 0.701961)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cfbt7"]
+bg_color = Color(0.226563, 0.0453125, 0.0453125, 1)
+border_width_bottom = 2
+border_color = Color(0.8, 0.170613, 0.18653, 1)
+corner_radius_top_left = 10
+corner_radius_bottom_right = 10
+corner_detail = 1
+expand_margin_left = 10.0
+expand_margin_top = 5.0
+expand_margin_right = 10.0
+expand_margin_bottom = 5.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5vj24"]
+bg_color = Color(0.127604, 0.0255208, 0.0255208, 1)
+border_width_bottom = 2
+border_color = Color(0.8, 0.170613, 0.18653, 1)
+corner_radius_top_left = 10
+corner_radius_bottom_right = 10
+corner_detail = 1
+expand_margin_left = 10.0
+expand_margin_top = 5.0
+expand_margin_right = 10.0
+expand_margin_bottom = 5.0
+
+[node name="ErrorMessage" type="CanvasLayer"]
+layer = 2
+script = ExtResource("1_5vj24")
+title = "ERROR 1337"
+message = "SERVER CONNECTION FAILED"
+exit_button_label = "BACK TO MENU"
+exit_scene = ExtResource("2_cfbt7")
+
+[node name="ErrorMessage" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Background" type="ColorRect" parent="ErrorMessage"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.8)
+
+[node name="VBox" type="VBoxContainer" parent="ErrorMessage"]
+layout_mode = 0
+offset_left = 710.0
+offset_top = 465.0
+offset_right = 750.0
+offset_bottom = 505.0
+pivot_offset = Vector2(250, 100)
+theme_override_constants/separation = 30
+alignment = 2
+
+[node name="Panel" type="Panel" parent="ErrorMessage/VBox"]
+custom_minimum_size = Vector2(500, 150)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_05o8w")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ErrorMessage/VBox/Panel"]
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = 41.0
+offset_top = -37.0
+offset_right = -41.0
+offset_bottom = 38.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Title" type="Label" parent="ErrorMessage/VBox/Panel/VBoxContainer"]
+layout_mode = 2
+text = "ERROR 1337"
+label_settings = SubResource("LabelSettings_2xb8d")
+
+[node name="Message" type="Label" parent="ErrorMessage/VBox/Panel/VBoxContainer"]
+layout_mode = 2
+text = "SERVER CONNECTION FAILED"
+label_settings = SubResource("LabelSettings_rlngi")
+
+[node name="Icon" type="Sprite2D" parent="ErrorMessage/VBox/Panel/VBoxContainer"]
+modulate = Color(1, 1, 1, 0.690196)
+position = Vector2(391, 37)
+scale = Vector2(0.0976562, 0.0976562)
+texture = ExtResource("2_05o8w")
+
+[node name="ExitBtn" type="Button" parent="ErrorMessage/VBox"]
+layout_mode = 2
+size_flags_horizontal = 8
+theme_override_fonts/font = ExtResource("1_cusoq")
+theme_override_font_sizes/font_size = 24
+theme_override_styles/focus = SubResource("StyleBoxFlat_cfbt7")
+theme_override_styles/hover = SubResource("StyleBoxFlat_5vj24")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_cfbt7")
+theme_override_styles/normal = SubResource("StyleBoxFlat_5vj24")
+text = "BACK TO MENU"
+
+[connection signal="pressed" from="ErrorMessage/VBox/ExitBtn" to="." method="_on_exit_btn_pressed"]

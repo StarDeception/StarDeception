@@ -2,7 +2,7 @@ extends Control
 
 func _on_ready() -> void:
 	BackgroundMusic.play_music_level()
-	pass
+	
 
 
 func _on_button_pressed(button_id: String) -> void:
