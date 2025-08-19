@@ -174,9 +174,9 @@ func visualize_quadtree(chunk: QuadtreeChunk):
 			var a = index_array[t]
 			var b = index_array[t + 1]
 			var c = index_array[t + 2]
-			var v0 = vertex_array[a] + chunk_global_pos
-			var v1 = vertex_array[b] + chunk_global_pos
-			var v2 = vertex_array[c] + chunk_global_pos
+			var v0 = vertex_array[a]
+			var v1 = vertex_array[b]
+			var v2 = vertex_array[c]
 			var face_normal = -(v1 - v0).cross(v2 - v0).normalized()
 			
 			normal_array[a] += face_normal
