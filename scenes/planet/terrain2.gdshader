@@ -18,6 +18,7 @@ uniform float metallic : hint_range(0.0, 1.0, 0.01);
 uniform sampler2D texture_normal : hint_roughness_normal, filter_linear_mipmap, repeat_enable;
 uniform float normal_scale : hint_range(-16.0, 16.0);
 varying vec3 uv1_triplanar_pos;
+varying vec3 uv2_triplanar_pos;
 
 uniform float uv1_blend_sharpness : hint_range(0.0, 150.0, 0.001);
 varying vec3 uv1_power_normal;
@@ -62,6 +63,10 @@ void vertex() {
 	uv1_triplanar_pos = (VERTEX + offset_pos) * uv1_scale + uv1_offset;
 	uv1_power_normal /= dot(uv1_power_normal, vec3(1.0));
 	uv1_triplanar_pos *= vec3(1.0, -1.0, 1.0);
+	
+	uv2_triplanar_pos = VERTEX * uv1_scale + uv1_offset;
+	uv2_triplanar_pos *= vec3(1.0, -1.0, 1.0);
+	
 }
 
 vec4 triplanar_texture(sampler2D p_sampler, vec3 p_weights, vec3 p_triplanar_pos) {
@@ -131,16 +136,16 @@ void fragment() {
 
 	float var = log(vertical_amount * 1.3);
 
-	vec3 albedo_tex = triplanar_texture_notile(texture_albedo, uv1_power_normal, uv1_triplanar_pos);
+	//vec3 albedo_tex = triplanar_texture_notile(texture_albedo, uv1_power_normal, uv2_triplanar_pos);
 	ALBEDO = albedo.rgb; //mix(albedo.rgb * albedo_tex.r, albedo_var.rgb, clamp(var, 0.0, 1.0));
 
 	SPECULAR = specular;
 
 	vec3 roughness_texture_channel = vec3(1.0, 0.0, 0.0);
-	float roughness_tex = dot(triplanar_texture_notile(texture_roughness, uv1_power_normal, uv1_triplanar_pos), roughness_texture_channel);
+	float roughness_tex = dot(triplanar_texture_notile(texture_roughness, uv1_power_normal, uv2_triplanar_pos), roughness_texture_channel);
 	ROUGHNESS = roughness_tex * roughness;
 
 	// Normal Map: Enabled
-	NORMAL_MAP = triplanar_texture_notile(texture_normal, uv1_power_normal, uv1_triplanar_pos).rgb;
+	NORMAL_MAP = triplanar_texture_notile(texture_normal, uv1_power_normal, uv2_triplanar_pos).rgb;
 	NORMAL_MAP_DEPTH = normal_scale;
 }
