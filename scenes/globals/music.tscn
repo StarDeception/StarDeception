@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://c7b7t2nj7yajn"]
 
-[ext_resource type="AudioStream" uid="uid://j2cu4vpnwfds" path="res://assets/music/Espoir.mp3" id="1_3h6ak"]
+[ext_resource type="AudioStream" uid="uid://bkfyhwdluebv2" path="res://assets/audio/music/Espoir (version Star Deception).mp3" id="1_ejqpe"]
 
 [node name="Music" type="Control"]
 layout_mode = 3
@@ -11,6 +11,6 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
-stream = ExtResource("1_3h6ak")
+stream = ExtResource("1_ejqpe")
 volume_db = -20.613
 autoplay = true
