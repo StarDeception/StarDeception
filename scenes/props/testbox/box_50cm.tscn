@@ -30,6 +30,13 @@ shape = SubResource("BoxShape3D_urcx6")
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
 replication_config = SubResource("SceneReplicationConfig_8kwx5")
+
 [node name="DataEntity" type="Node" parent="."]
 script = ExtResource("4_f5bhg")
 metadata/_custom_type_script = "uid://6f0l3p44h7vy"
+
+[node name="FmodEventEmitter3D" type="FmodEventEmitter3D" parent="."]
+event_name = "event:/sound_test/spawn_colis"
+event_guid = "{7bbb0878-baaa-466e-a4f5-c12da18131e7}"
+autoplay = true
+auto_release = true
