@@ -6,7 +6,9 @@ static var persistCalback: Dictionary[String, Callable] = {}
 static var waitClientReady: Array[Callable] = []
 
 static func setup_persistence_manager(calback: Callable):
-	if OS.has_feature("dedicated_server") || true:
+	if calback.is_null(): 
+		printerr("callable is null !!")
+	if OS.has_feature("dedicated_server"):
 		var pm = PersistanceManager
 		if not pm:
 			push_error("PersistanceManager is null!")
@@ -29,7 +31,7 @@ static func setup_persistence_manager(calback: Callable):
 			print("✅ Client Alredy start")
 			calback.call()
 		else:
-			print("⏳ En attente du signal ClientReady...")
+			print("⏳ Waiting signal ClientReady...")
 			if not pm.ClientReady.is_connected(_on_client_ready):
 				pm.ClientReady.connect(_on_client_ready)
 			waitClientReady.push_back(calback)
@@ -41,7 +43,8 @@ static func _on_client_ready():
 	print("🚀 Signal ClientReady !")
 	while waitClientReady.size() > 0:
 		var calback = waitClientReady.pop_back()
-		calback.call()
+		if !calback.is_null():
+			calback.call()
 
 static func _on_save_completed(success: bool, uid: String, error_message: String, request_id: String):
 	print("💾 Save completed - RequestID: ", request_id)

@@ -1,6 +1,6 @@
 [gd_scene load_steps=8 format=3 uid="uid://fxj147p5soqi"]
 
-[ext_resource type="PackedScene" uid="uid://dlbkch6iuy8gn" path="res://scenes/player/player.tscn" id="1_o506w"]
+[ext_resource type="PackedScene" uid="uid://ccme8rxijtf2s" path="res://scenes/normal_player/normal_player.tscn" id="1_o506w"]
 [ext_resource type="Shape3D" uid="uid://nlfpii7pt3xn" path="res://levels/SimpleBoxTest/InversedCollisider100m.shape" id="1_xqwsu"]
 [ext_resource type="Script" uid="uid://cj5kd1hkfvjrg" path="res://server/persistance_manager/DataPlanete.gd" id="4_le64j"]
 

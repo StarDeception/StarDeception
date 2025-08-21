@@ -36,7 +36,7 @@ public partial class PersistanceManager : Node
 
     public override void _Ready()
     {
-        if (Godot.OS.HasFeature("dedicated_server") || true)
+        if (Godot.OS.HasFeature("dedicated_server"))
         {
           Instance = this;
           InitializeAsync();

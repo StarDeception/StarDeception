@@ -17,10 +17,14 @@ func serialize():
 	return JSON.stringify(dict)
 
 func _ready():
-	parent = get_parent()
-	PersitDataBridge.setup_persistence_manager(_on_client_ready)
-	planete_name = "TestPlanete"
-	uuid_obj = uuid.v4()
+	if OS.has_feature("dedicated_server"):
+		print("is in server")
+		parent = get_parent()
+		PersitDataBridge.setup_persistence_manager(_on_client_ready)
+		planete_name = "TestPlanete"
+		uuid_obj = uuid.v4()
+	else:
+		print ("is instanciate on client ")
 
 func  _on_client_ready():
 	print("🚀 Signal ClientReady Persist Physic Data !")
@@ -72,4 +76,4 @@ func _load_child_entity(result: String):
 		var child = childpck.instantiate()
 		if child.has_node("DataEntity"):
 			child.get_node("DataEntity").load_obj(element,self)
-			parent.add_child(child)
+			parent.add_child(child,true)

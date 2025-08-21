@@ -8,12 +8,17 @@ type_obj: string .
 x: int .                                # X scalée for précision
 y: int .                                # Y scalée
 z: int .                                # Z scalée
-
+rx: float .
+ry: float .
+rz: float .
 # ==== Types ====
 type Position {
   x
   y
   z
+  rx
+  ry
+  rz
 }
 
 type Entity {                             # Type générique

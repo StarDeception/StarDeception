@@ -24,6 +24,8 @@ func _ready() -> void:
 	if multiplayer.is_server():
 		# spawn station on the server
 		spawn_station()
+		$MultiplayerSpawner.add_spawnable_scene("res://scenes/planet/testplanet.tscn")
+		
 
 
 func on_player_spawn(id):
