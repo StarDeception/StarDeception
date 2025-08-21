@@ -1,0 +1,61 @@
+[gd_scene load_steps=2 format=3 uid="uid://bspfeu1sxedad"]
+
+[ext_resource type="Script" uid="uid://c8apyaoyaqvhx" path="res://ui/auto_updater/AutoUpdater.cs" id="1_ooi10"]
+
+[node name="AutoUpdater" type="Node2D"]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="Control" type="Control" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -225.0
+offset_right = 616.0
+grow_vertical = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/Control"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 2
+
+[node name="RichTextLabel" type="RichTextLabel" parent="CanvasLayer/Control/VBoxContainer" node_paths=PackedStringArray("hideCheck", "hideLabel", "progressBar", "launchMajButton")]
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+text = "MAJ infos"
+scroll_following = true
+vertical_alignment = 2
+script = ExtResource("1_ooi10")
+hideCheck = NodePath("../HBoxContainer/CheckButton")
+hideLabel = NodePath("../HBoxContainer/RichTextLabel")
+progressBar = NodePath("../ProgressBar")
+launchMajButton = NodePath("../LaunchMajButton")
+
+[node name="ProgressBar" type="ProgressBar" parent="CanvasLayer/Control/VBoxContainer"]
+visible = false
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/Control/VBoxContainer"]
+layout_mode = 2
+
+[node name="CheckButton" type="CheckButton" parent="CanvasLayer/Control/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="RichTextLabel" type="RichTextLabel" parent="CanvasLayer/Control/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Masquer les informations de MAJ"
+
+[node name="LaunchMajButton" type="Button" parent="CanvasLayer/Control/VBoxContainer"]
+visible = false
+layout_mode = 2
+text = "Lancer la mise à jour"
+
+[connection signal="pressed" from="CanvasLayer/Control/VBoxContainer/HBoxContainer/CheckButton" to="CanvasLayer/Control/VBoxContainer/RichTextLabel" method="HideLogs"]
+[connection signal="pressed" from="CanvasLayer/Control/VBoxContainer/LaunchMajButton" to="CanvasLayer/Control/VBoxContainer/RichTextLabel" method="StarDownloadExe"]

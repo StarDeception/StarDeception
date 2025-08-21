@@ -20,4 +20,5 @@ mono_crash.*.json
 # specific for this project (build versions)
 StarDeception.*
 /.vs
+export_presets.cfg
 /build
