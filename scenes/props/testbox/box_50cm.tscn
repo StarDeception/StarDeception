@@ -16,7 +16,7 @@ properties/1/path = NodePath(".:rotation")
 properties/1/spawn = true
 properties/1/replication_mode = 1
 
-[node name="box_50cm" type="RigidBody3D"]
+[node name="box_50cm" type="RigidBody3D" groups=["containable"]]
 mass = 0.25
 continuous_cd = true
 script = ExtResource("1_o2evt")

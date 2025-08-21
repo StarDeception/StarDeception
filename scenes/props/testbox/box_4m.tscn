@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://cptjp55tlikyl"]
+[gd_scene load_steps=8 format=3 uid="uid://cptjp55tlikyl"]
 
 [ext_resource type="ArrayMesh" uid="uid://jg1qr0355r1d" path="res://assets/models/Testbox/Box4m.mesh" id="1_82nol"]
 [ext_resource type="Script" uid="uid://d01f76c0qpc0d" path="res://scenes/props/testbox/box_4m.gd" id="1_ealuu"]
@@ -10,14 +10,7 @@
 size = Vector3(4, 4, 4)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_3xnib"]
-size = Vector3(3.8, 3.8, 0.2)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ealuu"]
-albedo_color = Color(1, 0, 1, 1)
-
-[sub_resource type="BoxMesh" id="BoxMesh_3xnib"]
-material = SubResource("StandardMaterial3D_ealuu")
-size = Vector3(4, 0.1, 4)
+size = Vector3(3.8, 3.8, 3.88033)
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_l5hyn"]
 properties/0/path = NodePath(".:rotation")
@@ -41,7 +34,7 @@ shape = SubResource("BoxShape3D_0fj0l")
 collision_mask = 3
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.0643543)
 shape = SubResource("BoxShape3D_3xnib")
 
 [node name="StaticBody3D" type="StaticBody3D" parent="."]
@@ -49,12 +42,8 @@ collision_layer = 2
 collision_mask = 2
 
 [node name="CollisionShapeInside" type="CollisionShape3D" parent="StaticBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.375)
 shape = ExtResource("3_ealuu")
-
-[node name="DummyFloorStatic" type="MeshInstance3D" parent="StaticBody3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.8, 0)
-visible = false
-mesh = SubResource("BoxMesh_3xnib")
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
 replication_config = SubResource("SceneReplicationConfig_l5hyn")
