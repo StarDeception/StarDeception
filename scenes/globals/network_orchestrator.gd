@@ -1,8 +1,12 @@
 extends Node
 
+const uuid_util = preload("res://addons/uuid/uuid.gd")
+
 var SDOServerUrl = ""
 var ServerName = ""
+var ServerIP = ""
 var ServerPort = ""
+var isSDOActive = false
 
 var ServerMQTTUrl
 var ServerMQTTPort
@@ -10,8 +14,15 @@ var ServerMQTTUsername
 var ServerMQTTPasword
 var ServerMQTTVerboseLevel
 
+var ServerSDOUrl = ""
+var ServerSDOPort = 7050
+var ServerSDOUsername = ""
+var ServerSDOPassword = ""
+var ServerSDOVerboseLevel = 2
+
 const mqtt = preload("res://addons/mqtt/mqtt.tscn")
 var MQTTClient
+var MQTTClientSDO
 
 var network_agent: Node = null
 var universe_scene: Node = null
@@ -29,16 +40,34 @@ var player_ship: Dictionary[int, Spaceship] = {}
 
 var isInsideBox4m: bool = false
 
+var ServerSDOId = 0
+var PlayersList = {}
+var ServersList = {}
+var PropsList = {
+	"box50cm": {}
+}
+
+var ClientChangeServer = null
+
+var player_scene_path: String = "res://scenes/normal_player/normal_player.tscn"
+
+signal set_gameserver_name(server_name)
+signal set_player_global_position(pos, rot)
+signal set_gameserver_numberPlayers(number_players_server)
+signal set_gameserver_numberServers(nbServers)
+signal set_gameserver_numberPlayersUniverse(nbPlayers)
+signal set_gameserver_serverzone(serverzone)
+
 func _enter_tree() -> void:
 	loadServerConfig()
 
 func create_server() -> void:
 	network_agent = load("res://server/server.tscn").instantiate()
-	call_deferred("add_child",network_agent)
+	call_deferred("add_child", network_agent)
 
 func create_client() -> void:
 	network_agent = load("res://server/client.tscn").instantiate()
-	call_deferred("add_child",network_agent)
+	call_deferred("add_child", network_agent)
 
 func start_server(changed_scene) -> Node:
 	
@@ -59,7 +88,7 @@ func start_server(changed_scene) -> Node:
 	network_agent.start_server(changed_scene, small_spawnable_props_entry_point)
 	return network_agent
 
-func start_client(changed_scene) -> Node:
+func start_client(changed_scene, ip = "127.0.0.1", port = 7051) -> Node:
 	universe_scene = changed_scene
 	small_props_spawner_node = universe_scene.get_node("SmallPropsMultiplayerSpawner")
 	
@@ -67,18 +96,27 @@ func start_client(changed_scene) -> Node:
 	
 	small_props_spawner_node.connect("spawned", _on_entity_spawned)
 	
+	multiplayer.connected_to_server.connect(_client_connected_to_server)
+	multiplayer.server_disconnected.connect(_client_disconnected_server)
+
 	preload_small_props(small_props_spawner_node)
 	small_spawnable_props_entry_point = small_props_spawner_node.get_node(small_props_spawner_node.get_spawn_path())
-	network_agent.start_client(changed_scene)
+	network_agent.start_client(changed_scene, ip, port)
 	return network_agent
 
 ## Load configuration from server.ini file
 func loadServerConfig():
 	var config = ConfigFile.new()
 	config.load("server.ini")
-	SDOServerUrl = config.get_value("server", "SDO")
+	ServerIP = config.get_value("server", "ip_public")
 	ServerPort = config.get_value("server", "port")
 	ServerName = config.get_value("server", "name")
+	# Load SDO config
+	ServerSDOUrl = config.get_value("server", "sdo_url")
+	ServerSDOPort = int(config.get_value("server", "sdo_port"))
+	ServerSDOUsername = config.get_value("server", "sdo_username")
+	ServerSDOPassword = config.get_value("server", "sdo_password")
+	ServerSDOVerboseLevel = config.get_value("server", "sdo_verbose_level")
 	# Load chat config
 	ServerMQTTUrl = config.get_value("chat", "url")
 	ServerMQTTPort = config.get_value("chat", "port")
@@ -101,6 +139,7 @@ func _spawn_entity(datas: Dictionary) -> Node:
 				spawned_entity_instance.spawn_position = datas["player_spawn_position"]
 				spawned_entity_instance.spawn_up = datas["player_spawn_up"]
 				spawned_entity_instance.set_multiplayer_authority(datas["authority_peer_id"])
+
 			"ship":
 				spawned_entity_instance = load(datas["ship_scene_path"]).instantiate()
 				spawned_entity_instance.spawn_position = datas["ship_spawn_position"]
@@ -115,7 +154,15 @@ func _on_entity_spawned(entity: Node) -> void:
 		if entity.get_multiplayer_authority() == my_unique_id:
 			network_agent.complete_client_initialization(entity)
 
-#region Chat Part
+func update_all_text_client():
+	get_gameserver_numberPlayers.rpc(network_agent.PlayersList.size())
+	get_server_name.rpc(ServerName)
+	get_gameserver_numberServers.rpc(ServersList.size())
+	get_gameserver_numberPlayersUniverse.rpc(PlayersList.size() + network_agent.PlayersList.size())
+	get_gameserver_serverzone.rpc(network_agent.ServerZone)
+
+###################
+# Chat part       #
 
 func connect_chat_mqtt():
 	MQTTClient = mqtt.instantiate()
@@ -182,6 +229,400 @@ func receive_chat_message_from_server(message: Dictionary) -> void:
 
 #endregion
 
+#########################
+# SDO / server meshing  #
+
+func connect_mqtt_sdo():
+	if Globals.isGUTRunning == true:
+		var mqttGUT = preload("res://test/servermeshing/sdoInterface.tscn")
+		MQTTClientSDO = mqttGUT.instantiate()
+	else:
+		MQTTClientSDO = mqtt.instantiate()
+	get_tree().get_current_scene().add_child(MQTTClientSDO)
+	#MQTTClientSDO.client_id = 'gergtrgtrhrrt'
+	MQTTClientSDO.broker_connected.connect(_on_mqtt_sdo_connected)
+	MQTTClientSDO.broker_connection_failed.connect(_on_mqtt_sdo_connection_failed)
+	MQTTClientSDO.received_message.connect(_on_mqtt_sdo_received_message)
+	MQTTClientSDO.verbose_level = ServerSDOVerboseLevel
+	##MQTTClientSDO.connect_to_broker("tcp://", "192.168.20.158", 1883)
+	MQTTClientSDO.connect_to_broker("ws://", ServerSDOUrl, ServerSDOPort)
+
+func _sdo_register():
+	MQTTClientSDO.subscribe("sdo/serverslist")
+	MQTTClientSDO.subscribe("sdo/playerslist")
+	MQTTClientSDO.subscribe("sdo/propslist")
+	MQTTClientSDO.subscribe("sdo/propschanges")
+	# register
+	var data = JSON.stringify({
+		"name": ServerName,
+		"ip": ServerIP,
+		"port": ServerPort,
+	})
+	MQTTClientSDO.publish("sdo/register", data)
+
+func _on_mqtt_sdo_connected():
+	_sdo_register()
+
+func _on_mqtt_sdo_connection_failed():
+	print("Connection to the SDO fail :/")
+
+func _on_mqtt_sdo_received_message(topic, message):
+	if topic == "sdo/serverslist":
+		# [{
+		#	"id": 6,
+		#	"name": "gameserver0405",
+		#	"ip": "192.168.1.45",
+		#	"port": 7050,
+		#	"x_start": "",
+		#	"x_end": "",
+		#	"y_start": "",
+		#	"y_end": "",
+		#	"z_start": "",
+		#	"z_end": "",
+		#	"to_merge_server_id": null|65
+		#}]
+		var serversList = JSON.parse_string(message)
+		for server in serversList:
+			if server.name == ServerName:
+				ServerSDOId = int(server.id)
+				isSDOActive = true
+				network_agent.ServerZone.x_start = float(server.x_start)
+				network_agent.ServerZone.x_end = float(server.x_end)
+				network_agent.ServerZone.y_start = float(server.y_start)
+				network_agent.ServerZone.y_end = float(server.y_end)
+				network_agent.ServerZone.z_start = float(server.z_start)
+				network_agent.ServerZone.z_end = float(server.z_end)
+
+				MQTTClientSDO.unsubscribe("sdo/serverslist")
+				MQTTClientSDO.subscribe("sdo/serverschanges")
+
+			var split = null
+			if server.to_split_server_id != null:
+				split = int(server.to_split_server_id)
+
+			ServersList[int(server.id)] = {
+				"id": int(server.id),
+				"name": server.name,
+				"ip": server.ip,
+				"port": int(server.port),
+				"x_start": server.x_start,
+				"x_end": server.x_end,
+				"y_start": server.y_start,
+				"y_end": server.y_end,
+				"z_start": server.z_start,
+				"z_end": server.z_end,
+				"to_split_server_id": split
+			}
+		get_gameserver_numberServers.rpc(ServersList.size())
+		get_gameserver_serverzone.rpc(network_agent.ServerZone)
+	elif topic == "sdo/serverschanges":
+		var pushPlayers = false
+		var serversReceived = JSON.parse_string(message)
+		# TODO manage when I have updates or if SDO say to me to stop and transfert players
+		for server in serversReceived.add:
+			var split = null
+			if server.to_split_server_id != null:
+				split = int(server.to_split_server_id)
+
+			ServersList[int(server.id)] = {
+				"id": int(server.id),
+				"name": server.name,
+				"ip": server.ip,
+				"port": int(server.port),
+				"x_start": server.x_start,
+				"x_end": server.x_end,
+				"y_start": server.y_start,
+				"y_end": server.y_end,
+				"z_start": server.z_start,
+				"z_end": server.z_end,
+				"to_split_server_id": split
+			}
+
+			if server.name == ServerName:
+				ServerSDOId = server.id
+				isSDOActive = true
+				network_agent.ServerZone.x_start = server.x_start
+				network_agent.ServerZone.x_end = server.x_end
+				network_agent.ServerZone.y_start = server.y_start
+				network_agent.ServerZone.y_end = server.y_end
+				network_agent.ServerZone.z_start = server.z_start
+				network_agent.ServerZone.z_end = server.z_end
+
+				MQTTClientSDO.unsubscribe("sdo/serverslist")
+				MQTTClientSDO.subscribe("sdo/serverschanges")
+			
+		for server in serversReceived.update:
+			if server.id == ServerSDOId:
+				if server.to_split_server_id != null:
+					pushPlayers = true
+					# we pause 2 seconds, time needed for the server load data and players
+					await get_tree().create_timer(2).timeout
+
+				network_agent.ServerZone.x_start = server.x_start
+				network_agent.ServerZone.x_end = server.x_end
+				network_agent.ServerZone.y_start = server.y_start
+				network_agent.ServerZone.y_end = server.y_end
+				network_agent.ServerZone.z_start = server.z_start
+				network_agent.ServerZone.z_end = server.z_end
+				# if ChangingZone == true:
+				# 	pass
+			# TODO udpate server properties
+			else:
+				var split = null
+				if server.to_split_server_id != null:
+					split = int(server.to_split_server_id)
+				ServersList[int(server.id)].x_start = server.x_start
+				ServersList[int(server.id)].x_end = server.x_end
+				ServersList[int(server.id)].y_start = server.y_start
+				ServersList[int(server.id)].y_end = server.y_end
+				ServersList[int(server.id)].z_start = server.z_start
+				ServersList[int(server.id)].z_end = server.z_end
+				ServersList[int(server.id)].to_split_server_id = split
+
+		for server in serversReceived.delete:
+			ServersList.erase(server.id)
+		if pushPlayers == true:
+			network_agent.TransferPlayers = true
+			network_agent._playersMustChangeServer()
+			# We ending the transfert process
+			network_agent.TransferPlayers = false
+			network_agent.ChangingZone = false
+
+		get_gameserver_numberServers.rpc(ServersList.size())
+		get_gameserver_serverzone.rpc(network_agent.ServerZone)
+
+	elif topic == "sdo/playerslist":
+		print("Playerlists received")
+		print(message)
+		var playersReceived = JSON.parse_string(message)
+		# ['name', 'client_uuid', 'server_id', 'x', 'y', 'z']
+		if isSDOActive:
+			# we have received the first list, we unscribe
+			MQTTClientSDO.unsubscribe("sdo/playerslist")
+			MQTTClientSDO.subscribe("sdo/playerschanges")
+			for player in playersReceived:
+				if int(player.server_id) != ServerSDOId:
+					network_agent.instantiate_player_remote(player, true, int(player.server_id))
+		get_gameserver_numberPlayersUniverse.rpc(PlayersList.size() + network_agent.PlayersList.size())
+	elif topic == "sdo/playerschanges":
+		# {
+		#   "add": [{"name": "playername01", "client_uuid": "", "x": "", "y": "", "z": ""}],
+		#   "update": [{"client_uuid": "", "x": "", "y": "", "z": ""}],
+		#   "delete": [{"client_uuid": ""}],
+		#   "server_id": 5
+		# }
+		if isSDOActive == false:
+			return
+		var playersChanges = JSON.parse_string(message)
+		if int(playersChanges.server_id) != ServerSDOId:
+			for player in playersChanges.add:
+				network_agent.instantiate_player_remote(player, true, int(playersChanges.server_id))
+			for player in playersChanges.update:
+				if network_agent.PlayersListCurrentlyInTransfert.has(player.client_uuid):
+					# despawn the player because on another server now
+					network_agent.PlayersListTempById.erase(int(network_agent.PlayersList[player.client_uuid].name))
+					network_agent.PlayersList[player.client_uuid].free()
+					network_agent.PlayersList.erase(player.client_uuid)
+					network_agent.PlayersListCurrentlyInTransfert.erase(player.client_uuid)
+					network_agent.instantiate_player_remote(player, true, int(playersChanges.server_id))
+				elif PlayersList.has(player.client_uuid):
+					PlayersList[player.client_uuid].set_global_position(Vector3(player.x, player.y, player.z))
+					PlayersList[player.client_uuid].set_global_rotation(Vector3(player.xr, player.yr, player.zr))
+				else:
+					network_agent.instantiate_player_remote(player, true)
+			for player in playersChanges.delete:
+				# _players_spawn_node.remove_child(PlayersList[player.client_uuid])
+				PlayersList[player.client_uuid].free()
+				PlayersList.erase(player.client_uuid)
+
+		update_all_text_client()
+	elif topic == "sdo/propslist":
+		print("tt")
+
+	elif topic == "sdo/propschanges":
+		if isSDOActive == false:
+			return
+		var propsChanges = JSON.parse_string(message)
+		if int(propsChanges.server_id) != ServerSDOId:
+			for prop in propsChanges.add:
+				network_agent.instantiate_props_remote_add(prop)
+			for prop in propsChanges.update:
+				network_agent.instantiate_props_remote_update(prop)
+
+
+		
+
+	else:
+		print(topic)
+		print(message)
+
+
+func transfert_player_to_another_server(uuid, server):
+	print("expulse to server " + str(server.name))
+	network_agent.PlayersListCurrentlyInTransfert[uuid] = int(network_agent.PlayersList[uuid].get_multiplayer_authority())
+	rpc_id(int(network_agent.PlayersList[uuid].get_multiplayer_authority()), "change_server", [server.ip, server.port])
+
+func _create_local_player_not_exists_in_universe(uuid, playerName, spawn_point, id):
+	var spawn_position: Vector3 = Vector3.ZERO
+	var spawn_up: Vector3 = Vector3.UP
+	if spawn_point >= 0 and spawn_point < GameOrchestrator.SPAWN_POINTS_LIST.size():
+		var spawn_point_node_path: String = GameOrchestrator.SPAWN_POINTS_LIST[spawn_point]["node_path"]
+		if spawn_point_node_path == "":
+			var parent_entity_spawn_position: Vector3 = universe_scene.get_node("PlanetA").global_position if randf() < 0.5 else universe_scene.get_node("PlanetB").global_position
+			spawn_position = random_spawn_on_planet(parent_entity_spawn_position, 2000.0)
+			spawn_up = (spawn_position - parent_entity_spawn_position).normalized()
+		elif spawn_point_node_path.contains("PlayerSpawnPointsList"):
+			spawn_position = universe_scene.get_node(spawn_point_node_path).global_position
+			if spawn_point_node_path.contains("PlanetA"):
+				spawn_up = (spawn_position - universe_scene.get_node("PlanetA").global_position).normalized()
+			elif spawn_point_node_path.contains("PlanetB"):
+				spawn_up = (spawn_position - universe_scene.get_node("PlanetB").global_position).normalized()
+			elif spawn_point_node_path.contains("StationA"):
+				spawn_up = universe_scene.get_node(spawn_point_node_path).transform.basis.y.normalized()
+		else:
+			var parent_entity_spawn_position: Vector3 = universe_scene.get_node(spawn_point_node_path).global_position
+			spawn_position = random_spawn_on_planet(parent_entity_spawn_position, 2000.0)
+			spawn_up = (spawn_position - parent_entity_spawn_position).normalized()
+
+	small_props_spawner_node.spawn({
+		"entity": "player",
+		"player_scene_path": player_scene_path,
+		"player_name": playerName,
+		"player_spawn_position": spawn_position,
+		"player_spawn_up": Vector3.UP,
+		"authority_peer_id": id,
+		"uuid": uuid
+	})
+
+	var player_to_add
+	var sp = universe_scene.get_node("SmallProps")
+	var children = sp.get_children()
+	for child in children:
+		# TODO pas ouf, trouver mieux...
+		if child.get_multiplayer_authority() == id:
+			player_to_add = child
+			break
+
+	network_agent.PlayersList[uuid] = player_to_add
+	network_agent.PlayersListTempById[id] = player_to_add;
+	print("Nouveau player: ")
+	print(player_to_add)
+
+
+	# network_agent.PlayersList[uuid].initValues.playername = playerName
+
+	# New player, check if must be in another server (check the zone)
+	var newServer = _searchAnotherServerForCoordinates(
+		network_agent.PlayersList[uuid].global_position[0],
+		network_agent.PlayersList[uuid].global_position[1],
+		network_agent.PlayersList[uuid].global_position[2]
+	)
+	if newServer != null:
+		transfert_player_to_another_server(uuid, newServer)
+		return
+
+	network_agent.PlayersListTempById[id] = uuid
+	var playersData = []
+	var position = network_agent.PlayersList[uuid].get_global_position()
+	var rotation = network_agent.PlayersList[uuid].get_global_rotation()
+	var data = ""
+	playersData.append({
+		"name": playerName,
+		"client_uuid": uuid,
+		"x": position[0],
+		"y": position[1],
+		"z": position[2],
+		"xr": rotation[0],
+		"yr": rotation[1],
+		"zr": rotation[2]
+	})
+	data = JSON.stringify({
+		"add": playersData,
+		"update": [],
+		"delete": [],
+		"server_id": ServerSDOId,
+	})
+	MQTTClientSDO.publish("sdo/playerschanges", data)
+	network_agent.PlayersListLastMovement[uuid] = Vector3(0.0, 0.0, 0.0)
+	network_agent.PlayersListLastRotation[uuid] = Vector3(0.0, 0.0, 0.0)
+
+	# Test for remote player
+	# var newPlayer = {
+	# 	"name": "player test",
+	# 	"client_uuid": "32726b4c-119e-4f69-87b1-2495bcabacd9",
+	# 	"x": 2146.6928710938,
+	# 	"y": 0.0000329,
+	# 	"z": 2154.9038085938
+	# }
+
+func _create_local_player_come_from_another_server(uuid, playerName, id):
+	network_agent.PlayersListCurrentlyInTransfert[uuid] = true
+	var playerposition = PlayersList[uuid].global_position
+	var playerrotation = PlayersList[uuid].global_rotation
+	print("POSITION1: ", playerposition)
+	PlayersList[uuid].queue_free()
+	PlayersList.erase(uuid)
+
+	# var player_to_add = normal_player.instantiate()
+	# player_to_add.name = str(id)
+	# player_to_add.initValues.playername = playerName
+	# we can now spawn
+	# _players_spawn_node.add_child(player_to_add, true)
+	var player_to_add = small_props_spawner_node.spawn({
+		"entity": "player",
+		"player_scene_path": player_scene_path,
+		"player_name": playerName,
+		"player_spawn_position": playerposition,
+		"player_spawn_up": Vector3.UP,
+		"authority_peer_id": id
+	})
+	print("POSITION2: ", playerposition)
+	player_to_add.global_position = playerposition
+	player_to_add.global_rotation = playerrotation
+
+	if not player_to_add.is_node_ready():
+		await player_to_add.ready
+	_position_player.rpc_id(id, playerposition, playerrotation)
+
+	network_agent.PlayersList[uuid] = player_to_add
+	network_agent.PlayersListTempById[id] = uuid
+	network_agent.PlayersListLastMovement[uuid] = playerposition
+	network_agent.PlayersListLastRotation[uuid] = playerrotation
+	var playersData = []
+	var data = ""
+	playersData.append({
+		"client_uuid": uuid,
+		"x": playerposition[0],
+		"y": playerposition[1],
+		"z": playerposition[2],
+		"xr": playerrotation[0],
+		"yr": playerrotation[1],
+		"zr": playerrotation[2]
+	})
+	data = JSON.stringify({
+		"add": [],
+		"update": playersData,
+		"delete": [],
+		"server_id": ServerSDOId,
+	})
+	MQTTClientSDO.publish("sdo/playerschanges", data)
+	network_agent.PlayersListCurrentlyInTransfert.erase(uuid)
+
+func _searchAnotherServerForCoordinates(x, y, z):
+	for s in ServersList.values():
+		if s.id == ServerSDOId:
+			continue
+		if float(s.x_start) <= x and x < float(s.x_end) and float(s.y_start) <= y and y < float(s.y_end) and float(s.z_start) <= z and z < float(s.z_end):
+			return s
+	return null
+
+
+
+
+
+#########################
+# Spawns                #
+
 @rpc("any_peer", "call_remote", "reliable")
 func spawn_box50cm(spawn_position: Vector3 = Vector3.ZERO) -> void:
 	if not multiplayer.is_server():
@@ -190,8 +631,30 @@ func spawn_box50cm(spawn_position: Vector3 = Vector3.ZERO) -> void:
 	var box50cm_instance: RigidBody3D = small_spawnable_props[2].instantiate()
 	
 	box50cm_instance.spawn_position = spawn_position
+	var uuid = uuid_util.v4()
 	small_props_spawner_node.get_node(small_props_spawner_node.spawn_path).call_deferred("add_child", box50cm_instance, true)
-	
+	network_agent.PropsList.box50cm[uuid] = box50cm_instance
+	network_agent.PropsListLastMovement.box50cm[uuid] = spawn_position
+	network_agent.PropsListLastRotation.box50cm[uuid] = Vector3.ZERO
+	var data = ""
+	var boxData = {
+		"type": "box50cm",
+		"uuid": uuid,
+		"x": spawn_position[0],
+		"y": spawn_position[1],
+		"z": spawn_position[2],
+		"xr": 0,
+		"yr": 0,
+		"zr": 0
+	}
+	data = JSON.stringify({
+		"add": [boxData],
+		"update": [],
+		"delete": [],
+		"server_id": ServerSDOId,
+	})
+	MQTTClientSDO.publish("sdo/propschanges", data)
+
 	if isInsideBox4m:
 		box50cm_instance.set_collision_layer_value(1, false)
 		box50cm_instance.set_collision_layer_value(2, true)
@@ -247,28 +710,7 @@ func spawn_player(player_scene_path: String = "", spawn_point: int = 0):
 	if not multiplayer.is_server():
 		return
 	
-	var spawn_position: Vector3 = Vector3.ZERO
-	var spawn_up: Vector3 = Vector3.UP
-	if spawn_point >= 0 and spawn_point < GameOrchestrator.SPAWN_POINTS_LIST.size():
-		var spawn_point_node_path: String = GameOrchestrator.SPAWN_POINTS_LIST[spawn_point]["node_path"]
-		if spawn_point_node_path == "":
-			var parent_entity_spawn_position: Vector3 = universe_scene.get_node("PlanetA").global_position if randf() < 0.5 else universe_scene.get_node("PlanetB").global_position
-			spawn_position = random_spawn_on_planet(parent_entity_spawn_position, 2000.0)
-			spawn_up = (spawn_position - parent_entity_spawn_position).normalized()
-		elif spawn_point_node_path.contains("PlayerSpawnPointsList"):
-			spawn_position = universe_scene.get_node(spawn_point_node_path).global_position
-			if spawn_point_node_path.contains("PlanetA"):
-				spawn_up = (spawn_position - universe_scene.get_node("PlanetA").global_position).normalized()
-			elif spawn_point_node_path.contains("PlanetB"):
-				spawn_up = (spawn_position - universe_scene.get_node("PlanetB").global_position).normalized()
-			elif spawn_point_node_path.contains("StationA"):
-				spawn_up = universe_scene.get_node(spawn_point_node_path).transform.basis.y.normalized()
-		else:
-			var parent_entity_spawn_position: Vector3 = universe_scene.get_node(spawn_point_node_path).global_position
-			spawn_position = random_spawn_on_planet(parent_entity_spawn_position, 2000.0)
-			spawn_up = (spawn_position - parent_entity_spawn_position).normalized()
-	
-	small_props_spawner_node.spawn({"entity": "player", "player_scene_path": player_scene_path, "player_name": "Player_" + str(senderid), "player_spawn_position": spawn_position, "player_spawn_up": spawn_up, "authority_peer_id": senderid})
+	# small_props_spawner_node.spawn({"entity": "player", "player_scene_path": player_scene_path, "player_name": "Player_" + str(senderid), "player_spawn_position": spawn_position, "player_spawn_up": spawn_up, "authority_peer_id": senderid})
 
 func random_spawn_on_planet(planet_position: Vector3, radius: float) -> Vector3:
 	var theta = randf() * TAU					# Angle azimutal
@@ -328,3 +770,74 @@ func release_control(player_instance_path, ship_instance_path):
 func notify_client_connected():
 	if not multiplayer.is_server():
 		network_agent.on_connection_established()
+
+@rpc("any_peer", "call_local", "unreliable")
+func set_player_uuid(uuid, playerName, spawn_point: int = 0, id = null):
+	if Globals.isGUTRunning == false:
+		id = universe_scene.multiplayer.get_remote_sender_id()
+	network_agent.PlayersListCurrentlyInTransfert[uuid] = id
+	print("Player with uuid: " + uuid)
+	print(PlayersList.keys())
+	if PlayersList.has(uuid):
+		print("UUID FOUND")
+		_create_local_player_come_from_another_server(uuid, playerName, id)
+	else:
+		print("UUID NOT FOUND")
+		_create_local_player_not_exists_in_universe(uuid, playerName, spawn_point, id)
+
+	update_all_text_client()
+	network_agent.PlayersListCurrentlyInTransfert.erase(uuid)
+
+
+# client receiver RPC functions
+
+@rpc("any_peer", "call_remote", "unreliable", 0)
+func change_server(position):
+	print("I am expulsed, need to connect to another server")
+	_changeServer(position)
+
+@rpc("any_peer", "call_remote", "unreliable", 0)
+func get_server_name(remoteServerName):
+	set_gameserver_name.emit(remoteServerName)
+
+@rpc("any_peer", "call_remote", "unreliable", 0)
+func get_gameserver_numberPlayersUniverse(nbPlayers):
+	set_gameserver_numberPlayersUniverse.emit(nbPlayers)
+
+@rpc("any_peer", "call_remote", "unreliable", 0)
+func get_gameserver_numberServers(nbServers):
+	set_gameserver_numberServers.emit(nbServers)
+
+@rpc("any_peer", "call_remote", "unreliable", 0)
+func get_gameserver_numberPlayers(number_players_server):
+	set_gameserver_numberPlayers.emit(number_players_server)
+
+@rpc("any_peer", "call_remote", "unreliable", 0)
+func get_gameserver_serverzone(serverzone):
+	set_gameserver_serverzone.emit(serverzone)
+
+@rpc("any_peer", "call_remote", "unreliable", 0)
+func _position_player(pos, rot):
+	set_player_global_position.emit(pos, rot)
+
+func _changeServer(newServerInfo):
+	print(newServerInfo)
+	multiplayer.multiplayer_peer.close()
+	ClientChangeServer = newServerInfo
+
+
+func _client_connected_to_server():
+	# We are connected
+	ClientChangeServer = null
+	# set_player_uuid.rpc_id(1, Globals.playerUUID, Globals.playerName)
+
+func _client_disconnected_server():
+	# Clean players already loaded
+	# var children = small_props_spawner_node.get_children()
+	# for child in children:
+	# 	child.free()
+	if ClientChangeServer != null:
+		start_client(universe_scene, ClientChangeServer[0], int(ClientChangeServer[1]))
+		# var client_peer = ENetMultiplayerPeer.new()
+		# client_peer.create_client(ClientChangeServer[0], int(ClientChangeServer[1]))
+		# multiplayer.multiplayer_peer = client_peer

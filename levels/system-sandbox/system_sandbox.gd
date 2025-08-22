@@ -13,11 +13,6 @@ var spawn_points_list: Array[Vector3]:
 # A ADAPTER POUR LES STATIONS ET VAISSEAUX : RETOURNER LE VECTEUR.UP
 var planet_center: Vector3 = Vector3.ZERO
 
-func _enter_tree() -> void:
-	if not OS.has_feature("dedicated_server") and Globals.onlineMode:
-		Server.create_client(self)
-
-
 func _ready() -> void:
 	is_ready = true
 	

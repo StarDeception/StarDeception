@@ -10,18 +10,21 @@ signal client_action_requested(datas: Dictionary)
 @onready var labely: Label = $UserInterface/LabelYValue
 @onready var labelz: Label = $UserInterface/LabelZValue
 @onready var labelPlayerName: Label3D = %LabelPlayerName
+@onready var labelServerName: Label3D = %LabelServerName
 @onready var astronaut: Node3D = $Placeholder_Collider/Astronaut
 @onready var interact_ray: RayCast3D = $CameraPivot/Camera3D/InteractRay
 @onready var interact_label: Label = $UserInterface/InteractLabel
 @onready var camera_pivot: Node3D = $CameraPivot
 
-@onready var direct_chat: GlobalChat = $UserInterface/DirectChat
+@onready var direct_chat: DirectChat = $UserInterface/DirectChat
 
 @onready var box4m: PackedScene = preload("res://scenes/props/testbox/box_4m.tscn")
 @onready var box50m: PackedScene = preload("res://scenes/props/testbox/box_50cm.tscn")
 @onready var isInsideBox4m: bool = false
 
 @onready var game_is_paused: bool = false
+
+@onready var clientUUID
 
 @export_group("Controls map names")
 @export var MOVE_FORWARD: String = "move_forward"
@@ -69,19 +72,31 @@ var gravity_parents: Array[Area3D]
 var active = true
 
 func _enter_tree() -> void:
-	pass
+	print("[player] I give my name: ", name)
+	if name.begins_with("remoteplayer"):
+		set_multiplayer_authority(1)
+		global_position = spawn_position
+	else:
+		NetworkOrchestrator.set_player_global_position.connect(_set_player_global_position)
 
 func _ready() -> void:
 	if not is_multiplayer_authority():
 		return
 	
 	global_position = spawn_position
+	print("[player] I spawned at the position :", global_position)
 	look_at(global_transform.origin + Vector3.FORWARD, spawn_up)
 	
+	NetworkOrchestrator.set_gameserver_name.connect(_set_gameserver_name)
+
+	clientUUID = Globals.playerUUID
+	self.set_meta("clientUUID", Globals.playerUUID)
+
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	camera.current = true
 	# hide player name label for me only
 	labelPlayerName.visible = false
+	labelServerName.visible = false
 	astronaut.visible = false
 	interact_label.hide()
 	connect_area_detect()
@@ -263,3 +278,12 @@ func _on_area_detector_area_exited(area: Area3D) -> void:
 		if gravity_parents.has(area):
 			prints("player left gravity area", area)
 			gravity_parents.erase(area)
+
+func _set_gameserver_name(name):
+	labelServerName.text = "(" + name + ")"
+
+func _set_player_global_position(pos, rot):
+	print("SET MY POS:")
+	print(pos)
+	global_position = pos
+	global_rotation =rot

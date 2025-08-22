@@ -10,21 +10,25 @@ var universe_scene: Node = null
 var player_instance: Node = null
 var spawn_point: Vector3 = Vector3.ZERO
 
+const uuid_util = preload("res://addons/uuid/uuid.gd")
+
 func _enter_tree() -> void:
 	pass
 
 func _ready() -> void:
 	pass
 
-func start_client(receveid_universe_scene: Node) -> void:
+func start_client(receveid_universe_scene: Node, ip, port) -> void:
 	universe_scene = receveid_universe_scene
 	var spawn_points_list: Array[Vector3] = universe_scene.spawn_points_list
 	
 	if spawn_points_list.size() > 0:
 		spawn_point = spawn_points_list.pick_random()
 	
+	if Globals.playerUUID == "":
+		Globals.playerUUID = uuid_util.v4()
 	client_peer = ENetMultiplayerPeer.new()
-	client_peer.create_client("127.0.0.1", 7051)
+	client_peer.create_client(ip, port)
 	universe_scene.multiplayer.multiplayer_peer = client_peer
 	peer_id = universe_scene.multiplayer.multiplayer_peer.get_unique_id()
 
@@ -32,7 +36,7 @@ func on_connection_established() -> void:
 	request_spawn()
 
 func request_spawn() -> void:
-	NetworkOrchestrator.spawn_player.rpc_id(1, player_scene_path, GameOrchestrator.requested_spawn_point)
+	NetworkOrchestrator.set_player_uuid.rpc_id(1, Globals.playerUUID, GameOrchestrator.login_player_name, GameOrchestrator.requested_spawn_point)
 
 func complete_client_initialization(entity) -> void:
 	player_instance = entity

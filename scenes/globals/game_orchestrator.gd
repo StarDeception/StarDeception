@@ -53,7 +53,7 @@ func _enter_tree() -> void:
 	get_tree().set_script(SCENE_TREE_EXTENDED_SCRIPT_PATH)
 
 func _ready():
-	if ResourceUID.id_to_text(ResourceLoader.get_resource_uid(get_tree().current_scene.scene_file_path)) != ProjectSettings.get_setting("application/run/main_scene"):
+	if ResourceUID.id_to_text(ResourceLoader.get_resource_uid(get_tree().current_scene.scene_file_path)) != ProjectSettings.get_setting("application/run/main_scene") and not OS.has_feature("dedicated_server"):
 		return
 	
 	get_tree().connect("scene_changed",_on_scene_changed)
@@ -103,7 +103,7 @@ func change_game_state(new_state) -> int:
 			get_tree().call_deferred("change_scene_to_file",GAME_STATES_SCENES_PATHS[GAME_STATES.UNIVERSE_MENU])
 			return CHANGE_STATE_RETURNS.OK
 		GAME_STATES.PLAYING:
-			match  current_state:
+			match current_state:
 				GAME_STATES.PAUSE_MENU:
 					current_state = new_state
 					Input.mouse_mode = Input.MOUSE_MODE_CAPTURED

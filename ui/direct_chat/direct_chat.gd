@@ -1,5 +1,5 @@
 extends PanelContainer
-class_name GlobalChat
+class_name DirectChat
 
 signal send_message
 

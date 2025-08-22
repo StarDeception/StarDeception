@@ -23,7 +23,6 @@ Globals="*res://scenes/globals/globals.gd"
 GameOrchestrator="*res://scenes/globals/game_orchestrator.gd"
 NetworkOrchestrator="*res://scenes/globals/network_orchestrator.gd"
 BackgroundMusic="*res://scenes/globals/background_music.tscn"
-PipeHttpHeavy="*res://server/pipe_http_heavy.tscn"
 uuid="*res://addons/uuid/uuid.gd"
 ErrorManager="*res://ui/error_message/error_message.tscn"
 
@@ -44,7 +43,7 @@ project/assembly_name="StarDeception"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/awaitable_http_request/plugin.cfg", "res://addons/gut/plugin.cfg", "res://addons/open-world-database/plugin.cfg", "res://addons/uuid/plugin.cfg")
+enabled=PackedStringArray("res://addons/gut/plugin.cfg", "res://addons/open-world-database/plugin.cfg", "res://addons/uuid/plugin.cfg")
 
 [file_customization]
 

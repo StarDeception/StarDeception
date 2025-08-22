@@ -1,8 +1,7 @@
 extends Label
 
 func _ready() -> void:
-	pass
-	#Server.set_gameserver_name.connect(_set_gameserver_name)
+	NetworkOrchestrator.set_gameserver_name.connect(_set_gameserver_name)
 	
 func _set_gameserver_name(server_name):
 	text = str(server_name)

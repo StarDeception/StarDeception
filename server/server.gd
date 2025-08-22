@@ -2,17 +2,64 @@ extends Node
 
 signal populated_universe
 
+const uuid_util = preload("res://addons/uuid/uuid.gd")
+
 var universe_scene: Node = null
 var entities_spawn_node: Node = null
 var datas_to_spawn_count: int = 0
 
 var clients_peers_ids: Array[int] = []
 
+var ServerZone = {
+	"x_start": -100000,
+	"x_end": 100000,
+	"y_start": -100000,
+	"y_end": 100000,
+	"z_start": -100000,
+	"z_end": 100000
+}
+
+var MaxPlayersAllowed = 2
+var PlayersList = {}
+var PlayersListLastMovement = {}
+var PlayersListLastRotation = {}
+var PlayersListTempById = {}
+var PlayersListCurrentlyInTransfert = {}
+var ChangingZone = false
+var TransferPlayers = false
+var PropsList = {
+	"box50cm": {}
+}
+var PropsListLastMovement = {
+	"box50cm": {}
+}
+var PropsListLastRotation = {
+	"box50cm": {}
+}
+
+var ServersTicksTasks = {
+	"TooManyPlayersCurent": 300,
+	"TooManyPlayersReset": 300,
+	"SendPlayersToMQTTCurrent": 15,
+	"SendPlayersToMQTTReset": 15,
+	"CheckPlayersOutOfZoneCurrent": 20,
+	"CheckPlayersOutOfZoneReset": 20,
+	"SendPropsToMQTTCurrent": 15,
+	"SendPropsToMQTTReset": 15,
+}
+
 func _enter_tree() -> void:
 	pass
 
 func _ready() -> void:
 	pass
+
+func _physics_process(_delta: float) -> void:
+	if NetworkOrchestrator.isSDOActive == true:
+		_is_server_has_too_many_players()
+		_send_players_to_sdo()
+		_checkPlayerOutOfZone()
+		_send_props_to_sdo()
 
 func start_server(receveid_universe_scene: Node, receveid_player_spawn_node: Node) -> void:
 	universe_scene = receveid_universe_scene
@@ -22,13 +69,15 @@ func start_server(receveid_universe_scene: Node, receveid_player_spawn_node: Nod
 		printerr("creating server_peer failed!")
 		return
 	
-	var res = server_peer.create_server(7051, 150)
+	var res = server_peer.create_server(NetworkOrchestrator.ServerPort, 150)
 	if res != OK:
 		printerr("creating server failed: ", error_string(res))
 		return
 	
 	universe_scene.multiplayer.multiplayer_peer = server_peer
 	NetworkOrchestrator.connect_chat_mqtt()
+	# load SDO mqtt in NetworkOrchestrator
+	NetworkOrchestrator.connect_mqtt_sdo()
 	print("server loaded... \\o/")
 	universe_scene.multiplayer.peer_connected.connect(_on_client_peer_connected)
 	universe_scene.multiplayer.peer_disconnected.connect(_on_client_peer_disconnect)
@@ -70,3 +119,209 @@ func _on_client_peer_disconnect(id):
 	
 	NetworkOrchestrator.players.erase(id)
 	NetworkOrchestrator.player_ship.erase(id)
+
+	# TODO manage players move to another server and players disconnect completly
+	var uuid = PlayersListTempById[id]
+	if not PlayersListCurrentlyInTransfert.has(uuid):
+		var data = JSON.stringify({
+			"add": [],
+			"update": [],
+			"delete": [{"client_uuid" : PlayersListTempById[id]}],
+			"server_id": NetworkOrchestrator.ServerSDOId,
+		})
+		NetworkOrchestrator.MQTTClientSDO.publish("sdo/playerschanges", data)
+		PlayersListTempById.erase(multiplayer.get_remote_sender_id())
+		PlayersList.erase(PlayersListTempById[id])
+
+		# player.queue_free()
+	NetworkOrchestrator.update_all_text_client()
+
+
+
+func _is_server_has_too_many_players():
+	if ServersTicksTasks.TooManyPlayersCurent > 0:
+		ServersTicksTasks.TooManyPlayersCurent -= 1
+	else:
+		if PlayersList.size() > MaxPlayersAllowed and ChangingZone == false:
+			if _playersMustChangeServer() == false:
+				var playersData = []
+				for value in PlayersList.values():
+					var position = value.global_position
+					playersData.append({"x": int(position[0]), "y": int(position[1]), "z": int(position[2])})
+				print("Too many players, need split")
+				ChangingZone = true
+				NetworkOrchestrator.MQTTClientSDO.publish("sdo/servertooheavy", JSON.stringify({
+					"id": NetworkOrchestrator.ServerSDOId,
+					"players": playersData,
+				}))
+		ServersTicksTasks.TooManyPlayersCurent = ServersTicksTasks.TooManyPlayersReset
+
+func _send_players_to_sdo():
+	if ServersTicksTasks.SendPlayersToMQTTCurrent > 0:
+		ServersTicksTasks.SendPlayersToMQTTCurrent -= 1
+	else:
+		var playersData = []
+		var position = Vector3(0.0, 0.0, 0.0)
+		var rotation = Vector3(0.0, 0.0, 0.0)
+		for puuid in PlayersList.keys():
+			position = PlayersList[puuid].global_position
+			rotation = PlayersList[puuid].global_rotation
+			if PlayersListLastMovement[puuid] != position or PlayersListLastRotation[puuid] != rotation:
+				if not PlayersListCurrentlyInTransfert.has(puuid):
+					# only the players of this server and not in transfert
+					playersData.append({
+						"client_uuid": puuid,
+						"x": position[0],
+						"y": position[1],
+						"z": position[2],
+						"xr": rotation[0],
+						"yr": rotation[1],
+						"zr": rotation[2]
+					})
+					PlayersListLastMovement[puuid] = position
+					PlayersListLastRotation[puuid] = rotation
+		if playersData.size() > 0:
+			NetworkOrchestrator.MQTTClientSDO.publish("sdo/playerschanges", JSON.stringify({
+				"add": [],
+				"update": playersData,
+				"delete": [],
+				"server_id": NetworkOrchestrator.ServerSDOId,
+			}))
+		ServersTicksTasks.SendPlayersToMQTTCurrent = ServersTicksTasks.SendPlayersToMQTTReset
+
+func _checkPlayerOutOfZone():
+	if ServersTicksTasks.CheckPlayersOutOfZoneCurrent > 0:
+		ServersTicksTasks.CheckPlayersOutOfZoneCurrent -= 1
+	else:
+		if ChangingZone == false:
+			_playersMustChangeServer()
+		ServersTicksTasks.CheckPlayersOutOfZoneCurrent = ServersTicksTasks.CheckPlayersOutOfZoneReset
+
+func _playersMustChangeServer():
+	# loop on coordinates of new server
+	var somePlayersTransfered = false
+	for puuid in PlayersList.keys():
+		if PlayersListCurrentlyInTransfert.has(puuid):
+			continue
+		var position = PlayersList[puuid].global_position
+		if position[0] < ServerZone.x_start or position[0] > ServerZone.x_end:
+			print("Expulse player X: " + str(puuid))
+			print("serverstart, server end, player: ", ServerZone.x_start, " ", ServerZone.x_end, " ", position[0])
+			var newServer = _searchAnotherServerForCoordinates(position[0], position[1], position[2])
+			if newServer != null:
+				NetworkOrchestrator.transfert_player_to_another_server(puuid, newServer)
+				somePlayersTransfered = true
+			else:
+				print("ERROR: no server found to expulse :/")
+		elif position[1] < ServerZone.y_start or position[1] > ServerZone.y_end:
+			print("Expulse player Y: " + str(puuid))
+			print("serverstart, server end, player: ", ServerZone.y_start, " ", ServerZone.y_end, " ", position[1])
+			var newServer = _searchAnotherServerForCoordinates(position[0], position[1], position[2])
+			if newServer != null:
+				NetworkOrchestrator.transfert_player_to_another_server(puuid, newServer)
+				somePlayersTransfered = true
+		elif position[2] < ServerZone.z_start or position[2] > ServerZone.z_end:
+			print("Expulse player Z: " + str(puuid))
+			print("serverstart, server end, player: ", ServerZone.z_start, " ", ServerZone.z_end, " ", position[2])
+			var newServer = _searchAnotherServerForCoordinates(position[0], position[1], position[2])
+			if newServer != null:
+				NetworkOrchestrator.transfert_player_to_another_server(puuid, newServer)
+				somePlayersTransfered = true
+	return somePlayersTransfered
+
+func _searchAnotherServerForCoordinates(x, y, z):
+	for s in NetworkOrchestrator.ServersList.values():
+		if s.id == NetworkOrchestrator.ServerSDOId:
+			continue
+		if float(s.x_start) <= x and x < float(s.x_end) and float(s.y_start) <= y and y < float(s.y_end) and float(s.z_start) <= z and z < float(s.z_end):
+			return s
+	return null
+
+# Instantiate remote server player, need to be visible for players on this server
+func instantiate_player_remote(player, set_player_position = false, server_id = null):
+	var name = ""
+	if player.has("name"):
+		name = player.name
+	var spawn_position: Vector3 = Vector3.ZERO
+	if set_player_position == true:
+		spawn_position = Vector3(float(player.x), float(player.y), float(player.z))
+		print("Remnote player spawn with position: ", spawn_position)
+
+	var player_to_add = NetworkOrchestrator.small_props_spawner_node.spawn({
+		"entity": "player",
+		"player_scene_path": NetworkOrchestrator.player_scene_path,
+		"player_name": "remoteplayer" + name,
+		"player_spawn_position": spawn_position,
+		"player_spawn_up": Vector3.UP,
+		"authority_peer_id": 1
+	})
+	player_to_add.name = name
+	player_to_add.labelPlayerName.text = name
+	player_to_add.global_rotation = Vector3(float(player.xr), float(player.yr), float(player.zr))
+	player_to_add.set_physics_process(false)
+	NetworkOrchestrator.PlayersList[player.client_uuid] = player_to_add
+	if server_id != null:
+		player_to_add.labelServerName.text = NetworkOrchestrator.ServersList[server_id].name
+
+	print("Remnote player spawned with position: ", player_to_add.global_position)
+
+#########################
+# Props                 #
+
+func instantiate_props_remote_add(prop):
+	if prop.type == "box50cm":
+		_spawn_box50cm_remote_add(prop)
+
+func instantiate_props_remote_update(prop):
+	if prop.type == "box50cm":
+		_spawn_box50cm_remote_update(prop)
+
+func _spawn_box50cm_remote_add(prop):
+	print("Create prop: ", prop)
+	# add box
+	var uuid = uuid_util.v4()
+	var box50cm_instance: RigidBody3D = NetworkOrchestrator.small_spawnable_props[2].instantiate()
+	NetworkOrchestrator.PropsList.box50cm[uuid] = box50cm_instance
+	box50cm_instance.spawn_position = Vector3(float(prop.x), float(prop.y), float(prop.z))
+	box50cm_instance.set_physics_process(false)
+	NetworkOrchestrator.small_props_spawner_node.get_node(NetworkOrchestrator.small_props_spawner_node.spawn_path).call_deferred("add_child", box50cm_instance, true)
+	NetworkOrchestrator.PropsList.box50cm[uuid] = box50cm_instance
+
+func _spawn_box50cm_remote_update(prop):
+	if not NetworkOrchestrator.PropsList.box50cm.has(prop.uuid):
+		return
+	# update the position
+	NetworkOrchestrator.PropsList.box50cm[prop.uuid].global_position = Vector3(float(prop.x), float(prop.y), float(prop.z))
+	NetworkOrchestrator.PropsList.box50cm[prop.uuid].global_rotation = Vector3(float(prop.xr), float(prop.yr), float(prop.zr))
+
+func _send_props_to_sdo():
+	if ServersTicksTasks.SendPropsToMQTTCurrent > 0:
+		ServersTicksTasks.SendPropsToMQTTCurrent -= 1
+	else:
+		var propsData = []
+		var position = Vector3(0.0, 0.0, 0.0)
+		var rotation = Vector3(0.0, 0.0, 0.0)
+		for puuid in PropsList.box50cm.keys():
+			position = PropsList.box50cm[puuid].global_position
+			rotation = PropsList.box50cm[puuid].global_rotation
+			if PropsListLastMovement.box50cm[puuid] != position or PropsListLastRotation.box50cm[puuid] != rotation:
+				propsData.append({
+					"type": "box50cm",
+					"uuid": puuid,
+					"x": position[0],
+					"y": position[1],
+					"z": position[2],
+					"xr": rotation[0],
+					"yr": rotation[1],
+					"zr": rotation[2]
+				})
+				PropsListLastMovement.box50cm[puuid] = position
+				PropsListLastRotation.box50cm[puuid] = rotation
+		if propsData.size() > 0:
+			NetworkOrchestrator.MQTTClientSDO.publish("sdo/propschanges", JSON.stringify({
+				"add": [],
+				"update": propsData,
+				"delete": [],
+				"server_id": NetworkOrchestrator.ServerSDOId,
+			}))
+		ServersTicksTasks.SendPropsToMQTTCurrent = ServersTicksTasks.SendPropsToMQTTReset

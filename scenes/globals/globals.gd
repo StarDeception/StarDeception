@@ -1,7 +1,9 @@
 extends Node
 
 var playerName: String = "I am an idiot !"
+var playerUUID: String = ""
 var onlineMode: bool = false
+var isGUTRunning: bool = false
 
 func print_rich_distinguished(message: String, extras: Array) -> void:
 	var peer_id: int = -1

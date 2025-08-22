@@ -2,10 +2,10 @@
  "background_color": "262626ff",
  "compact_mode": false,
  "configured_dirs": [
-  "res://test/unit"
+  "res://test/integration"
  ],
  "dirs": [
-  "res://test/unit"
+  "res://test/unintegrationit"
  ],
  "disable_colors": false,
  "double_strategy": 1,
