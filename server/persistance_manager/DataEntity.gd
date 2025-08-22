@@ -8,8 +8,8 @@ var parent: PhysicsBody3D # check is parent on arbo
 var interval := 2.0
 
 var last_saved_position :Vector3
+var last_saved_rotation :Vector3
 var parent_obj: DataObject
-var uid_position: String
 
 
 const SCALE := 1e6;
@@ -18,17 +18,16 @@ const SCALE := 1e6;
 func serialize():
 	var dict = {
 		"uuid": uuid_obj,
-		"position":{
-			"uid": uid_position,
-			"x": int(last_saved_position.x * SCALE),
-			"y": int(last_saved_position.y * SCALE),
-			"z": int(last_saved_position.z * SCALE),
-			"dgraph.type": "Position",
-		},
+		"x": int(last_saved_position.x * SCALE),
+		"y": int(last_saved_position.y * SCALE),
+		"z": int(last_saved_position.z * SCALE),
+		"rx": last_saved_rotation.x,
+		"ry": last_saved_rotation.y,
+		"rz": last_saved_rotation.z,
 		"parent": {
 			"uid": parent_obj.uid
 		}, 
-		"dgraph.type": "Entity",
+		"dgraph.type": ["Position","Entity"],
 		"type_obj": get_parent().scene_file_path
 	}
 	if not is_new_object and uid != "":
@@ -37,49 +36,48 @@ func serialize():
 
 func deserialize(data: Dictionary):
 	super.deserialize(data)
-	
-	if data.has("position"):
-		var pos_data = data["position"]
-		uid_position = pos_data["uid"]
-		last_saved_position = Vector3(
-			float(pos_data['x']) / SCALE,
-			float(pos_data['y']) / SCALE,
-			float(pos_data['z']) / SCALE
-		)
-		if parent:
-			parent.position = last_saved_position
+	last_saved_position = Vector3(
+		float(data['x']) / SCALE,
+		float(data['y']) / SCALE,
+		float(data['z']) / SCALE
+	)
+	last_saved_rotation = Vector3(
+		data['rx'],data['ry'],data['rz']
+	)
+	if parent:
+		parent.position = last_saved_position
+		parent.rotation = last_saved_rotation
 	
 
 func _enter_tree():
 	check_parent()
 
-func on_saved(new_uid: String):
-	super.on_saved(new_uid)
-	if new_uid != "": # !!!  Workaround is not best solution rework code for use array of uid or not save possiton on same save of entity
-		if not is_new_object:
-			uid_position = new_uid
-
 func _ready() -> void:
-	check_parent()
-	PersitDataBridge.setup_persistence_manager(_on_client_ready)
-	if is_new_object:
-		last_saved_position = parent.position
-		if parent.get_parent() != null && parent.get_parent().has_node("DataPlanete"):
-			parent_obj = parent.get_parent().get_node("DataPlanete")
-			print("Parent UID: ", parent_obj.uid)
-			if parent_obj.uid.is_empty():
-				print("⏳ Waiting for parent to be saved...")
-				# Créer un timer ou attendre le signal de sauvegarde du parent
-				await_parent_save()
-			else:
-				initialize_and_save()
+	if OS.has_feature("dedicated_server"):
+		check_parent()
+		PersitDataBridge.setup_persistence_manager(_on_client_ready)
+		if is_new_object:
+			last_saved_position = parent.position
+			last_saved_rotation = parent.rotation
+			if parent.get_parent() != null && parent.get_parent().has_node("DataPlanete"):
+				parent_obj = parent.get_parent().get_node("DataPlanete")
+				print("Parent UID: ", parent_obj.uid)
+				if parent_obj.uid.is_empty():
+					print("⏳ Waiting for parent to be saved...")
+					# Créer un timer ou attendre le signal de sauvegarde du parent
+					await_parent_save()
+				else:
+					initialize_and_save()
+	else:
+		print ("is instanciate on client ")
 		
 func start_loop():
 	while true:
 		await get_tree().create_timer(interval).timeout  # toutes les 2 secondes
 		last_saved_position = parent.position
+		last_saved_rotation = parent.rotation
 		if not is_new_object and uid != "":
-			saved()
+			backgroud_saved(1)
 
 func await_parent_save():
 	# Attendre que le parent soit sauvé
@@ -90,6 +88,7 @@ func await_parent_save():
 func initialize_and_save():
 	uuid_obj = uuid.v4()
 	last_saved_position = parent.position
+	last_saved_rotation = parent.rotation
 	saved()
 	start_loop()
 
@@ -104,12 +103,12 @@ func load_obj(data: Dictionary, attach_parent: DataObject = null):
 		uid
 		uuid
 	 	type_obj
-		position {
-			uid
-			x
-			y
-			z
-		}
+		x
+		y
+		z
+		rx
+		ry
+		rz
 	  }
 	}'''.format([data["uid"]]),loaded)
 	

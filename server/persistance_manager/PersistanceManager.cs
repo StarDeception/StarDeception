@@ -1,10 +1,5 @@
-using FluentResults;
 using Godot;
-using Pb;
 using System;
-using System.Collections.Generic;
-using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
 
 public partial class PersistanceManager : Node
@@ -34,6 +29,8 @@ public partial class PersistanceManager : Node
 
     const string SECTION_CONF = "persistance";
 
+    private BatchOperationManager _batchManager;
+ 
     public override void _Ready()
     {
         if (Godot.OS.HasFeature("dedicated_server"))
@@ -43,6 +40,8 @@ public partial class PersistanceManager : Node
         }
        
     }
+
+
 
     private async void InitializeAsync()
     {
@@ -81,6 +80,7 @@ public partial class PersistanceManager : Node
                    
                     IsReady = true;
                     EmitSignal(nameof(ClientReady));
+                    await batchInitializeAsync();
                 }
                 else
                 {
@@ -89,6 +89,45 @@ public partial class PersistanceManager : Node
                 }
                 
             }
+        }
+        catch (Exception ex)
+        {
+            GD.PrintErr($"❌ An error occurred in _Ready: {ex.Message}");
+            _enabled = false;
+        }
+    }
+
+    private async Task batchInitializeAsync()
+    {
+        try
+        {
+            // Configuration personnalisée
+            var config = new BatchMutationConfig
+            {
+                InitialBatchSize = 200,
+                MinBatchSize = 50,
+                MaxBatchSize = 1000,
+                MaxRetries = 3,
+                FlushInterval = TimeSpan.FromSeconds(10)
+            };
+
+            _batchManager = new BatchOperationManager(
+                () => _persistenceProvider.BeginTransactionAsync(),
+                config
+            );
+            
+            // Écouter les événements
+            _batchManager.OnStatsUpdated += stats => 
+            {
+                GD.Print($"Stats: {stats.TotalItemsProcessed} items ({stats.TotalMutationsProcessed} mutations, {stats.TotalDeletionsProcessed} suppressions), {stats.SuccessRate:F1}% succès, batch={stats.CurrentBatchSize}");
+            };
+            
+            _batchManager.OnError += error => 
+            {
+                GD.PrintErr($"Erreur batch: {error}");
+            };
+
+            await _batchManager.StartAsync();
         }
         catch (Exception ex)
         {
@@ -145,6 +184,24 @@ public partial class PersistanceManager : Node
         EmitSignal(nameof(SaveCompleted), success, uid, errorMessage, requestId);
     }
 
+    public void BackgroundSaveObjAsync(string obj, int priority)
+    {
+       
+        GD.Print($"🔄 Starting async background save ");
+
+        _ = System.Threading.Tasks.Task.Run(async () =>
+        {
+            try 
+            {
+                await _batchManager.QueueMutationAsync(obj, priority);
+            }
+            catch (System.Exception ex)
+            {
+                GD.PrintErr($"❌ Exception during async backgroud save: {ex.Message}");
+            }
+        });
+    }
+
     // ============ DELETE OPERATIONS ============
     public string DeleteObjAsync(string uid, string requestId = "")
     {
@@ -193,6 +250,23 @@ public partial class PersistanceManager : Node
         EmitSignal(nameof(DeleteCompleted), success, errorMessage, requestId);
     }
 
+    public void BackgroundDeleteObjAsync(string uid, int priority)
+    {
+       
+        GD.Print($"🔄 Starting async background save ");
+
+        _ = System.Threading.Tasks.Task.Run(async () =>
+        {
+            try 
+            {
+                await _batchManager.QueueDeletionAsync(uid, priority);
+            }
+            catch (System.Exception ex)
+            {
+                GD.PrintErr($"❌ Exception during async backgroud save: {ex.Message}");
+            }
+        });
+    }
     // ============ QUERY OPERATIONS ============
     public string QueryAsync(string queryString, string requestId = "")
     {
@@ -299,6 +373,7 @@ public partial class PersistanceManager : Node
     }
 
     // ============ INTERNAL ASYNC METHODS ============
+    
     public async Task<OperationResultWithUid> SaveAsync(string entity)
     {
         if (!_enabled) return OperationResultWithUid.Failure("Database not enabled");
@@ -353,9 +428,14 @@ public partial class PersistanceManager : Node
         return await transaction.QueryAsync(query);
     }
 
-    public override void _ExitTree()
+    public async override void _ExitTree()
     {
         _persistenceProvider?.Dispose();
+        if (_batchManager != null)
+        {
+            await _batchManager.StopAsync();
+            _batchManager.Dispose();
+        }
     }
 
     public override void _Process(double delta)

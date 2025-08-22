@@ -71,9 +71,10 @@ func query_child_data():
 
 func _load_child_entity(result: String):
 	var parsed = JSON.parse_string(result)
-	for element in parsed["entity"][0]["~parent"]:
-		var childpck = load(element["type_obj"])
-		var child = childpck.instantiate()
-		if child.has_node("DataEntity"):
-			child.get_node("DataEntity").load_obj(element,self)
-			parent.add_child(child,true)
+	if parsed["entity"].size() > 0 :
+		for element in parsed["entity"][0]["~parent"]:
+			var childpck = load(element["type_obj"])
+			var child = childpck.instantiate()
+			if child.has_node("DataEntity"):
+				child.get_node("DataEntity").load_obj(element,self)
+				parent.add_child(child,true)

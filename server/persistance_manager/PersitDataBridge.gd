@@ -108,6 +108,14 @@ static func save_data(data: DataObject,  calback: Callable):
 	else:
 		printerr("❌ PersistanceManager is not ready for save_data")
 
+
+static func background_save_data(data: DataObject,  priority: int):
+	var pm = PersistanceManager
+	if pm and pm.IsReady:
+		pm.BackgroundSaveObjAsync(data.serialize(),priority)
+	else:
+		printerr("❌ PersistanceManager is not ready for save_data")
+
 static func delete_data(uid: String, calback: Callable):
 	if uid == "":
 		print("❌ not uid")
@@ -120,6 +128,16 @@ static func delete_data(uid: String, calback: Callable):
 	else:
 		printerr("❌ PersistanceManager is not ready pour delete_data")
 
+static func background_delete_data(uid: String,  priority: int):
+	if uid == "":
+		print("❌ not uid")
+		return
+	var pm = PersistanceManager
+	if pm and pm.IsReady:
+		pm.BackgroundDeleteObjAsync(uid,priority)
+	else:
+		printerr("❌ PersistanceManager is not ready for delete_data")
+		
 static func find_data_by_id(uid: String,calback: Callable):
 	var pm = PersistanceManager
 	if pm and pm.IsReady:

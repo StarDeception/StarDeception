@@ -24,7 +24,6 @@ type Position {
 type Entity {                             # Type générique
   uuid
   parent
-  position
   type_obj
 }
 

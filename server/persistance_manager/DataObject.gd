@@ -28,6 +28,9 @@ func deserialize(data: Dictionary):
 func saved():
 	PersitDataBridge.save_data(self,on_saved)
 
+func backgroud_saved(priority: int):
+	PersitDataBridge.background_save_data(self,priority)
+
 func on_saved(new_uid: String):
 	if new_uid != "":
 		if is_new_object:
