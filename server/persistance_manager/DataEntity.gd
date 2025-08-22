@@ -11,16 +11,12 @@ var last_saved_position :Vector3
 var last_saved_rotation :Vector3
 var parent_obj: DataObject
 
-
-const SCALE := 1e6;
-
-
 func serialize():
 	var dict = {
 		"uuid": uuid_obj,
-		"x": int(last_saved_position.x * SCALE),
-		"y": int(last_saved_position.y * SCALE),
-		"z": int(last_saved_position.z * SCALE),
+		"x": last_saved_position.x,
+		"y": last_saved_position.y,
+		"z": last_saved_position.z,
 		"rx": last_saved_rotation.x,
 		"ry": last_saved_rotation.y,
 		"rz": last_saved_rotation.z,
@@ -37,9 +33,9 @@ func serialize():
 func deserialize(data: Dictionary):
 	super.deserialize(data)
 	last_saved_position = Vector3(
-		float(data['x']) / SCALE,
-		float(data['y']) / SCALE,
-		float(data['z']) / SCALE
+		data['x'],
+		data['y'],
+		data['z']
 	)
 	last_saved_rotation = Vector3(
 		data['rx'],data['ry'],data['rz']

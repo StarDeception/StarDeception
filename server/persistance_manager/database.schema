@@ -5,9 +5,9 @@ parent: uid @reverse .                  # Relation hiérarchique enfant -> paren
 position: uid .                         # Lien vers un nœud Position
 type_obj: string .
 # ==== Champs Position ====
-x: int .                                # X scalée for précision
-y: int .                                # Y scalée
-z: int .                                # Z scalée
+x: float .                               
+y: float .                                
+z: float .                             
 rx: float .
 ry: float .
 rz: float .
