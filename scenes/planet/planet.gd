@@ -3,7 +3,7 @@ extends Node3D
 
 class_name Planet
 
-@export_tool_button("update") var on_update = _on_update
+@export_tool_button("update") var on_update = trigger_update
 
 @export var radius: int
 
@@ -12,6 +12,7 @@ class_name Planet
 ## Resolution is the number of faces in one axis for the chunk, ex: for a resolution of 20, there will be 20x20 faces per chunk.
 ## At each new lod level, the number of chunk is multiplied by 4, meaning if there is 4 lod levels, there will be 4^3=64 chunks at the last lod level
 var lod_levels: Array[Dictionary]
+
 
 
 @export var elev_scale: float = 100.0
@@ -23,12 +24,18 @@ var lod_levels: Array[Dictionary]
 
 @export var noise_maps: Array[NoiseParam]
 
+@export var terrain_material: Material
+
+@onready var occluder_instance_3d: OccluderInstance3D = $OccluderInstance3D
+
 var focus_positions = []
 
 signal regenerate()
 
 func _ready() -> void:
 	var resolution = 100
+	trigger_update()
+	
 	lod_levels = [
 		{ "distance": 500000, "resolution": resolution },
 		{ "distance": 300000, "resolution": resolution },
@@ -95,8 +102,11 @@ func _process(delta: float) -> void:
 	if camera:
 		focus_positions = [camera.global_position + -camera.global_basis.z * 1]
 
-func _on_update():
+func trigger_update():
 	print("update", lod_levels)
+	var occluder = occluder_instance_3d.occluder as SphereOccluder3D
+	occluder.radius = radius + 600
+	
 	regenerate.emit()
 
 func norm(value: float):

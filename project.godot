@@ -196,11 +196,11 @@ locale/translations=PackedStringArray("res://tools/localization/localisation.en.
 
 common/physics_ticks_per_second=30
 3d/physics_engine="Jolt Physics"
-jolt_physics_3d/limits/world_boundary_shape_size=1e+06
 3d/default_gravity=0.0
 
 [rendering]
 
 renderer/rendering_method.mobile="gl_compatibility"
+anti_aliasing/quality/msaa_3d=1
 environment/defaults/default_clear_color=Color(0, 0, 0, 1)
 occlusion_culling/use_occlusion_culling=true

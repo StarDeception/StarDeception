@@ -26,7 +26,7 @@ script = ExtResource("1_6wdpo")
 spawn_node = NodePath("SmallProps")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(-0.866023, -0.433016, 0.250001, 0, 0.499998, 0.866027, -0.500003, 0.749999, -0.43301, 0, 0, 0)
+transform = Transform3D(-0.639532, -0.00709252, -0.768731, -0.021679, 0.999727, 0.00881195, 0.768459, 0.022301, -0.639511, -35252.6, 23299.4, -32548.6)
 light_color = Color(1, 0.959123, 0.80835, 1)
 shadow_enabled = true
 directional_shadow_split_1 = 0.034
@@ -39,25 +39,29 @@ environment = SubResource("Environment_jp7ei")
 [node name="Planet" parent="." node_paths=PackedStringArray("sun") instance=ExtResource("2_jp7ei")]
 sun = NodePath("../DirectionalLight3D")
 
-[node name="ChrisR_01" parent="Planet" instance=ExtResource("4_0y0hx")]
-transform = Transform3D(-0.9636, -0.133574, -0.231593, -0.136974, 0.990574, -0.0014107, 0.229598, 0.0303628, -0.972811, 72983.3, 501063, 17052.5)
+[node name="PlanetTerrain" parent="Planet" index="3"]
+transform = Transform3D(0.00882487, 0, 0.999961, 0, 1, 0, -0.999961, 0, 0.00882487, 0, 0, 0)
 
-[node name="PlayerSpawnPointsList" type="Node3D" parent="Planet"]
+[node name="ChrisR_01" parent="Planet/PlanetTerrain" index="0" instance=ExtResource("4_0y0hx")]
+transform = Transform3D(-0.97969, -0.135679, -0.147652, -0.136974, 0.990574, -0.0014107, 0.146451, 0.0188424, -0.989038, 71260, 501063, 23224.2)
 
-[node name="PlayerSpawnPoint01" type="Marker3D" parent="Planet/PlayerSpawnPointsList"]
-transform = Transform3D(-0.928097, 0.052371, 0.368636, 0.0095003, 0.993067, -0.117163, -0.372217, -0.105236, -0.922161, 50004, 495063, -95136.2)
+[node name="PlayerSpawnPointsList" type="Node3D" parent="Planet/PlanetTerrain" index="9"]
+transform = Transform3D(0.996346, 0, -0.085417, 0, 1, 0, 0.085417, 0, 0.996346, 0, 0, 0)
+
+[node name="PlayerSpawnPoint01" type="Marker3D" parent="Planet/PlanetTerrain/PlayerSpawnPointsList"]
+transform = Transform3D(0.229776, -0.488249, -0.841912, 0.450497, 0.820162, -0.352685, 0.862702, -0.29824, 0.408408, -2644.14, 4909.19, -1255.73)
 gizmo_extents = 2.5
 script = ExtResource("5_0y0hx")
 metadata/_custom_type_script = "uid://3b53gu5cyf58"
 
-[node name="PlayerSpawnPoint02" type="Marker3D" parent="Planet/PlayerSpawnPointsList"]
-transform = Transform3D(0.955809, -0.00794907, -0.29388, 6.93889e-18, 0.999634, -0.0270388, 0.293988, 0.0258431, 0.95546, 27729.1, 504929, -36945.6)
+[node name="PlayerSpawnPoint02" type="Marker3D" parent="Planet/PlanetTerrain/PlayerSpawnPointsList"]
+transform = Transform3D(0.162944, -0.366334, -0.916104, 0, 0.928514, -0.371297, 0.986635, 0.0605008, 0.151296, -2532.84, 4924.2, 1195.17)
 gizmo_extents = 2.5
 script = ExtResource("5_0y0hx")
 metadata/_custom_type_script = "uid://3b53gu5cyf58"
 
-[node name="PlayerSpawnPoint03" type="Marker3D" parent="Planet/PlayerSpawnPointsList"]
-transform = Transform3D(-0.999686, 0.0111601, -0.0224635, 0.0142424, 0.989748, -0.142109, 0.0206473, -0.142384, -0.989596, 72981, 501064, 17044.9)
+[node name="PlayerSpawnPoint03" type="Marker3D" parent="Planet/PlanetTerrain/PlayerSpawnPointsList"]
+transform = Transform3D(0.817928, -0.12295, -0.56203, -2.77556e-17, 0.976898, -0.213706, 0.575321, 0.174796, 0.799031, -748.013, 5403.83, 1686.53)
 gizmo_extents = 2.5
 script = ExtResource("5_0y0hx")
 metadata/_custom_type_script = "uid://3b53gu5cyf58"

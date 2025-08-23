@@ -35,7 +35,7 @@ continuous_cd = true
 linear_damp = 0.2
 angular_damp = 2.0
 script = ExtResource("1_f1s04")
-speed = 5000
+speed = 2000
 roll_speed = 300
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]

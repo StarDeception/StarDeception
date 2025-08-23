@@ -1,4 +1,4 @@
-[gd_scene load_steps=26 format=3 uid="uid://rv6ugxi8n8pe"]
+[gd_scene load_steps=33 format=3 uid="uid://rv6ugxi8n8pe"]
 
 [ext_resource type="Script" uid="uid://bbnhmkthrguhh" path="res://scenes/planet/testplanet.gd" id="1_83pno"]
 [ext_resource type="Shape3D" uid="uid://w1svqnr3n3nh" path="res://scenes/planet/planet_collision.shape" id="1_lxi01"]
@@ -9,12 +9,23 @@
 [ext_resource type="Script" uid="uid://7pymoxifok1q" path="res://tools/spawn_points/player_spawn_points_list.gd" id="5_6x306"]
 [ext_resource type="PackedScene" uid="uid://dtcsox8hfg83s" path="res://assets/models/spawn_kiosk/spawn_kiosk.tscn" id="5_mv8ka"]
 [ext_resource type="Script" uid="uid://3b53gu5cyf58" path="res://tools/spawn_points/player_spawn_point.gd" id="6_mv8ka"]
+[ext_resource type="Script" uid="uid://cnf71va5eumrg" path="res://scenes/planet/planet_settings.gd" id="2_l6ihg"]
+[ext_resource type="Material" uid="uid://degky8mc31ncp" path="res://scenes/planet/terrain_mat.tres" id="3_7o858"]
 [ext_resource type="PackedScene" uid="uid://bcer07jbu28y1" path="res://scenes/planet/planet.tscn" id="4_2pfeq"]
 [ext_resource type="PackedScene" uid="uid://bb0fma643hacs" path="res://addons/extremely_fast_atmosphere/atmosphere/atmosphere.tscn" id="6_mv8ka"]
 [ext_resource type="Shader" uid="uid://dsu80023m2ier" path="res://addons/extremely_fast_atmosphere/atmosphere/atmosphere_fbcosentino.gdshader" id="7_l6ihg"]
 
+[sub_resource type="Resource" id="Resource_642k6"]
+script = ExtResource("2_l6ihg")
+radius = 5000
+atmosphere_height = 800
+terrain_material = ExtResource("3_7o858")
+sea_level = 680
+has_ocean = false
+metadata/_custom_type_script = "uid://cnf71va5eumrg"
+
 [sub_resource type="SphereShape3D" id="SphereShape3D_6wdpo"]
-radius = 700000.0
+radius = 5800.0
 
 [sub_resource type="SphereMesh" id="SphereMesh_jp7ei"]
 radius = 2000.0
@@ -36,6 +47,31 @@ properties/2/replication_mode = 1
 [node name="Planet" type="StaticBody3D"]
 script = ExtResource("1_2pfeq")
 material_path = "uid://t823t2dw4owg"
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_mv8ka"]
+frequency = 0.0348
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_6x306"]
+seamless = true
+seamless_blend_skirt = 0.031
+as_normal_map = true
+noise = SubResource("FastNoiseLite_mv8ka")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7o858"]
+albedo_color = Color(0.301579, 0.510198, 0.570312, 1)
+metallic = 1.0
+roughness = 0.05
+normal_enabled = true
+normal_texture = SubResource("NoiseTexture2D_6x306")
+subsurf_scatter_strength = 0.21
+refraction_scale = -0.02
+uv1_scale = Vector3(0.05, 0.05, 0.05)
+uv1_triplanar = true
+
+[sub_resource type="SphereMesh" id="SphereMesh_642k6"]
+radius = 5680.0
+height = 11360.0
+
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_83pno"]
 noise_type = 3
 seed = 1
@@ -103,23 +139,24 @@ shader_parameter/direction_profile_curve = SubResource("CurveTexture_utdev")
 shader_parameter/direction_profile_main_colors = SubResource("GradientTexture1D_24slt")
 shader_parameter/direction_profile_back_colors = SubResource("GradientTexture1D_f8q4h")
 shader_parameter/water_depth_profile_colors = SubResource("GradientTexture1D_tfj6s")
-shader_parameter/sea_level = 503000.0
-shader_parameter/atmosphere_radius = 533000.0
+shader_parameter/sea_level = 5600.0
+shader_parameter/atmosphere_radius = 6400.0
 shader_parameter/atmosphere_density = 0.515
 shader_parameter/water_density_factor = -0.205
 
 [sub_resource type="BoxMesh" id="BoxMesh_642k6"]
 flip_faces = true
-size = Vector3(1.1193e+06, 1.1193e+06, 1.1193e+06)
+size = Vector3(13440, 13440, 13440)
 
 [node name="Planet" type="Node3D"]
 script = ExtResource("1_83pno")
+planet_settings = SubResource("Resource_642k6")
 
 [node name="PlanetGravity" type="Area3D" parent="." groups=["gravity"]]
 collision_mask = 3
 gravity_space_override = 2
 gravity_point = true
-gravity_point_unit_distance = 500000.0
+gravity_point_unit_distance = 5000.0
 gravity_point_center = Vector3(0, 0, 0)
 gravity_direction = Vector3(0, 0, 0)
 script = ExtResource("2_c1vqx")
@@ -173,15 +210,21 @@ metadata/_custom_type_script = "uid://cj5kd1hkfvjrg"
 
 
 [node name="PlanetTerrain" parent="." instance=ExtResource("4_2pfeq")]
+[node name="WaterSurface" type="MeshInstance3D" parent="."]
 transform = Transform3D(0.996345, 0, 0.0854169, 0, 1, 0, -0.0854169, 0, 0.996345, 0, 0, 0)
-elev_scale = 10000.0
+visible = false
+material_override = SubResource("StandardMaterial3D_7o858")
+mesh = SubResource("SphereMesh_642k6")
+skeleton = NodePath("../PlanetTerrain")
+
+[node name="PlanetTerrain" parent="." instance=ExtResource("4_2pfeq")]
+transform = Transform3D(0.159926, 0, -0.987128, 0, 1, 0, 0.987128, 0, 0.159926, 0, 0, 0)
 min_height = 3300.24
-noise_scale = 20.0
 noise = SubResource("FastNoiseLite_83pno")
 
 [node name="Atmosphere" parent="." instance=ExtResource("6_mv8ka")]
 transform = Transform3D(1, 0, 0, 0, -0.77332, 0.634015, 0, -0.634015, -0.77332, 0, 0, 0)
 material_override = SubResource("ShaderMaterial_7o858")
 mesh = SubResource("BoxMesh_642k6")
-planet_radius = 503000.0
-atmosphere_height = 30000.0
+planet_radius = 5600.0
+atmosphere_height = 800.0

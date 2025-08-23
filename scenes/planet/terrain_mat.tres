@@ -1,6 +1,6 @@
 [gd_resource type="ShaderMaterial" load_steps=10 format=3 uid="uid://degky8mc31ncp"]
 
-[ext_resource type="Shader" uid="uid://cqo8jlsmx8n7n" path="res://scenes/planet/terrain2.gdshader" id="1_3iebd"]
+[ext_resource type="Shader" uid="uid://cqo8jlsmx8n7n" path="res://scenes/planet/terrain.gdshader" id="1_3iebd"]
 [ext_resource type="Texture2D" uid="uid://brgyw75mdxugt" path="res://assets/textures/rock/Rock029_2K_Color.jpg" id="2_4o7e0"]
 [ext_resource type="Texture2D" uid="uid://cmxvmps1gfe7p" path="res://assets/textures/rock/Rock029_2K_NormalGL.jpg" id="3_uks27"]
 [ext_resource type="Texture2D" uid="uid://tlqwrtnp20lv" path="res://assets/textures/rock/Rock029_2K_Roughness.jpg" id="4_qdhxs"]
@@ -48,3 +48,4 @@ shader_parameter/noise = SubResource("NoiseTexture2D_mpfmm")
 shader_parameter/notile_offset = 0.73
 shader_parameter/albedo_var = Color(0.664063, 0.550762, 0.351307, 1)
 shader_parameter/noise_c_variation = SubResource("NoiseTexture2D_uks27")
+shader_parameter/noise_c_scale = 3.125

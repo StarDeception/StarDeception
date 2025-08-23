@@ -53,7 +53,7 @@ func steer_ship_mouse(dir: Vector2) -> void:
 	apply_torque_impulse(-global_transform.basis.y * dir.x * mouse_sensitivity * force_multiplier)
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	if not is_multiplayer_authority(): return
 	
 	if MenuConfig.is_shown: return
@@ -76,6 +76,7 @@ func _process(delta: float) -> void:
 			Input.get_axis("move_forward", "move_back"),
 		)
 		
+		
 		roll = Vector3(0, 0, -Input.get_axis("roll_left", "roll_right"))
 
 
@@ -87,6 +88,7 @@ func _process(delta: float) -> void:
 	
 	var roll_force = roll * roll_speed * force_multiplier * delta
 	apply_torque(global_transform.basis * roll_force)
+	
 
 func _on_collision_area_entered(area: Area3D) -> void:
 	if area.is_in_group("gravity"):
