@@ -46,6 +46,8 @@ var ServersTicksTasks = {
 	"CheckPlayersOutOfZoneReset": 20,
 	"SendPropsToMQTTCurrent": 15,
 	"SendPropsToMQTTReset": 15,
+	"SendMetricsCurrent": 120,
+	"SendMetricsReset": 120,
 }
 
 func _enter_tree() -> void:
@@ -78,6 +80,8 @@ func start_server(receveid_universe_scene: Node, receveid_player_spawn_node: Nod
 	NetworkOrchestrator.connect_chat_mqtt()
 	# load SDO mqtt in NetworkOrchestrator
 	NetworkOrchestrator.connect_mqtt_sdo()
+	if NetworkOrchestrator.MetricsEnabled == true:
+		NetworkOrchestrator.connect_mqtt_metrics()
 	print("server loaded... \\o/")
 	universe_scene.multiplayer.peer_connected.connect(_on_client_peer_connected)
 	universe_scene.multiplayer.peer_disconnected.connect(_on_client_peer_disconnect)
@@ -239,9 +243,9 @@ func _searchAnotherServerForCoordinates(x, y, z):
 
 # Instantiate remote server player, need to be visible for players on this server
 func instantiate_player_remote(player, set_player_position = false, server_id = null):
-	var name = ""
+	var playername = ""
 	if player.has("name"):
-		name = player.name
+		playername = player.name
 	var spawn_position: Vector3 = Vector3.ZERO
 	if set_player_position == true:
 		spawn_position = Vector3(float(player.x), float(player.y), float(player.z))
@@ -250,13 +254,13 @@ func instantiate_player_remote(player, set_player_position = false, server_id = 
 	var player_to_add = NetworkOrchestrator.small_props_spawner_node.spawn({
 		"entity": "player",
 		"player_scene_path": NetworkOrchestrator.player_scene_path,
-		"player_name": "remoteplayer" + name,
+		"player_name": "remoteplayer" + playername,
 		"player_spawn_position": spawn_position,
 		"player_spawn_up": Vector3.UP,
 		"authority_peer_id": 1
 	})
-	player_to_add.name = name
-	player_to_add.labelPlayerName.text = name
+	player_to_add.name = playername
+	player_to_add.labelPlayerName.text = playername
 	player_to_add.global_rotation = Vector3(float(player.xr), float(player.yr), float(player.zr))
 	player_to_add.set_physics_process(false)
 	NetworkOrchestrator.PlayersList[player.client_uuid] = player_to_add
@@ -264,6 +268,22 @@ func instantiate_player_remote(player, set_player_position = false, server_id = 
 		player_to_add.labelServerName.text = NetworkOrchestrator.ServersList[server_id].name
 
 	print("Remnote player spawned with position: ", player_to_add.global_position)
+
+func _sendMetrics():
+	if ServersTicksTasks.SendMetricsCurrent > 0:
+		ServersTicksTasks.SendMetricsCurrent -= 1
+	else:
+		if NetworkOrchestrator.MetricsEnabled == true:
+			var data = JSON.stringify({
+				"currentplayers": PlayersList.size(),
+				"currentbox50cm": PropsList.box50cm.size(),
+				"memory": Performance.get_monitor(Performance.MEMORY_STATIC),
+				"numberobjects": Performance.get_monitor(Performance.OBJECT_COUNT),
+				"timefps": Performance.get_monitor(Performance.TIME_FPS),
+			})
+			NetworkOrchestrator.MQTTClientMetrics.publish("metrics/server/" + NetworkOrchestrator.ServerName, data)
+		ServersTicksTasks.SendMetricsCurrent = ServersTicksTasks.SendMetricsReset
+
 
 #########################
 # Props                 #

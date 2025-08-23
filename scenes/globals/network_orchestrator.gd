@@ -20,9 +20,17 @@ var ServerSDOUsername = ""
 var ServerSDOPassword = ""
 var ServerSDOVerboseLevel = 2
 
+var MetricsEnabled = false
+var MetricsUrl = ""
+var MetricsPort = 7050
+var MetricsUsername = ""
+var MetricsPassword = ""
+var MetricsVerboseLevel = 2
+
 const mqtt = preload("res://addons/mqtt/mqtt.tscn")
 var MQTTClient
 var MQTTClientSDO
+var MQTTClientMetrics
 
 var network_agent: Node = null
 var universe_scene: Node = null
@@ -123,6 +131,14 @@ func loadServerConfig():
 	ServerMQTTUsername = config.get_value("chat", "username")
 	ServerMQTTPasword = config.get_value("chat", "password")
 	ServerMQTTVerboseLevel = config.get_value("chat", "verbose_level")
+	# Load metric config
+	MetricsEnabled = config.get_value("enabled", "url")
+	MetricsUrl = config.get_value("metrics", "url")
+	MetricsPort = config.get_value("metrics", "port")
+	MetricsUsername = config.get_value("metrics", "username")
+	MetricsPassword = config.get_value("metrics", "password")
+	MetricsVerboseLevel = config.get_value("metrics", "verbose_level")
+
 
 func preload_small_props(small_props_spawner: Node) -> void:
 	var small_props_number: int = small_props_spawner.get_spawnable_scene_count()
@@ -617,8 +633,27 @@ func _searchAnotherServerForCoordinates(x, y, z):
 	return null
 
 
+#########################
+# Metrics of the server #
 
+func connect_mqtt_metrics():
+	MQTTClientMetrics = mqtt.instantiate()
+	get_tree().get_current_scene().add_child(MQTTClientMetrics)
+	#MQTTClientMetrics.client_id = 'gergtrgtrhrrt'
+	MQTTClientMetrics.broker_connected.connect(_on_mqtt_metrics_connected)
+	MQTTClientMetrics.broker_connection_failed.connect(_on_mqtt_metrics_connection_failed)
+	MQTTClientMetrics.verbose_level = MetricsVerboseLevel
+	##MQTTClientMetrics.connect_to_broker("tcp://", "192.168.20.158", 1883)
+	MQTTClientMetrics.connect_to_broker("ws://", MetricsUrl, MetricsPort)
 
+func _on_mqtt_metrics_connected():
+	print("metrics connected")
+
+func _on_mqtt_metrics_connection_failed():
+	print("Connection to the Metrics fail :/")
+
+func publish_data():
+	pass
 
 #########################
 # Spawns                #
