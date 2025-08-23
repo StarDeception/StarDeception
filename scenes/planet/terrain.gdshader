@@ -34,7 +34,7 @@ uniform float notile_offset;
 uniform vec3 albedo_var: source_color;
 
 uniform sampler2D noise_c_variation: source_color, filter_linear_mipmap, repeat_enable;
-
+uniform float noise_c_scale = 10.0;
 varying float vertical_amount;
 varying vec3 normal;
 
@@ -131,7 +131,7 @@ void fragment() {
     //vec3 base_col = texture(noise_c_variation, uv).rgb;
 	
 	
-	vec3 albedo = triplanar_texture(noise_c_variation, uv1_power_normal, uv1_triplanar_pos * 0.00001).rgb;
+	vec3 albedo = triplanar_texture(noise_c_variation, uv1_power_normal, uv1_triplanar_pos * noise_c_scale / 10000.0).rgb;
 
 
 	float var = log(vertical_amount * 1.3);

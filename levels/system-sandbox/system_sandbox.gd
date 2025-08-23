@@ -15,6 +15,8 @@ func _enter_tree() -> void:
 
 func _ready() -> void:
 	
+	$DirectionalLight3D.look_at($Planet.global_position)
+	
 	Server.player_spawned.connect(on_player_spawn)
 	
 	if multiplayer.is_server():
@@ -47,7 +49,7 @@ func spawn_player(id: int) -> void:
 	Globals.log("player positionned temporarily at: %s" % str(player.global_position))
 	
 	# wait for collision to generate
-	await get_tree().create_timer(1).timeout
+	await get_tree().create_timer(4).timeout
 	
 	# cast ray to planet to get a spawn position
 	#var space_state = get_world_3d().direct_space_state
@@ -76,7 +78,7 @@ func spawn_station():
 	prints("spawn station from", multiplayer.get_unique_id())
 	var station = station_scene.instantiate() as Node3D
 	spawn_node.add_child(station, true)
-	station.global_position = spawn_node.global_basis.y * 10000
+	station.global_position = spawn_node.global_basis.y * 1000
 
 
 @rpc("authority", "call_local", "reliable")
@@ -86,8 +88,8 @@ func set_player_position(id: int, _player_position: Vector3, _planet_normal: Vec
 	
 	if not multiplayer.is_server():
 		player.global_position = spawn_point.global_position
-		print("position at", spawn_point.global_position)
-		await get_tree().create_timer(3).timeout
+		print("position at", spawn_point.global_position, spawn_point.name)
+		await get_tree().create_timer(5).timeout
 		#player.global_position = spawn_point.global_position
 		print("position at", spawn_point.global_position)
 		player.global_transform = Globals.align_with_y(player.global_transform, spawn_point.global_position.normalized())

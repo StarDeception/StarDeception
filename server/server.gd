@@ -178,7 +178,7 @@ func spawn_box4m() -> void:
 func spawn_ship() -> void:
 	var id = multiplayer.get_remote_sender_id()
 	var player = Server.players[id]
-	var ship_pos = player.global_position + -player.global_basis.z * 10 + player.global_basis.y * 3
+	var ship_pos = player.global_position + -player.global_basis.z * 10 + player.global_basis.y * 5
 	
 	var spaceship = spaceship_scene.instantiate() as Spaceship
 	

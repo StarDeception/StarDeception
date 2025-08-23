@@ -48,7 +48,7 @@ func steer_ship_mouse(dir: Vector2) -> void:
 	apply_torque_impulse(-global_transform.basis.y * dir.x * mouse_sensitivity * force_multiplier)
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	if not is_multiplayer_authority(): return
 	
 	if GlobalChat.is_shown: return
@@ -71,6 +71,7 @@ func _process(delta: float) -> void:
 			Input.get_axis("move_forward", "move_back"),
 		)
 		
+		
 		roll = Vector3(0, 0, -Input.get_axis("roll_left", "roll_right"))
 
 
@@ -82,6 +83,7 @@ func _process(delta: float) -> void:
 	
 	var roll_force = roll * roll_speed * force_multiplier * delta
 	apply_torque(global_transform.basis * roll_force)
+	
 
 ## Set the position of the ship after the spawn
 @rpc("authority", "call_local", "reliable")
@@ -108,7 +110,7 @@ func take_control(id):
 	pilot.active = false
 	pilot.camera_pivot.rotation.x = 0
 	pilot_seat.remote_path = pilot.get_path()
-	
+	prints("giving ship control to:", id)
 	set_multiplayer_authority(id)
 
 ## Release the control of ship from the pilot

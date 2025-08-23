@@ -1,7 +1,7 @@
 extends Control
 
 func _on_ready() -> void:
-	BackgroundMusic.play_music_level()
+	#BackgroundMusic.play_music_level()
 	pass
 
 
