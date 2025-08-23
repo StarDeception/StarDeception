@@ -464,8 +464,16 @@ func _on_mqtt_sdo_received_message(topic, message):
 				network_agent.instantiate_props_remote_add(prop)
 			for prop in propsChanges.update:
 				network_agent.instantiate_props_remote_update(prop)
-
-
+	elif topic == "sdo/variableschanges":
+		# server variables updates, for all servers
+		# {"MaxPlayersAllowed": 20}
+		var variables = JSON.parse_string(message)
+		if variables.has("MaxPlayersAllowed"):
+			network_agent.MaxPlayersAllowed = int(variables.MaxPlayersAllowed)
+		if variables.has("ServersTickSendPlayersToMQTT"):
+			network_agent.ServersTicksTasks.SendPlayersToMQTTReset = int(variables.ServersTickSendPlayersToMQTT)
+		if variables.has("ServersTickSendPropsToMQTT"):
+			network_agent.ServersTicksTasks.SendPropsToMQTTReset = int(variables.ServersTickSendPropsToMQTT)
 		
 
 	else:
