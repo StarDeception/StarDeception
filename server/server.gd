@@ -317,6 +317,10 @@ func _send_props_to_sdo():
 				})
 				PropsListLastMovement.box50cm[puuid] = position
 				PropsListLastRotation.box50cm[puuid] = rotation
+				# used for call save on persistance
+				if PropsList.box50cm[puuid].has_node("DataEntity"):
+					var dataentity = PropsList.box50cm[puuid].get_node("DataEntity")
+					dataentity.Backgroud_save()
 		if propsData.size() > 0:
 			NetworkOrchestrator.MQTTClientSDO.publish("sdo/propschanges", JSON.stringify({
 				"add": [],

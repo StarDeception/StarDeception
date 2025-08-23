@@ -65,15 +65,18 @@ func _ready() -> void:
 				else:
 					initialize_and_save()
 	else:
-		print ("is instanciate on client ")
+		print ("data entity is instanciate on client ")
 		
-func start_loop():
+func start_loop(): # is depracated
 	while true:
 		await get_tree().create_timer(interval).timeout  # toutes les 2 secondes
-		last_saved_position = parent.position
-		last_saved_rotation = parent.rotation
-		if not is_new_object and uid != "":
-			backgroud_saved(1)
+		Backgroud_save()
+
+func Backgroud_save():
+	last_saved_position = parent.position
+	last_saved_rotation = parent.rotation
+	if not is_new_object and uid != "":
+		backgroud_save(1)
 
 func await_parent_save():
 	# Attendre que le parent soit sauvé
@@ -86,7 +89,7 @@ func initialize_and_save():
 	last_saved_position = parent.position
 	last_saved_rotation = parent.rotation
 	saved()
-	start_loop()
+	#start_loop()
 
 func load_obj(data: Dictionary, attach_parent: DataObject = null):
 	print("load Data Object")
@@ -113,7 +116,7 @@ func loaded(result: String):
 	var parsed = JSON.parse_string(result)
 	if parsed != null:
 		deserialize(parsed["entity"][0])
-		start_loop()
+		#start_loop()
 
 func check_parent():
 	parent = get_parent()

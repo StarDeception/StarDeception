@@ -24,7 +24,7 @@ func _ready():
 		planete_name = "TestPlanete"
 		uuid_obj = uuid.v4()
 	else:
-		print ("is instanciate on client ")
+		print ("data planete is instanciate on client ")
 
 func  _on_client_ready():
 	print("🚀 Signal ClientReady Persist Physic Data !")
