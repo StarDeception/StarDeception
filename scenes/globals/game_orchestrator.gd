@@ -38,8 +38,8 @@ const SPAWN_POINTS_LIST: Array[Dictionary] = [
 	{"label" : "PlanetB / SpawnPoint1", "node_path" : "PlanetB/PlayerSpawnPointsList/PlayerSpawnPoint01"},
 	{"label" : "PlanetB / SpawnPoint2", "node_path" : "PlanetB/PlayerSpawnPointsList/PlayerSpawnPoint02"},
 	{"label" : "PlanetB / SpawnPoint3", "node_path" : "PlanetB/PlayerSpawnPointsList/PlayerSpawnPoint03"},
-	{"label" : "StationA / SpawnPoint1", "node_path" : "StationA/Pads/PlayerSpawnPointsList/PlayerSpawnPoint01"},
-	{"label" : "StationB / SpawnPoint1", "node_path" : "StationB/Pads/PlayerSpawnPointsList/PlayerSpawnPoint01"},
+	{"label" : "StationA / SpawnPoint1", "node_path" : "StationA/PadGroup1/PlayerSpawnPointsList/PlayerSpawnPoint01"},
+	{"label" : "StationB / SpawnPoint1", "node_path" : "StationB/PadGroup1/PlayerSpawnPointsList/PlayerSpawnPoint01"},
 ]
 
 var univers_creation_entities: Dictionary = {}
