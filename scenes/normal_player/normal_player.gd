@@ -72,7 +72,6 @@ var gravity_parents: Array[Area3D]
 var active = true
 
 func _enter_tree() -> void:
-	print("[player] I give my name: ", name)
 	if name.begins_with("remoteplayer"):
 		set_multiplayer_authority(1)
 		global_position = spawn_position
@@ -84,7 +83,6 @@ func _ready() -> void:
 		return
 	
 	global_position = spawn_position
-	print("[player] I spawned at the position :", global_position)
 	look_at(global_transform.origin + Vector3.FORWARD, spawn_up)
 	
 	NetworkOrchestrator.set_gameserver_name.connect(_set_gameserver_name)
@@ -266,24 +264,20 @@ func set_player_name(player_name):
 	labelPlayerName.text = str(player_name)
 	
 func get_player_name():
-	print(labelPlayerName.text)
+	pass
 
 func _on_area_detector_area_entered(area: Area3D) -> void:
 	if area.is_in_group("gravity"):
 		gravity_parents.push_back(area)
-		prints("player entered gravity area", area)
 
 func _on_area_detector_area_exited(area: Area3D) -> void:
 	if area.is_in_group("gravity"):
 		if gravity_parents.has(area):
-			prints("player left gravity area", area)
 			gravity_parents.erase(area)
 
-func _set_gameserver_name(name):
-	labelServerName.text = "(" + name + ")"
+func _set_gameserver_name(server_name: String):
+	labelServerName.text = "(" + server_name + ")"
 
 func _set_player_global_position(pos, rot):
-	print("SET MY POS:")
-	print(pos)
 	global_position = pos
 	global_rotation =rot

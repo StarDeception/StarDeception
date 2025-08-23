@@ -13,7 +13,6 @@ func _ready() -> void:
 	global_rotation = spawn_rotation
 
 func _on_box_entered(body: Node3D):
-	print("Entrée avec body = " + body.name)
 	if body.is_in_group("containable"):
 		if not body.isInsideBox4m:
 			body.set_collision_layer_value(1, false)
@@ -23,7 +22,6 @@ func _on_box_entered(body: Node3D):
 			body.isInsideBox4m = true
 
 func _on_box_exited(body: Node3D):
-	print("Sortie avec body = " + body.name)
 	if body.is_in_group("containable"):
 		if body.isInsideBox4m:
 			body.set_collision_layer_value(2, false)
