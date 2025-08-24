@@ -58,6 +58,7 @@ var PropsList = {
 var ClientChangeServer = null
 
 var player_scene_path: String = "res://scenes/normal_player/normal_player.tscn"
+var ship_scene_path: String = "res://scenes/spaceship/test_spaceship/test_spaceship.tscn"
 
 signal set_gameserver_name(server_name)
 signal set_player_global_position(pos, rot)
@@ -691,6 +692,8 @@ func get_spawnable_props_newinstance(proptype):
 			return small_spawnable_props[2].instantiate()
 		"box4m":
 			return small_spawnable_props[3].instantiate()
+		"ship":
+			return load(ship_scene_path).instantiate()
 		_:
 			return null
 
@@ -739,15 +742,6 @@ func spawn_station(station_datas: Dictionary) -> void:
 	spawnable_station_instance.name = station_datas["name"]
 	universe_datas_spawner_node.get_node(universe_datas_spawner_node.spawn_path).call_deferred("add_child", spawnable_station_instance, true)
 	network_agent.spawn_data_processed(spawnable_station_instance)
-
-@rpc("any_peer", "call_remote", "reliable")
-func spawn_ship(ship_scene_path: String = "", spawn_position: Vector3 = Vector3.ZERO, spawn_rotation: Vector3 = Vector3.ZERO):
-	var senderid = universe_scene.multiplayer.get_remote_sender_id()
-	
-	if not multiplayer.is_server():
-		return
-	
-	small_props_spawner_node.spawn({"entity": "ship", "ship_scene_path": ship_scene_path, "ship_spawn_position": spawn_position, "ship_spawn_rotation": spawn_rotation, "authority_peer_id": senderid})
 
 @rpc("any_peer", "call_remote", "reliable")
 func spawn_player(player_scene_path: String = "", spawn_point: int = 0):

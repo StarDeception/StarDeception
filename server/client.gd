@@ -57,14 +57,14 @@ func _on_client_action_requested(datas: Dictionary) -> void:
 						"ship":
 							var spawn_position: Vector3 = datas["spawn_position"] if datas.has("spawn_position") else player_instance.global_position + Vector3(10.0,10.0,10.0)
 							var spawn_rotation: Vector3 = datas["spawn_rotation"] if datas.has("spawn_rotation") else player_instance.global_transform.basis.y.normalized()
-							NetworkOrchestrator.spawn_ship.rpc_id(1, ship_scene_path, spawn_position, spawn_rotation)
+							NetworkOrchestrator.spawn_prop.rpc_id(1, "ship", spawn_position, spawn_rotation)
 						"box50cm":
 							var spawn_position: Vector3 = datas["spawn_position"] if datas.has("spawn_position") else player_instance.global_position + Vector3(10.0,10.0,10.0)
-							NetworkOrchestrator.spawn_box50cm.rpc_id(1, spawn_position)
+							NetworkOrchestrator.spawn_prop.rpc_id(1, "box50cm", spawn_position)
 						"box4m":
 							var spawn_position: Vector3 = datas["spawn_position"] if datas.has("spawn_position") else player_instance.global_position + Vector3(10.0,10.0,10.0)
 							var spawn_rotation: Vector3 = datas["spawn_rotation"] if datas.has("spawn_rotation") else player_instance.global_transform.basis.y.normalized()
-							NetworkOrchestrator.spawn_box4m.rpc_id(1, spawn_position, spawn_rotation)
+							NetworkOrchestrator.spawn_prop.rpc_id(1, "box4m", spawn_position, spawn_rotation)
 			"control":
 				if datas.has("entity"):
 					match datas["entity"]:
