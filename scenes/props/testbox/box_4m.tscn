@@ -52,8 +52,8 @@ replication_config = SubResource("SceneReplicationConfig_l5hyn")
 script = ExtResource("5_pnqhc")
 metadata/_custom_type_script = "uid://6f0l3p44h7vy"
 
-[node name="FmodEventEmitter3D" type="FmodEventEmitter3D" parent="."]
-event_name = "event:/sound_test/spawn_palette"
-event_guid = "{e24fbf02-2112-40f1-ad8f-f417a9f35ed0}"
-autoplay = true
-auto_release = true
+; [node name="FmodEventEmitter3D" type="FmodEventEmitter3D" parent="."]
+; event_name = "event:/sound_test/spawn_palette"
+; event_guid = "{e24fbf02-2112-40f1-ad8f-f417a9f35ed0}"
+; autoplay = true
+; auto_release = true

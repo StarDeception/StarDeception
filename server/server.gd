@@ -11,12 +11,12 @@ var datas_to_spawn_count: int = 0
 var clients_peers_ids: Array[int] = []
 
 var ServerZone = {
-	"x_start": -100000,
-	"x_end": 100000,
-	"y_start": -100000,
-	"y_end": 100000,
-	"z_start": -100000,
-	"z_end": 100000
+	"x_start": -100000.0,
+	"x_end": 100000.0,
+	"y_start": -100000.0,
+	"y_end": 100000.0,
+	"z_start": -100000.0,
+	"z_end": 100000.0
 }
 
 var MaxPlayersAllowed = 2
@@ -44,8 +44,8 @@ var PropsListLastRotation = {
 }
 
 var ServersTicksTasks = {
-	"TooManyPlayersCurent": 300,
-	"TooManyPlayersReset": 300,
+	"TooManyPlayersCurent": 3600,
+	"TooManyPlayersReset": 3600, # all 1 minute
 	"SendPlayersToMQTTCurrent": 15,
 	"SendPlayersToMQTTReset": 15,
 	"CheckPlayersOutOfZoneCurrent": 20,
@@ -157,8 +157,11 @@ func _is_server_has_too_many_players():
 				var playersData = []
 				for value in PlayersList.values():
 					var position = value.global_position
-					playersData.append({"x": int(position[0]), "y": int(position[1]), "z": int(position[2])})
-				print("Too many players, need split")
+					if position != Vector3.ZERO:
+						# can have position zero if spawn not yet defined and it can break split of servers 
+						playersData.append({"x": position[0], "y": position[1], "z": position[2]})
+				print("######################################################")
+				print("####################### Too many players, need split #")
 				ChangingZone = true
 				NetworkOrchestrator.MQTTClientSDO.publish("sdo/servertooheavy", JSON.stringify({
 					"id": NetworkOrchestrator.ServerSDOId,

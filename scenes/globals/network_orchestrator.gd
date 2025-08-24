@@ -97,19 +97,20 @@ func start_server(changed_scene) -> Node:
 	network_agent.start_server(changed_scene, small_spawnable_props_entry_point)
 	return network_agent
 
-func start_client(changed_scene, ip = "127.0.0.1", port = 7051) -> Node:
-	universe_scene = changed_scene
-	small_props_spawner_node = universe_scene.get_node("SmallPropsMultiplayerSpawner")
+func start_client(changed_scene, ip = "127.0.0.1", port = 7051, serverChanges: bool = false) -> Node:
+	if not serverChanges:
+		universe_scene = changed_scene
+		small_props_spawner_node = universe_scene.get_node("SmallPropsMultiplayerSpawner")
+		
+		small_props_spawner_node.spawn_function = Callable(self, "_spawn_entity")
+		
+		small_props_spawner_node.connect("spawned", _on_entity_spawned)
 	
-	small_props_spawner_node.spawn_function = Callable(self, "_spawn_entity")
-	
-	small_props_spawner_node.connect("spawned", _on_entity_spawned)
-	
-	multiplayer.connected_to_server.connect(_client_connected_to_server)
-	multiplayer.server_disconnected.connect(_client_disconnected_server)
+		multiplayer.connected_to_server.connect(_client_connected_to_server)
+		multiplayer.server_disconnected.connect(_client_disconnected_server)
 
-	preload_small_props(small_props_spawner_node)
-	small_spawnable_props_entry_point = small_props_spawner_node.get_node(small_props_spawner_node.get_spawn_path())
+		preload_small_props(small_props_spawner_node)
+		small_spawnable_props_entry_point = small_props_spawner_node.get_node(small_props_spawner_node.get_spawn_path())
 	network_agent.start_client(changed_scene, ip, port)
 	return network_agent
 
@@ -631,7 +632,10 @@ func _create_local_player_come_from_another_server(uuid, playerName, id):
 		"server_id": ServerSDOId,
 	})
 	MQTTClientSDO.publish("sdo/playerschanges", data)
-	network_agent.PlayersListCurrentlyInTransfert.erase(uuid)
+	# TODO, temprory solution, wait 1 second tu prevent change server many times in 1 second and 
+	# all mechanisms not finished (in another words, player broke it's authority
+	# and is blocked on server)
+	await get_tree().create_timer(1).timeout
 
 func _searchAnotherServerForCoordinates(x, y, z):
 	for s in ServersList.values():
@@ -877,7 +881,9 @@ func _client_disconnected_server():
 	# for child in children:
 	# 	child.free()
 	if ClientChangeServer != null:
-		start_client(universe_scene, ClientChangeServer[0], int(ClientChangeServer[1]))
+		start_client(universe_scene, ClientChangeServer[0], int(ClientChangeServer[1]), true)
 		# var client_peer = ENetMultiplayerPeer.new()
 		# client_peer.create_client(ClientChangeServer[0], int(ClientChangeServer[1]))
 		# multiplayer.multiplayer_peer = client_peer
+	else:
+		ErrorManager.show_message()
