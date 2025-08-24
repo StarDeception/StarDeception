@@ -51,7 +51,7 @@ var ServersTicksTasks = {
 }
 
 func _enter_tree() -> void:
-	pass
+	NetworkOrchestrator.loadServerConfig()
 
 func _ready() -> void:
 	pass

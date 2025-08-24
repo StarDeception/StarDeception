@@ -67,7 +67,7 @@ signal set_gameserver_numberPlayersUniverse(nbPlayers)
 signal set_gameserver_serverzone(serverzone)
 
 func _enter_tree() -> void:
-	loadServerConfig()
+	pass
 
 func create_server() -> void:
 	network_agent = load("res://server/server.tscn").instantiate()
@@ -132,7 +132,7 @@ func loadServerConfig():
 	ServerMQTTPasword = config.get_value("chat", "password")
 	ServerMQTTVerboseLevel = config.get_value("chat", "verbose_level")
 	# Load metric config
-	MetricsEnabled = config.get_value("enabled", "url")
+	MetricsEnabled = config.get_value("metrics", "enabled")
 	MetricsUrl = config.get_value("metrics", "url")
 	MetricsPort = config.get_value("metrics", "port")
 	MetricsUsername = config.get_value("metrics", "username")
