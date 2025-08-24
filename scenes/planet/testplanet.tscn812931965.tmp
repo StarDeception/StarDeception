@@ -1,4 +1,4 @@
-[gd_scene load_steps=35 format=3 uid="uid://rv6ugxi8n8pe"]
+[gd_scene load_steps=36 format=3 uid="uid://rv6ugxi8n8pe"]
 
 [ext_resource type="Script" uid="uid://bbnhmkthrguhh" path="res://scenes/planet/testplanet.gd" id="1_83pno"]
 [ext_resource type="Material" uid="uid://brpu7xylrg2l2" path="res://assets/materials/material_basic_blue.tres" id="1_q7o7h"]
@@ -10,6 +10,7 @@
 [ext_resource type="Shader" uid="uid://dsu80023m2ier" path="res://addons/extremely_fast_atmosphere/atmosphere/atmosphere_fbcosentino.gdshader" id="7_l6ihg"]
 [ext_resource type="PackedScene" uid="uid://br2b6gumt3gyn" path="res://scenes/planet/asset_spawner.tscn" id="9_642k6"]
 [ext_resource type="PackedScene" uid="uid://4i1746c4272f" path="res://scenes/props/rock/rock.tscn" id="10_qugoe"]
+[ext_resource type="PackedScene" uid="uid://d37hc6ybk8fsj" path="res://scenes/props/testbox/box_50cm.tscn" id="11_qugoe"]
 
 [sub_resource type="Resource" id="Resource_642k6"]
 script = ExtResource("2_l6ihg")
@@ -158,7 +159,7 @@ mesh = SubResource("SphereMesh_642k6")
 skeleton = NodePath("../PlanetTerrain")
 
 [node name="PlanetTerrain" parent="." instance=ExtResource("4_2pfeq")]
-transform = Transform3D(0.724594, 0, -0.689173, 0, 1, 0, 0.689173, 0, 0.724594, 0, 0, 0)
+transform = Transform3D(0.94767, 0, 0.319247, 0, 1, 0, -0.319247, 0, 0.94767, 0, 0, 0)
 radius = 10000
 min_height = 3300.24
 noise_scale = 5.0
@@ -167,10 +168,9 @@ noise = SubResource("FastNoiseLite_83pno")
 [node name="RockSpawner" parent="PlanetTerrain" node_paths=PackedStringArray("planet_terrain") instance=ExtResource("9_642k6")]
 transform = Transform3D(0.904889, 0, 0.425651, 0, 1, 0, -0.425651, 0, 0.904889, 0, 0, 0)
 planet_terrain = NodePath("..")
-min_rock_cell = 150
-max_rock_cell = 200
-cell_size = 5.0
+max_rock = 300
 spawn_distance = 1200
+spread = 100
 asset_scene = ExtResource("10_qugoe")
 
 [node name="Atmosphere" parent="." instance=ExtResource("6_mv8ka")]
@@ -179,3 +179,6 @@ material_override = SubResource("ShaderMaterial_7o858")
 mesh = SubResource("BoxMesh_642k6")
 planet_radius = 10600.0
 atmosphere_height = 1200.0
+
+[node name="box_50cm" parent="." instance=ExtResource("11_qugoe")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1263.33, 10403.3, -1954.62)

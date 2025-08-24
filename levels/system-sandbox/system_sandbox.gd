@@ -78,7 +78,7 @@ func spawn_station():
 	prints("spawn station from", multiplayer.get_unique_id())
 	var station = station_scene.instantiate() as Node3D
 	spawn_node.add_child(station, true)
-	station.global_position = spawn_node.global_basis.y * 1000
+	station.global_position = spawn_node.global_basis.y * 6500
 
 
 @rpc("authority", "call_local", "reliable")

@@ -8,6 +8,8 @@ var spaceship_scene = preload("res://scenes/spaceship/test_spaceship/test_spaces
 ## triggered when a new player has spawned
 signal player_spawned(id)
 
+signal client_connected
+
 var entities_spawn_node: Node3D
 
 var SDOServerUrl = ""
@@ -209,6 +211,10 @@ func create_client(node: Node3D):
 	client_peer.create_client("127.0.0.1", 7051)
 	node.multiplayer.multiplayer_peer = client_peer
 	client_peer.peer_disconnected.connect(on_client_disconnect)
+	client_peer.peer_connected.connect(func(id):
+		if id == 1:
+			client_connected.emit()
+	)
 	
 func on_client_disconnect(id: int):
 	Globals.log("disconnected %d" % id)
