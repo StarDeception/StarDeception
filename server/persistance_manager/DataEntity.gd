@@ -9,7 +9,7 @@ var interval := 2.0
 
 var last_saved_position :Vector3
 var last_saved_rotation :Vector3
-var parent_obj: DataObject
+var parent_obj_uid: String
 
 func serialize():
 	var dict = {
@@ -21,10 +21,10 @@ func serialize():
 		"ry": last_saved_rotation.y,
 		"rz": last_saved_rotation.z,
 		"parent": {
-			"uid": parent_obj.uid
+			"uid": parent_obj_uid
 		}, 
 		"dgraph.type": ["Position","Entity"],
-		"type_obj": get_parent().scene_file_path
+		"type_obj": get_parent().type_name
 	}
 	if not is_new_object and uid != "":
 		dict["uid"] = uid
@@ -32,14 +32,18 @@ func serialize():
 
 func deserialize(data: Dictionary):
 	super.deserialize(data)
-	last_saved_position = Vector3(
-		data['x'],
-		data['y'],
-		data['z']
-	)
-	last_saved_rotation = Vector3(
-		data['rx'],data['ry'],data['rz']
-	)
+	if data.has("x") && data.has("y") && data.has("z"):
+		last_saved_position = Vector3(
+			data['x'],
+			data['y'],
+			data['z']
+		)
+	if data.has("rx") && data.has("ry") && data.has("rz"):
+		last_saved_rotation = Vector3(
+			data['rx'],data['ry'],data['rz']
+		)
+	if data.has("parent_uid"):
+		parent_obj_uid = data["parent_uid"]
 	if parent:
 		parent.position = last_saved_position
 		parent.rotation = last_saved_rotation
@@ -55,10 +59,10 @@ func _ready() -> void:
 		if is_new_object:
 			last_saved_position = parent.position
 			last_saved_rotation = parent.rotation
-			if parent.get_parent() != null && parent.get_parent().has_node("DataPlanete"):
-				parent_obj = parent.get_parent().get_node("DataPlanete")
-				print("Parent UID: ", parent_obj.uid)
-				if parent_obj.uid.is_empty():
+			if parent.get_parent() != null && parent.get_parent().has_node("DataPlanet"):
+				parent_obj_uid = parent.get_parent().get_node("DataPlanet").uid
+				print("Parent UID: ", parent_obj_uid)
+				if parent_obj_uid.is_empty():
 					print("⏳ Waiting for parent to be saved...")
 					# Créer un timer ou attendre le signal de sauvegarde du parent
 					await_parent_save()
@@ -80,7 +84,7 @@ func Backgroud_save():
 
 func await_parent_save():
 	# Attendre que le parent soit sauvé
-	while parent_obj.uid.is_empty():
+	while parent_obj_uid.is_empty():
 		await get_tree().process_frame
 	initialize_and_save()
 
@@ -89,27 +93,28 @@ func initialize_and_save():
 	last_saved_position = parent.position
 	last_saved_rotation = parent.rotation
 	saved()
-	#start_loop()
+	start_loop()
 
-func load_obj(data: Dictionary, attach_parent: DataObject = null):
+func load_obj(data: Dictionary):
 	print("load Data Object")
 	is_new_object = false
-	if attach_parent != null:
-		parent_obj = attach_parent
-	PersitDataBridge.execute_custom_query('''
-	{
-	  entity(func: uid({0})) {
-		uid
-		uuid
-	 	type_obj
-		x
-		y
-		z
-		rx
-		ry
-		rz
-	  }
-	}'''.format([data["uid"]]),loaded)
+	deserialize(data)
+	start_loop()
+	#PersitDataBridge.execute_custom_query('''
+	#{
+	#  entity(func: uid({0})) {
+	#	uid
+	#	uuid
+	# 	type_obj
+	#	x
+	#	y
+	#	z
+	#	rx
+	#	ry
+	#	rz
+	# }
+	#}'''.format([data["uid"]]),loaded)
+	
 	
 func loaded(result: String):
 	print(" Data Entity is loaded")

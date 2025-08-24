@@ -1,4 +1,3 @@
-@tool
 extends  Node
 class_name  DataObject
 
@@ -12,7 +11,7 @@ var is_new_object := true
 func serialize():
 	var dict = {
 		"uuid": uuid_obj,
-		"type_obj": get_parent().scene_file_path
+		"type_obj": get_parent().get_class()
 	}
 	if not is_new_object and uid != "":
 		dict["uid"] = uid
@@ -52,7 +51,7 @@ func get_current_uid() -> String:
 func is_saved() -> bool:
 	return uid != "" and not uid.begins_with("_")
 	
-func load_obj(data: Dictionary, attach_parent: DataObject = null):
+func load_obj(data: Dictionary):
 	print("load Data Object")
 	PersitDataBridge.find_data_by_id(data["uid"],loaded)
 

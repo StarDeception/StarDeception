@@ -1,6 +1,6 @@
 extends DataObject
 
-class_name DataPlanete
+class_name DataPlanet
 
 var contains: Array[DataObject]
 var parent
@@ -12,7 +12,7 @@ func serialize():
 		"uuid": uuid_obj,
 		"name": planete_name,
 		"dgraph.type": "Planete",
-		"type_obj": get_parent().scene_file_path
+		"type_obj": get_parent().get_class()
 	}
 	return JSON.stringify(dict)
 
@@ -21,7 +21,7 @@ func _ready():
 		print("is in server")
 		parent = get_parent()
 		PersitDataBridge.setup_persistence_manager(_on_client_ready)
-		planete_name = "TestPlanete"
+		planete_name = "TestPlanete+"+get_parent().name
 		uuid_obj = uuid.v4()
 	else:
 		print ("data planete is instanciate on client ")
@@ -59,22 +59,24 @@ func _check_planete(result: String):
 			
 func query_child_data():
 	print("🚀 Query Get child !")
-	PersitDataBridge.execute_custom_query('''
-	{
-	  entity(func: uid({0})) {
-		~parent{
-			uid
-			type_obj
+	print(NetworkOrchestrator.ServerSDOId)
+	if NetworkOrchestrator.ServerSDOId == 1 || true:
+		PersitDataBridge.execute_custom_query('''
+		{
+		  entity(func: uid({0})) {
+			~parent{
+				expand(_all_)
+			  }
 		  }
-	  }
-	}'''.format([uid]),_load_child_entity)
+		}'''.format([uid]),_load_child_entity)
 
 func _load_child_entity(result: String):
 	var parsed = JSON.parse_string(result)
 	if parsed["entity"].size() > 0 :
 		for element in parsed["entity"][0]["~parent"]:
-			var childpck = load(element["type_obj"])
-			var child = childpck.instantiate()
-			if child.has_node("DataEntity"):
-				child.get_node("DataEntity").load_obj(element,self)
-				parent.add_child(child,true)
+			NetworkOrchestrator.spawn_prop(element["type_obj"],element)
+			#var childpck = load(element["type_obj"])
+			#var child = childpck.instantiate()
+			#if child.has_node("DataEntity"):
+			#	child.get_node("DataEntity").load_obj(element,self)
+			#	parent.add_child(child,true)
