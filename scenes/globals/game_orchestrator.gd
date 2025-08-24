@@ -2,6 +2,9 @@ extends Node
 
 @export var levels: Array[PackedScene]
 
+const MAX_USERNAME_LENGTH: int = 32
+const MIN_USERNAME_LENGTH: int = 4
+
 enum CHANGE_STATE_RETURNS {OK, ERROR, NO_CHANGE}
 
 enum NETWORK_ROLE {PLAYER, SERVER}
@@ -44,7 +47,10 @@ const SPAWN_POINTS_LIST: Array[Dictionary] = [
 
 var univers_creation_entities: Dictionary = {}
 
-var login_player_name: String = "I am an idiot !"
+var login_player_name: String = "I am an idiot !" :
+	set(receveid_name):
+		if not receveid_name.strip_edges().is_empty() and receveid_name.length() >= MIN_USERNAME_LENGTH :
+			login_player_name = receveid_name.left(MAX_USERNAME_LENGTH)
 var requested_spawn_point: int = 0
 
 @onready var game_is_paused: bool = false
