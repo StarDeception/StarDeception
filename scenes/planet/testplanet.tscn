@@ -2,9 +2,9 @@
 
 [ext_resource type="Script" uid="uid://bbfrhypa38dqh" path="res://scenes/planet/testplanet.gd" id="1_2pfeq"]
 [ext_resource type="Shape3D" uid="uid://w1svqnr3n3nh" path="res://scenes/planet/planet_collision.shape" id="1_lxi01"]
-[ext_resource type="Material" uid="uid://brpu7xylrg2l2" path="res://assets/materials/material_basic_blue.tres" id="1_q7o7h"]
 [ext_resource type="Script" uid="uid://2e1cf4ehx8s5" path="res://scenes/grid/grid.gd" id="2_c1vqx"]
 [ext_resource type="Script" uid="uid://cj5kd1hkfvjrg" path="res://server/persistance_manager/DataPlanete.gd" id="4_2pfeq"]
+[ext_resource type="Material" uid="uid://t823t2dw4owg" path="res://scenes/planet/planet_grey.material" id="4_l6ihg"]
 [ext_resource type="Script" uid="uid://7pymoxifok1q" path="res://tools/spawn_points/player_spawn_points_list.gd" id="5_6x306"]
 [ext_resource type="PackedScene" uid="uid://dtcsox8hfg83s" path="res://assets/models/spawn_kiosk/spawn_kiosk.tscn" id="5_mv8ka"]
 [ext_resource type="Script" uid="uid://3b53gu5cyf58" path="res://tools/spawn_points/player_spawn_point.gd" id="6_mv8ka"]
@@ -25,9 +25,13 @@ properties/0/replication_mode = 1
 properties/1/path = NodePath(".:rotation")
 properties/1/spawn = true
 properties/1/replication_mode = 1
+properties/2/path = NodePath(".:material_path")
+properties/2/spawn = true
+properties/2/replication_mode = 1
 
 [node name="Planet" type="StaticBody3D"]
 script = ExtResource("1_2pfeq")
+material_path = "uid://t823t2dw4owg"
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 shape = ExtResource("1_lxi01")
@@ -45,7 +49,7 @@ script = ExtResource("2_c1vqx")
 shape = SubResource("SphereShape3D_6wdpo")
 
 [node name="Planet" type="MeshInstance3D" parent="."]
-material_override = ExtResource("1_q7o7h")
+material_override = ExtResource("4_l6ihg")
 mesh = SubResource("SphereMesh_jp7ei")
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]

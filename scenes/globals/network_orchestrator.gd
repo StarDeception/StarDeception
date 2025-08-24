@@ -733,6 +733,8 @@ func spawn_planet(planet_datas: Dictionary) -> void:
 	var spawnable_planet_instance: Node3D = spawnable_planet_scene.instantiate()
 	spawnable_planet_instance.spawn_position = planet_datas["coordinates"]
 	spawnable_planet_instance.name = planet_datas["name"]
+	if spawnable_planet_instance.name == "PlanetB":
+		spawnable_planet_instance.material_path = "res://scenes/planet/planet_orange.material"
 	universe_datas_spawner_node.get_node(universe_datas_spawner_node.spawn_path).call_deferred("add_child", spawnable_planet_instance, true)
 	network_agent.spawn_data_processed(spawnable_planet_instance)
 
