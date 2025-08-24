@@ -4,7 +4,7 @@ class_name QuadtreeNode
 
 ## Based on: https://github.com/stefsdev/ProcPlanetLOD
 
-@export var planet: Planet
+@export var planet: PlanetTerrain
 
 var focus_positions_last = []
 var focus_positions: Array[Vector3] = []
@@ -49,12 +49,12 @@ class QuadtreeChunk:
 	var max_chunk_depth: int
 	var identifier: String
 	
-	var planet: Planet
+	var planet: PlanetTerrain
 	var face_origin: Vector3
 	var axisA: Vector3
 	var axisB: Vector3
 	
-	func _init(_bounds: AABB, _depth: int, _max_chunk_depth: int, _planet: Planet, _face_origin: Vector3, _axisA: Vector3, _axisB: Vector3):
+	func _init(_bounds: AABB, _depth: int, _max_chunk_depth: int, _planet: PlanetTerrain, _face_origin: Vector3, _axisA: Vector3, _axisB: Vector3):
 		bounds = _bounds
 		depth = _depth
 		max_chunk_depth = _max_chunk_depth
@@ -130,6 +130,11 @@ func visualize_quadtree(chunk: QuadtreeChunk):
 		var size := chunk.bounds.size.x
 		var offset := chunk.bounds.position
 		var resolution: int = chunk_resolution + chunk_skirt
+		
+		if at_col_depth:
+			resolution -= 20
+		
+		
 		var vertex_array := PackedVector3Array()
 		var normal_array := PackedVector3Array()
 		var index_array := PackedInt32Array()
@@ -218,6 +223,7 @@ func create_mesh_and_collision(arrays: Array, chunk: QuadtreeChunk, chunk_pos: V
 	# generate collisions
 	if chunk.depth == max_chunk_depth and not Engine.is_editor_hint():
 		if !chunks_col_list.has(chunk.identifier):
+			#print("generating collision", chunk.identifier, mesh.get_surface_count())
 			add_collision_shape(chunk.identifier, mesh, chunk_pos)
 		else:
 			update_collision(chunk.identifier, mesh)
@@ -395,8 +401,6 @@ func update_chunks():
 			chunks_list.erase(chunk_id)
 			chunks_generating.erase(chunk_id)
 			
-			disable_col.call_deferred(chunk_id)
-	
 	cleanup_collisions.call_deferred()
 	
 
@@ -404,7 +408,9 @@ func cleanup_collisions():
 	for chunkid: String in chunks_col_list:
 		if is_instance_valid(chunks_col_list[chunkid]):
 			var col = chunks_col_list[chunkid] as CollisionShape3D
-			if not any_player_near(col):
+			if any_player_near(col, 400):
+				col.disabled = true
+			elif not any_player_near(col):
 				col.queue_free()
 				chunks_col_list.erase(chunkid)
 

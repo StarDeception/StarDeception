@@ -1,13 +1,16 @@
 @tool
 extends Node3D
 
+class_name Planet
+
 var spawn_position: Vector3 = Vector3.ZERO
 @onready var planet_meshinstance: MeshInstance3D = $Planet
 @export_file("*.tres", "*.material") var material_path : String
+
 @export_tool_button("update") var on_update = update_planet
 
 @onready var planet_gravity: PhysicsGrid = $PlanetGravity
-@onready var planet_terrain: Planet = $PlanetTerrain
+@onready var planet_terrain: PlanetTerrain = $PlanetTerrain
 @onready var atmosphere: ExtremelyFastAtmpsphere = $Atmosphere
 @onready var water_surface: MeshInstance3D = $WaterSurface
 
@@ -17,6 +20,22 @@ var spawn_position: Vector3 = Vector3.ZERO
 func _enter_tree() -> void:
 	pass
 
+
+var synced = true
+
+func _ready() -> void:
+	synced = multiplayer.is_server()
+	
+	Server.client_connected.connect(func():
+		if not multiplayer.is_server():
+			sync_rotation.rpc_id(1)
+	)
+	$Atmosphere.sun_object = sun
+	update_planet()
+
+func _physics_process(delta: float) -> void:
+	if Engine.is_editor_hint(): return
+	planet_terrain.rotation.y += 0.001 * delta
 
 func update_planet():
 	planet_gravity.gravity_point_unit_distance = planet_settings.radius
@@ -39,7 +58,6 @@ func update_planet():
 		water_surface.hide()
 		
 	planet_terrain.trigger_update()
-	
 
 func _ready() -> void:
 	global_position = spawn_position
@@ -47,8 +65,8 @@ func _ready() -> void:
 	
 	update_planet()
 
-func _physics_process(delta: float) -> void:
-	if Engine.is_editor_hint(): return
-	planet_terrain.rotation.y += 0.001 * delta
-	#planet_gravity.gravity_point_unit_distance = planet_terrain.min_height
-	
+@rpc("authority", "call_remote", "reliable")
+func set_planet_rotation(rot: Vector3):
+	print("set planet rotation", rot)
+	planet_terrain.rotation = rot
+	synced = true

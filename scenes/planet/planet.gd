@@ -1,7 +1,7 @@
 @tool
 extends Node3D
 
-class_name Planet
+class_name PlanetTerrain
 
 @export_tool_button("update") var on_update = trigger_update
 

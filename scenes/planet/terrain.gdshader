@@ -46,7 +46,7 @@ void vertex() {
 	normal = NORMAL;
 	vec3 global_normal = normalize(VERTEX + offset_pos);
 	vertical_amount = dot(global_normal, normal);
-	
+
 
 	TANGENT = vec3(0.0, 0.0, -1.0) * abs(normal.x);
 	TANGENT += vec3(1.0, 0.0, 0.0) * abs(normal.y);
@@ -63,10 +63,10 @@ void vertex() {
 	uv1_triplanar_pos = (VERTEX + offset_pos) * uv1_scale + uv1_offset;
 	uv1_power_normal /= dot(uv1_power_normal, vec3(1.0));
 	uv1_triplanar_pos *= vec3(1.0, -1.0, 1.0);
-	
+
 	uv2_triplanar_pos = VERTEX * uv1_scale + uv1_offset;
 	uv2_triplanar_pos *= vec3(1.0, -1.0, 1.0);
-	
+
 }
 
 vec4 triplanar_texture(sampler2D p_sampler, vec3 p_weights, vec3 p_triplanar_pos) {
@@ -122,15 +122,15 @@ vec3 triplanar_texture_notile(sampler2D p_sampler, vec3 p_weights, vec3 p_tripla
 
 
 void fragment() {
-	
+
 	//vec3 n = normalize(vert);
     //float u = atan(n.z, n.x) / (2.0 * PI) + 0.5;
     //float v = acos(n.y) / PI;
     //vec2 uv = vec2(u, v) * 3.0;
 //
     //vec3 base_col = texture(noise_c_variation, uv).rgb;
-	
-	
+
+
 	vec3 albedo = triplanar_texture(noise_c_variation, uv1_power_normal, uv1_triplanar_pos * noise_c_scale / 10000.0).rgb;
 
 
