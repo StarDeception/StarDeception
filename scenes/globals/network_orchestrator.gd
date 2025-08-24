@@ -809,7 +809,7 @@ func release_control(player_instance_path, ship_instance_path):
 	var player_instance = get_node(player_instance_path)
 	if player_instance:
 		var ship_instance = get_node(ship_instance_path)
-		if ship_instance:
+		if ship_instance and ship_instance.pilot != null:
 			ship_instance.pilot.active = true
 			ship_instance.pilot = null
 			ship_instance.pilot_seat.remote_path = NodePath("")
