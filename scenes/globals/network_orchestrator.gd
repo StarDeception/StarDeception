@@ -640,6 +640,25 @@ func _searchAnotherServerForCoordinates(x, y, z):
 			return s
 	return null
 
+func publish_sdo_newprop(proptype, uuid, position, rotation):
+	var data = ""
+	var boxData = {
+		"type": proptype,
+		"uuid": uuid,
+		"x": position[0],
+		"y": position[1],
+		"z": position[2],
+		"xr": rotation[0],
+		"yr": rotation[1],
+		"zr": rotation[2]
+	}
+	data = JSON.stringify({
+		"add": [boxData],
+		"update": [],
+		"delete": [],
+		"server_id": ServerSDOId,
+	})
+	MQTTClientSDO.publish("sdo/propschanges", data)
 
 #########################
 # Metrics of the server #
@@ -666,54 +685,38 @@ func publish_data():
 #########################
 # Spawns                #
 
+func get_spawnable_props_newinstance(proptype):
+	match proptype:
+		"box50cm":
+			return small_spawnable_props[2].instantiate()
+		"box4m":
+			return small_spawnable_props[3].instantiate()
+		_:
+			return null
+
 @rpc("any_peer", "call_remote", "reliable")
-func spawn_box50cm(spawn_position: Vector3 = Vector3.ZERO) -> void:
+func spawn_prop(proptype, spawn_position: Vector3 = Vector3.ZERO, spawn_rotation: Vector3 = Vector3.UP) -> void:
 	if not multiplayer.is_server():
 		return
 	
-	var box50cm_instance: RigidBody3D = small_spawnable_props[2].instantiate()
+	var prop_instance: RigidBody3D = get_spawnable_props_newinstance(proptype)
+	if prop_instance == null:
+		print("ERROR! instance of prop " + proptype + "not found")
 	
-	box50cm_instance.spawn_position = spawn_position
+	prop_instance.spawn_position = spawn_position
 	var uuid = uuid_util.v4()
-	small_props_spawner_node.get_node(small_props_spawner_node.spawn_path).call_deferred("add_child", box50cm_instance, true)
-	network_agent.PropsList.box50cm[uuid] = box50cm_instance
-	network_agent.PropsListLastMovement.box50cm[uuid] = spawn_position
-	network_agent.PropsListLastRotation.box50cm[uuid] = Vector3.ZERO
-	var data = ""
-	var boxData = {
-		"type": "box50cm",
-		"uuid": uuid,
-		"x": spawn_position[0],
-		"y": spawn_position[1],
-		"z": spawn_position[2],
-		"xr": 0,
-		"yr": 0,
-		"zr": 0
-	}
-	data = JSON.stringify({
-		"add": [boxData],
-		"update": [],
-		"delete": [],
-		"server_id": ServerSDOId,
-	})
-	MQTTClientSDO.publish("sdo/propschanges", data)
+	small_props_spawner_node.get_node(small_props_spawner_node.spawn_path).call_deferred("add_child", prop_instance, true)
+	network_agent.PropsList[proptype][uuid] = prop_instance
+	network_agent.PropsListLastMovement[proptype][uuid] = spawn_position
+	network_agent.PropsListLastRotation[proptype][uuid] = Vector3.ZERO
+	publish_sdo_newprop(proptype, uuid, spawn_position, spawn_rotation)
 
-	if isInsideBox4m:
-		box50cm_instance.set_collision_layer_value(1, false)
-		box50cm_instance.set_collision_layer_value(2, true)
-		box50cm_instance.set_collision_mask_value(1, false)
-		box50cm_instance.set_collision_mask_value(2, true)
-
-@rpc("any_peer", "call_remote", "reliable")
-func spawn_box4m(spawn_position: Vector3 = Vector3.ZERO, spawn_rotation: Vector3 = Vector3.UP) -> void:
-	if not multiplayer.is_server():
-		return
-	
-	var box4m_instance: RigidBody3D = small_spawnable_props[3].instantiate()
-	
-	box4m_instance.spawn_position = spawn_position
-	box4m_instance.spawn_rotation = spawn_rotation
-	small_props_spawner_node.get_node(small_props_spawner_node.spawn_path).call_deferred("add_child", box4m_instance, true)
+	# specal case for box50cm
+	if proptype == "box50cm" and isInsideBox4m:
+		prop_instance.set_collision_layer_value(1, false)
+		prop_instance.set_collision_layer_value(2, true)
+		prop_instance.set_collision_mask_value(1, false)
+		prop_instance.set_collision_mask_value(2, true)
 
 @rpc("authority", "call_remote", "reliable")
 func spawn_planet(planet_datas: Dictionary) -> void:

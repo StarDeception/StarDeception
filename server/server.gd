@@ -28,13 +28,19 @@ var PlayersListCurrentlyInTransfert = {}
 var ChangingZone = false
 var TransferPlayers = false
 var PropsList = {
-	"box50cm": {}
+	"box50cm": {},
+	"box4m": {},
+	"ship": {},
 }
 var PropsListLastMovement = {
-	"box50cm": {}
+	"box50cm": {},
+	"box4m": {},
+	"ship": {},
 }
 var PropsListLastRotation = {
-	"box50cm": {}
+	"box50cm": {},
+	"box4m": {},
+	"ship": {},
 }
 
 var ServersTicksTasks = {
@@ -274,14 +280,15 @@ func _sendMetrics():
 		ServersTicksTasks.SendMetricsCurrent -= 1
 	else:
 		if NetworkOrchestrator.MetricsEnabled == true:
-			var data = JSON.stringify({
+			var allMetrics = {
 				"currentplayers": PlayersList.size(),
-				"currentbox50cm": PropsList.box50cm.size(),
 				"memory": Performance.get_monitor(Performance.MEMORY_STATIC),
 				"numberobjects": Performance.get_monitor(Performance.OBJECT_COUNT),
 				"timefps": Performance.get_monitor(Performance.TIME_FPS),
-			})
-			NetworkOrchestrator.MQTTClientMetrics.publish("metrics/server/" + NetworkOrchestrator.ServerName, data)
+			}
+			for proptype in PropsList.keys():
+				allMetrics["current" + proptype] = PropsList[proptype].size()
+			NetworkOrchestrator.MQTTClientMetrics.publish("metrics/server/" + NetworkOrchestrator.ServerName, JSON.stringify(allMetrics))
 		ServersTicksTasks.SendMetricsCurrent = ServersTicksTasks.SendMetricsReset
 
 
@@ -289,30 +296,30 @@ func _sendMetrics():
 # Props                 #
 
 func instantiate_props_remote_add(prop):
-	if prop.type == "box50cm":
-		_spawn_box50cm_remote_add(prop)
+	_spawn_prop_remote_add(prop)
 
 func instantiate_props_remote_update(prop):
-	if prop.type == "box50cm":
-		_spawn_box50cm_remote_update(prop)
+	_spawn_prop_remote_update(prop)
 
-func _spawn_box50cm_remote_add(prop):
-	print("Create prop: ", prop)
-	# add box
+func _spawn_prop_remote_add(prop):
+	# print("Create prop: ", prop)
+	# add prop
+	if not PropsList.has(prop.type):
+		return
 	var uuid = uuid_util.v4()
-	var box50cm_instance: RigidBody3D = NetworkOrchestrator.small_spawnable_props[2].instantiate()
-	NetworkOrchestrator.PropsList.box50cm[uuid] = box50cm_instance
-	box50cm_instance.spawn_position = Vector3(float(prop.x), float(prop.y), float(prop.z))
-	box50cm_instance.set_physics_process(false)
-	NetworkOrchestrator.small_props_spawner_node.get_node(NetworkOrchestrator.small_props_spawner_node.spawn_path).call_deferred("add_child", box50cm_instance, true)
-	NetworkOrchestrator.PropsList.box50cm[uuid] = box50cm_instance
+	var prop_instance: RigidBody3D = NetworkOrchestrator.get_spawnable_props_newinstance(prop.type)
+	NetworkOrchestrator.PropsList[prop.type][uuid] = prop_instance
+	prop_instance.spawn_position = Vector3(float(prop.x), float(prop.y), float(prop.z))
+	prop_instance.set_physics_process(false)
+	NetworkOrchestrator.small_props_spawner_node.get_node(NetworkOrchestrator.small_props_spawner_node.spawn_path).call_deferred("add_child", prop_instance, true)
+	NetworkOrchestrator.PropsList[prop.type][uuid] = prop_instance
 
-func _spawn_box50cm_remote_update(prop):
-	if not NetworkOrchestrator.PropsList.box50cm.has(prop.uuid):
+func _spawn_prop_remote_update(prop):
+	if not NetworkOrchestrator.PropsList[prop.type].has(prop.uuid):
 		return
 	# update the position
-	NetworkOrchestrator.PropsList.box50cm[prop.uuid].global_position = Vector3(float(prop.x), float(prop.y), float(prop.z))
-	NetworkOrchestrator.PropsList.box50cm[prop.uuid].global_rotation = Vector3(float(prop.xr), float(prop.yr), float(prop.zr))
+	NetworkOrchestrator.PropsList[prop.type][prop.uuid].global_position = Vector3(float(prop.x), float(prop.y), float(prop.z))
+	NetworkOrchestrator.PropsList[prop.type][prop.uuid].global_rotation = Vector3(float(prop.xr), float(prop.yr), float(prop.zr))
 
 func _send_props_to_sdo():
 	if ServersTicksTasks.SendPropsToMQTTCurrent > 0:
@@ -321,26 +328,27 @@ func _send_props_to_sdo():
 		var propsData = []
 		var position = Vector3(0.0, 0.0, 0.0)
 		var rotation = Vector3(0.0, 0.0, 0.0)
-		for puuid in PropsList.box50cm.keys():
-			position = PropsList.box50cm[puuid].global_position
-			rotation = PropsList.box50cm[puuid].global_rotation
-			if PropsListLastMovement.box50cm[puuid] != position or PropsListLastRotation.box50cm[puuid] != rotation:
-				propsData.append({
-					"type": "box50cm",
-					"uuid": puuid,
-					"x": position[0],
-					"y": position[1],
-					"z": position[2],
-					"xr": rotation[0],
-					"yr": rotation[1],
-					"zr": rotation[2]
-				})
-				PropsListLastMovement.box50cm[puuid] = position
-				PropsListLastRotation.box50cm[puuid] = rotation
-				# used for call save on persistance
-				if PropsList.box50cm[puuid].has_node("DataEntity"):
-					var dataentity = PropsList.box50cm[puuid].get_node("DataEntity")
-					dataentity.Backgroud_save()
+		for proptype in PropsList.keys():
+			for uuid in PropsList[proptype].keys():
+				position = PropsList[proptype][uuid].global_position
+				rotation = PropsList[proptype][uuid].global_rotation
+				if PropsListLastMovement[proptype][uuid] != position or PropsListLastRotation[proptype][uuid] != rotation:
+					propsData.append({
+						"type": proptype,
+						"uuid": uuid,
+						"x": position[0],
+						"y": position[1],
+						"z": position[2],
+						"xr": rotation[0],
+						"yr": rotation[1],
+						"zr": rotation[2]
+					})
+					PropsListLastMovement[proptype][uuid] = position
+					PropsListLastRotation[proptype][uuid] = rotation
+					# used for call save on persistance
+					if PropsList[proptype][uuid].has_node("DataEntity"):
+						var dataentity = PropsList[proptype][uuid].get_node("DataEntity")
+						dataentity.Backgroud_save()
 		if propsData.size() > 0:
 			NetworkOrchestrator.MQTTClientSDO.publish("sdo/propschanges", JSON.stringify({
 				"add": [],
