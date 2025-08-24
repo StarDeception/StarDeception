@@ -67,7 +67,7 @@ signal set_gameserver_numberPlayersUniverse(nbPlayers)
 signal set_gameserver_serverzone(serverzone)
 
 func _enter_tree() -> void:
-	loadServerConfig()
+	pass
 
 func create_server() -> void:
 	network_agent = load("res://server/server.tscn").instantiate()
