@@ -33,16 +33,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	
 	if not is_multiplayer_authority(): return
-	
-	if event.is_action_pressed("pause"):
-		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-		pause_mode = true
 		
-	if pause_mode and event is InputEventMouseButton:
-		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-		pause_mode = false
+	#if pause_mode and event is InputEventMouseButton:
+		#Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		#pause_mode = false
 	
-	if GlobalChat.is_shown: return
+	#if pilot.direct_chat.is_shown: return
 	
 	if Input.is_action_just_pressed("exit"):
 		pilot.emit_signal("client_action_requested", {"action": "release_control", "entity": "ship", "entity_node": self})
@@ -58,7 +54,7 @@ func steer_ship_mouse(dir: Vector2) -> void:
 func _process(delta: float) -> void:
 	if not is_multiplayer_authority(): return
 	
-	if GlobalChat.is_shown or MenuConfig.is_shown: return
+	if MenuConfig.is_shown: return
 	
 	if pilot:
 		active = true

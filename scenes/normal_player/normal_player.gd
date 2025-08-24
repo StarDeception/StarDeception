@@ -6,14 +6,14 @@ signal client_action_requested(datas: Dictionary)
 
 @onready var camera = $CameraPivot/Camera3D
 
-@onready var labelx: Label = $UserInterface/LabelXValue
-@onready var labely: Label = $UserInterface/LabelYValue
-@onready var labelz: Label = $UserInterface/LabelZValue
+@onready var labelx: Label = $UserInterface/Debug/LabelXValue
+@onready var labely: Label = $UserInterface/Debug/LabelYValue
+@onready var labelz: Label = $UserInterface/Debug/LabelZValue
 @onready var labelPlayerName: Label3D = %LabelPlayerName
 @onready var labelServerName: Label3D = %LabelServerName
 @onready var astronaut: Node3D = $Placeholder_Collider/Astronaut
 @onready var interact_ray: RayCast3D = $CameraPivot/Camera3D/InteractRay
-@onready var interact_label: Label = $UserInterface/InteractLabel
+@onready var interact_label: Label = $UserInterface/HUD/InteractLabel
 @onready var camera_pivot: Node3D = $CameraPivot
 
 @onready var direct_chat: DirectChat = $UserInterface/DirectChat
@@ -106,45 +106,36 @@ func connect_area_detect():
 func _unhandled_input(event: InputEvent) -> void:
 	if not is_multiplayer_authority(): return
 	if !active: return
+		
+	if event.is_action_pressed(JUMP) and is_on_floor():
+		is_jumping = true
 	
-	if not should_listen_input(): return
-
-	if GameOrchestrator.current_state != GameOrchestrator.GAME_STATES.PAUSE_MENU:
-		if event.is_action_pressed(PAUSE):
-			GameOrchestrator.change_game_state(GameOrchestrator.GAME_STATES.PAUSE_MENU)
+	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+		mouse_motion = -event.relative * 0.001
+	
+	if event.is_action_pressed("spawn_50cmbox"):
+		var box_spawn_position: Vector3 = global_position + (-global_basis.z * 1.5) + global_basis.y * 2.0
+		emit_signal("client_action_requested", {"action": "spawn", "entity": "box50cm", "spawn_position": box_spawn_position})
+	
+	if event.is_action_pressed("spawn_4mbox"):
+		var box_spawn_position: Vector3 = global_position + (-global_basis.z * 3.0) + global_basis.y * 6.0
 		
-		if event.is_action_pressed(JUMP) and is_on_floor():
-			is_jumping = true
+		var player_up = global_transform.basis.y.normalized()
+		var to_player = (global_transform.origin - box_spawn_position)
+		to_player -= to_player.dot(player_up) * player_up
+		to_player = to_player.normalized()
+		var box_basis: Basis = Basis.looking_at(to_player, player_up)
+		var box_spawn_rotation = box_basis.get_euler()
 		
-		if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-			mouse_motion = -event.relative * 0.001
-		
-		if event.is_action_pressed("spawn_50cmbox"):
-			var box_spawn_position: Vector3 = global_position + (-global_basis.z * 1.5) + global_basis.y * 2.0
-			emit_signal("client_action_requested", {"action": "spawn", "entity": "box50cm", "spawn_position": box_spawn_position})
-		
-		if event.is_action_pressed("spawn_4mbox"):
-			var box_spawn_position: Vector3 = global_position + (-global_basis.z * 3.0) + global_basis.y * 6.0
-			
-			var player_up = global_transform.basis.y.normalized()
-			var to_player = (global_transform.origin - box_spawn_position)
-			to_player -= to_player.dot(player_up) * player_up
-			to_player = to_player.normalized()
-			var box_basis: Basis = Basis.looking_at(to_player, player_up)
-			var box_spawn_rotation = box_basis.get_euler()
-			
-			emit_signal("client_action_requested", {"action": "spawn", "entity": "box4m", "spawn_position": box_spawn_position, "spawn_rotation": box_spawn_rotation})
-		
-		if Input.is_action_just_pressed("ext_cam"):
-			if $ExtCamera3D.current:
-				camera.make_current()
-				astronaut.visible = false
-			else: 
-				astronaut.visible = true
-				$ExtCamera3D.make_current()
-	else:
-		if event is InputEventMouseButton:
-			GameOrchestrator.change_game_state(GameOrchestrator.GAME_STATES.PLAYING)
+		emit_signal("client_action_requested", {"action": "spawn", "entity": "box4m", "spawn_position": box_spawn_position, "spawn_rotation": box_spawn_rotation})
+	
+	if Input.is_action_just_pressed("ext_cam"):
+		if $ExtCamera3D.current:
+			camera.make_current()
+			astronaut.visible = false
+		else: 
+			astronaut.visible = true
+			$ExtCamera3D.make_current()
 
 func _process(_delta: float) -> void:
 	if not is_multiplayer_authority(): return
@@ -152,35 +143,32 @@ func _process(_delta: float) -> void:
 		interact_label.hide()
 		return
 	
-	if GameOrchestrator.current_state != GameOrchestrator.GAME_STATES.PAUSE_MENU:
-		_handle_camera_motion()
-			
-		interact_label.hide()
-		can_interact = false
-		if interact_ray.is_colliding():
-			var collider = interact_ray.get_collider()
-			if collider.has_method("interact"):
-				interact_label.text = collider.label
-				interact_label.show()
-				can_interact = true
-				if Input.is_action_just_pressed("interact"):
-					collider.interact(self)
-					interact_label.hide()
+	_handle_camera_motion()
+		
+	interact_label.hide()
+	can_interact = false
+	if interact_ray.is_colliding():
+		var collider = interact_ray.get_collider()
+		if collider.has_method("interact"):
+			interact_label.text = collider.label
+			interact_label.show()
+			can_interact = true
+			if Input.is_action_just_pressed("interact"):
+				collider.interact(self)
+				interact_label.hide()
 
 func _physics_process(delta: float) -> void:
 	if not is_multiplayer_authority(): return
 	if !active: return
 	
 	var dir_vect = Vector3.ZERO
-	#var jump = null
 	var sprint = null
-	if GameOrchestrator.current_state != GameOrchestrator.GAME_STATES.PAUSE_MENU:
-		if not direct_chat.visible:
-			dir_vect = Input.get_vector(MOVE_LEFT, MOVE_RIGHT, MOVE_FORWARD, MOVE_BACK)
 	
+	if not direct_chat.can_write:
+		dir_vect = Input.get_vector(MOVE_LEFT, MOVE_RIGHT, MOVE_FORWARD, MOVE_BACK)
 		sprint = Input.is_action_pressed(SPRINT)
 	
-	if dir_vect and should_listen_input():
+	if dir_vect:
 		input_direction = dir_vect
 	else:
 		input_direction = Vector2.ZERO
@@ -220,7 +208,7 @@ func _physics_process(delta: float) -> void:
 	var speed = sprint_speed if sprint else walk_speed
 	
 	if is_on_floor():
-		if input_direction and should_listen_input():
+		if input_direction:
 			velocity = move_direction * speed
 		else:
 			velocity = velocity.move_toward(Vector3.ZERO, speed)
@@ -229,7 +217,7 @@ func _physics_process(delta: float) -> void:
 		if input_direction:
 			velocity += move_direction * speed * delta
 			
-	if is_on_floor() and is_jumping and should_listen_input():
+	if is_on_floor() and is_jumping:
 		velocity += up_direction * jump_height * gravity
 		is_jumping = false
 	# Add the gravity.
@@ -243,7 +231,7 @@ func _physics_process(delta: float) -> void:
 	labelz.text = str("%0.2f" % global_position[2])
 
 func should_listen_input() -> bool:
-	return not (GlobalChat.is_shown || MenuConfig.is_shown)
+	return not (direct_chat.is_shown || MenuConfig.is_shown)
 
 func _handle_camera_motion():
 	if gravity == 0:

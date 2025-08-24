@@ -7,7 +7,8 @@ signal send_message
 @export var input_field: LineEdit
 @export var output_field: RichTextLabel
 #@export var channel_selector: OptionButton
-static var is_shown := false
+static var is_shown: bool = false
+var can_write: bool = false
 var loggin := "all"
 
 # List for storing messages
@@ -40,7 +41,6 @@ func _enter_tree() -> void:
 func _ready():
 	visible = false
 	is_shown = visible
-	input_field.grab_focus()
 
 	# Adding different channels to the selector
 	for channel_name in ChannelE.keys():
@@ -49,8 +49,7 @@ func _ready():
 	channel_selector.selected = 0
 
 func _on_visibility_changed() -> void:
-	if visible:
-		input_field.grab_focus()
+	pass
 
 func _on_input_text_text_submitted(message: String) -> void:
 	if message.strip_edges() == "":
@@ -61,21 +60,40 @@ func _on_input_text_text_submitted(message: String) -> void:
 	#send_message_to_server(nt)
 	input_field.text = ""
 
-# Prevents keyboard input from being sent to the game if the chat is visible
 func _unhandled_input(event):
 	if not is_multiplayer_authority(): return
 	
-	if Input.is_action_just_pressed("toggle_chat"):
-		visible = not visible
-		if visible:
-			Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
-		else:
-			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	if is_shown:
+		if event.is_action_pressed("toggle_chat"):
+			visible = false
+			is_shown = false
+			mouse_filter = Control.MOUSE_FILTER_IGNORE
 		
-		get_viewport().set_input_as_handled()
-	
-	if event is InputEventKey:
-		if visible:
+		if event.is_action_pressed("pause"):
+			GameOrchestrator.change_game_state(GameOrchestrator.GAME_STATES.PAUSE_MENU)
+		
+		if not can_write:
+			if event.is_action_pressed("write_in_chat"):
+				can_write = true
+				Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+				input_field.grab_focus()
+		else:
+			if event.is_action_pressed("write_in_chat"):
+				input_field.release_focus()
+				can_write = false
+				Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+			
+			if event is InputEventMouseButton:
+				Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+				input_field.release_focus()
+				can_write = false
+			
+			get_viewport().set_input_as_handled()
+	else:
+		if event.is_action_pressed("toggle_chat"):
+			visible = true
+			is_shown = true
+			mouse_filter = Control.MOUSE_FILTER_STOP
 			get_viewport().set_input_as_handled()
 
 # Receives a message from the server

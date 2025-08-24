@@ -54,8 +54,8 @@ func _enter_tree() -> void:
 
 func _ready():
 	pass
-	# if ResourceUID.id_to_text(ResourceLoader.get_resource_uid(get_tree().current_scene.scene_file_path)) != ProjectSettings.get_setting("application/run/main_scene") and not OS.has_feature("dedicated_server"):
-	# 	return
+	#if ResourceUID.id_to_text(ResourceLoader.get_resource_uid(get_tree().current_scene.scene_file_path)) != ProjectSettings.get_setting("application/run/main_scene") and not OS.has_feature("dedicated_server"):
+		#return
 	
 	get_tree().connect("scene_changed",_on_scene_changed)
 	
