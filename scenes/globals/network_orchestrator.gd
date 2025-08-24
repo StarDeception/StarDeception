@@ -132,7 +132,7 @@ func loadServerConfig():
 	ServerMQTTPasword = config.get_value("chat", "password")
 	ServerMQTTVerboseLevel = config.get_value("chat", "verbose_level")
 	# Load metric config
-	MetricsEnabled = config.get_value("enabled", "url")
+	MetricsEnabled = config.get_value("metrics", "enabled")
 	MetricsUrl = config.get_value("metrics", "url")
 	MetricsPort = config.get_value("metrics", "port")
 	MetricsUsername = config.get_value("metrics", "username")
