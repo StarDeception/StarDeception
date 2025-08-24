@@ -702,15 +702,19 @@ func get_spawnable_props_newinstance(proptype):
 			return null
 
 @rpc("any_peer", "call_remote", "reliable")
-func spawn_prop(proptype, spawn_position: Vector3 = Vector3.ZERO, spawn_rotation: Vector3 = Vector3.UP) -> void:
+func spawn_prop(proptype,data: Dictionary ) -> void: #spawn_position: Vector3 = Vector3.ZERO, spawn_rotation: Vector3 = Vector3.UP) -> void:
 	if not multiplayer.is_server():
 		return
-	
 	var prop_instance: RigidBody3D = get_spawnable_props_newinstance(proptype)
 	if prop_instance == null:
 		print("ERROR! instance of prop " + proptype + "not found")
-	
+	var spawn_position = Vector3(data["x"],data["y"],data["z"])
+	var spawn_rotation = Vector3(data["rx"],data["ry"],data["rz"])
 	prop_instance.spawn_position = spawn_position
+	if data.has("uid"):
+		if prop_instance.has_node("DataEntity"):
+			prop_instance.get_node("DataEntity").load_obj(data)
+		
 	var uuid = uuid_util.v4()
 	small_props_spawner_node.get_node(small_props_spawner_node.spawn_path).call_deferred("add_child", prop_instance, true)
 	network_agent.PropsList[proptype][uuid] = prop_instance

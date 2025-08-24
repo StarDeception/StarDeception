@@ -4,7 +4,7 @@
 [ext_resource type="Shape3D" uid="uid://w1svqnr3n3nh" path="res://scenes/planet/planet_collision.shape" id="1_lxi01"]
 [ext_resource type="Material" uid="uid://brpu7xylrg2l2" path="res://assets/materials/material_basic_blue.tres" id="1_q7o7h"]
 [ext_resource type="Script" uid="uid://2e1cf4ehx8s5" path="res://scenes/grid/grid.gd" id="2_c1vqx"]
-[ext_resource type="Script" uid="uid://cj5kd1hkfvjrg" path="res://server/persistance_manager/DataPlanete.gd" id="4_2pfeq"]
+[ext_resource type="Script" uid="uid://cj5kd1hkfvjrg" path="res://server/persistance_manager/DataPlanet.gd" id="4_2pfeq"]
 [ext_resource type="Script" uid="uid://7pymoxifok1q" path="res://tools/spawn_points/player_spawn_points_list.gd" id="5_6x306"]
 [ext_resource type="PackedScene" uid="uid://dtcsox8hfg83s" path="res://assets/models/spawn_kiosk/spawn_kiosk.tscn" id="5_mv8ka"]
 [ext_resource type="Script" uid="uid://3b53gu5cyf58" path="res://tools/spawn_points/player_spawn_point.gd" id="6_mv8ka"]
@@ -82,6 +82,6 @@ gizmo_extents = 2.5
 script = ExtResource("6_mv8ka")
 metadata/_custom_type_script = "uid://3b53gu5cyf58"
 
-[node name="DataPlanete" type="Node" parent="."]
+[node name="DataPlanet" type="Node" parent="."]
 script = ExtResource("4_2pfeq")
 metadata/_custom_type_script = "uid://cj5kd1hkfvjrg"

@@ -1,6 +1,9 @@
 extends RigidBody3D
 
+class_name box4m
 @export var inside_space: World3D
+
+var type_name = "box4m"
 
 var spawn_position: Vector3 = Vector3.ZERO
 var spawn_rotation: Vector3 = Vector3.UP

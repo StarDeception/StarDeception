@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://cptjp55tlikyl"]
+[gd_scene load_steps=9 format=3 uid="uid://cptjp55tlikyl"]
 
 [ext_resource type="ArrayMesh" uid="uid://jg1qr0355r1d" path="res://assets/models/Testbox/Box4m.mesh" id="1_82nol"]
 [ext_resource type="Script" uid="uid://d01f76c0qpc0d" path="res://scenes/props/testbox/box_4m.gd" id="1_ealuu"]

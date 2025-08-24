@@ -105,10 +105,10 @@ public partial class PersistanceManager : Node
             var config = new BatchMutationConfig
             {
                 InitialBatchSize = 200,
-                MinBatchSize = 50,
+                MinBatchSize = 20,
                 MaxBatchSize = 1000,
                 MaxRetries = 3,
-                FlushInterval = TimeSpan.FromSeconds(10)
+                FlushInterval = TimeSpan.FromSeconds(5)
             };
 
             _batchManager = new BatchOperationManager(
