@@ -65,6 +65,9 @@ size_flags_vertical = 10
 theme_override_colors/font_placeholder_color = Color(1, 0, 0, 1)
 theme_override_font_sizes/font_size = 24
 placeholder_text = "NICKNAME"
+max_length = 32
+context_menu_enabled = false
+drag_and_drop_selection_enabled = false
 
 [node name="ButtonContainer" type="HBoxContainer" parent="FormPlacer/FormContainer"]
 clip_contents = true
