@@ -183,6 +183,7 @@ func _send_players_to_sdo():
 				if not PlayersListCurrentlyInTransfert.has(puuid):
 					# only the players of this server and not in transfert
 					playersData.append({
+						"name": PlayersList[puuid].name,
 						"client_uuid": puuid,
 						"x": position[0],
 						"y": position[1],
@@ -252,7 +253,7 @@ func _searchAnotherServerForCoordinates(x, y, z):
 
 # Instantiate remote server player, need to be visible for players on this server
 func instantiate_player_remote(player, set_player_position = false, server_id = null):
-	var playername = ""
+	var playername = "Pigeon with no name"
 	if player.has("name"):
 		playername = player.name
 	var spawn_position: Vector3 = Vector3.ZERO
@@ -360,3 +361,21 @@ func _send_props_to_sdo():
 				"server_id": NetworkOrchestrator.ServerSDOId,
 			}))
 		ServersTicksTasks.SendPropsToMQTTCurrent = ServersTicksTasks.SendPropsToMQTTReset
+
+func set_server_inactive(_newserverId):
+	print("# Disable the server")
+	NetworkOrchestrator.isSDOActive = false
+	# TODO send props to new server id
+	# unload all
+	print("Clean items")
+	for uuid in NetworkOrchestrator.PlayersList.keys():
+		NetworkOrchestrator.PlayersList[uuid].queue_free()
+		NetworkOrchestrator.PlayersList.erase(uuid)
+	for proptype in NetworkOrchestrator.PropsList.keys():
+		for uuid in NetworkOrchestrator.PropsList[proptype].keys():
+			NetworkOrchestrator.PropsList[proptype][uuid].queue_free()
+			NetworkOrchestrator.PropsList[proptype].erase(uuid)
+	for proptype in PropsList.keys():
+		for uuid in PropsList[proptype].keys():
+			PropsList[proptype][uuid].queue_free()
+			PropsList[proptype].erase(uuid)

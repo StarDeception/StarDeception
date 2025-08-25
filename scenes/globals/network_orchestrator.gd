@@ -52,7 +52,9 @@ var ServerSDOId = 0
 var PlayersList = {}
 var ServersList = {}
 var PropsList = {
-	"box50cm": {}
+	"box50cm": {},
+	"box4m": {},
+	"ship": {}
 }
 
 var ClientChangeServer = null
@@ -297,6 +299,7 @@ func _on_mqtt_sdo_received_message(topic, message):
 		#	"y_end": "",
 		#	"z_start": "",
 		#	"z_end": "",
+		#	"to_split_server_id": null|65
 		#	"to_merge_server_id": null|65
 		#}]
 		var serversList = JSON.parse_string(message)
@@ -375,6 +378,8 @@ func _on_mqtt_sdo_received_message(topic, message):
 					pushPlayers = true
 					# we pause 2 seconds, time needed for the server load data and players
 					await get_tree().create_timer(2).timeout
+				if server.to_merge_server_id != null:
+					network_agent.set_server_inactive(int(server.to_merge_server_id))
 
 				network_agent.ServerZone.x_start = server.x_start
 				network_agent.ServerZone.x_end = server.x_end
@@ -617,6 +622,7 @@ func _create_local_player_come_from_another_server(uuid, playerName, id):
 	var playersData = []
 	var data = ""
 	playersData.append({
+		"name": playerName,
 		"client_uuid": uuid,
 		"x": playerposition[0],
 		"y": playerposition[1],
