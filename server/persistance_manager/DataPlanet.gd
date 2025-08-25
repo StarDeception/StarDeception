@@ -60,7 +60,7 @@ func _check_planete(result: String):
 func query_child_data():
 	print("🚀 Query Get child !")
 	print(NetworkOrchestrator.ServerSDOId)
-	if NetworkOrchestrator.ServerSDOId == 1 || true:
+	if NetworkOrchestrator.ServerSDOId == 1:
 		PersitDataBridge.execute_custom_query('''
 		{
 		  entity(func: uid({0})) {

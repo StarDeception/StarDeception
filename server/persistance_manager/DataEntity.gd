@@ -93,13 +93,11 @@ func initialize_and_save():
 	last_saved_position = parent.position
 	last_saved_rotation = parent.rotation
 	saved()
-	start_loop()
 
 func load_obj(data: Dictionary):
 	print("load Data Object")
 	is_new_object = false
 	deserialize(data)
-	start_loop()
 	#PersitDataBridge.execute_custom_query('''
 	#{
 	#  entity(func: uid({0})) {
@@ -121,7 +119,6 @@ func loaded(result: String):
 	var parsed = JSON.parse_string(result)
 	if parsed != null:
 		deserialize(parsed["entity"][0])
-		#start_loop()
 
 func check_parent():
 	parent = get_parent()
