@@ -193,6 +193,7 @@ locale/translations=PackedStringArray("res://tools/localization/localisation.en.
 
 [physics]
 
+common/physics_ticks_per_second=30
 3d/physics_engine="Jolt Physics"
 3d/default_gravity=0.0
 
