@@ -113,6 +113,7 @@ func start_client(changed_scene, ip = "127.0.0.1", port = 7051, serverChanges: b
 
 		preload_small_props(small_props_spawner_node)
 		small_spawnable_props_entry_point = small_props_spawner_node.get_node(small_props_spawner_node.get_spawn_path())
+	
 	network_agent.start_client(changed_scene, ip, port)
 	return network_agent
 
@@ -898,4 +899,4 @@ func _client_disconnected_server():
 		# client_peer.create_client(ClientChangeServer[0], int(ClientChangeServer[1]))
 		# multiplayer.multiplayer_peer = client_peer
 	else:
-		ErrorManager.show_message()
+		GameOrchestrator.change_game_state(GameOrchestrator.GAME_STATES.CONNEXION_ERROR)
