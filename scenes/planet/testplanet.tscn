@@ -239,15 +239,11 @@ noise = SubResource("FastNoiseLite_83pno")
 [node name="RockSpawner" parent="PlanetTerrain" node_paths=PackedStringArray("planet_terrain", "debugmesh") instance=ExtResource("9_642k6")]
 transform = Transform3D(0.904889, 0, 0.425651, 0, 1, 0, -0.425651, 0, 0.904889, 0, 0, 0)
 planet_terrain = NodePath("..")
-max_rock_cell = 10
-chunk_radius = 1
-cell_size = 300.0
-spawn_distance = 1200
 asset_scene = ExtResource("10_qugoe")
 debugmesh = NodePath("debug")
 
 [node name="debug" type="MeshInstance3D" parent="PlanetTerrain/RockSpawner"]
-transform = Transform3D(1, 0, 9.99201e-16, 0, 1, 0, -9.99201e-16, 0, 1, 956.013, 10655.2, 113.268)
+transform = Transform3D(1, 0, 9.99201e-16, 0, 1, 0, -9.99201e-16, 0, 1, 6547.18, 8276.5, 1502.76)
 visible = false
 mesh = SubResource("SphereMesh_qugoe")
 surface_material_override/0 = SubResource("StandardMaterial3D_642k6")

@@ -123,13 +123,12 @@ func visualize_quadtree(chunk: QuadtreeChunk):
 		if chunks_generating.has(chunk.identifier):
 			return
 		
-		var chunk_skirt := skirt_indices if chunk.depth < max_chunk_depth else 0
 		
 		var chunk_res = 0 if run_serverside and chunk.depth < max_chunk_depth - 1 else chunk_resolution
 		
 		var size := chunk.bounds.size.x
 		var offset := chunk.bounds.position
-		var resolution: int = chunk_resolution + chunk_skirt
+		var resolution: int = chunk_resolution + skirt_indices
 		
 		if at_col_depth:
 			resolution -= 20
@@ -138,6 +137,7 @@ func visualize_quadtree(chunk: QuadtreeChunk):
 		var vertex_array := PackedVector3Array()
 		var normal_array := PackedVector3Array()
 		var index_array := PackedInt32Array()
+
 
 		# Pre-allocate indices (we know exact count)
 		var num_cells := (resolution - 1)
@@ -152,13 +152,17 @@ func visualize_quadtree(chunk: QuadtreeChunk):
 		var tri_idx: int = 0
 		for y in range(resolution):
 			for x in range(resolution):
+				var edge = (x == 0 or x == resolution - 1 or y == 0 or y == resolution - 1)
 				var i := x + y * resolution
-				var percent := Vector2(x, y) / float(resolution - chunk_skirt - 1)
+				var percent := Vector2(x, y) / float(resolution - skirt_indices - 1)
 				var local := Vector2(offset.x, offset.z) + percent * size
 				var point_on_plane = normal + local.x * axisA + local.y * axisB
+				
 				# Project onto sphere and apply height
 				var sphere_pos := planet.get_height(point_on_plane.normalized())
-				var lod_offset := Vector3.ZERO #point_on_plane.normalized() * ((max_chunk_depth - chunk.depth) * 2)
+				
+				# calculate offset to lower the vertices that are on the edge of the chunk
+				var lod_offset := point_on_plane.normalized() * 0.01 if edge else Vector3.ZERO
 				vertex_array[i] = sphere_pos - chunk_global_pos - lod_offset
 				normal_array[i] = Vector3.ZERO
 
@@ -192,10 +196,11 @@ func visualize_quadtree(chunk: QuadtreeChunk):
 			normal_array[a] += face_normal
 			normal_array[b] += face_normal
 			normal_array[c] += face_normal
+			
 		# Normalize vertex normals
 		for i in range(normal_array.size()):
 			normal_array[i] = normal_array[i].normalized()
-
+		
 		# Prepare mesh arrays
 		var arrays = []
 		arrays.resize(Mesh.ARRAY_MAX)
@@ -386,7 +391,9 @@ func update_chunks():
 	chunks_list_current = {}
 
 	# Create a visual representation
+	var t = Time.get_ticks_msec()
 	visualize_quadtree(quadtree)
+	#prints(quadtree, "quadtree visualize took: ", Time.get_ticks_msec() - t, "ms")
 	#prints("deleting chunk", chunks_list_current)
 
 	#remove any old unused chunks
