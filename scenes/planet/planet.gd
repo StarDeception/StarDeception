@@ -29,6 +29,7 @@ var lod_levels: Array[Dictionary]
 @onready var occluder_instance_3d: OccluderInstance3D = $OccluderInstance3D
 
 var focus_positions = []
+var players_ids = []
 
 signal regenerate()
 
@@ -88,18 +89,21 @@ func _process(delta: float) -> void:
 	var camera: Camera3D
 	if Engine.is_editor_hint():
 		camera = EditorInterface.get_editor_viewport_3d(0).get_camera_3d()
+		players_ids = [1]
 		focus_positions = [camera.global_position + -camera.global_basis.z * 1]
 		return
 	
 	if multiplayer.is_server():
 		focus_positions = []
+		players_ids = []
 		for player: Player in get_tree().get_nodes_in_group("player"):
 			focus_positions.push_back(player.global_position)
-			
+			players_ids.push_back(player.name.to_int())
 		return
 	
 	camera = get_viewport().get_camera_3d()
 	if camera:
+		players_ids = [multiplayer.get_unique_id()]
 		focus_positions = [camera.global_position + -camera.global_basis.z * 1]
 
 func trigger_update():

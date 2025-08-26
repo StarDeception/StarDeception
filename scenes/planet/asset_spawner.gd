@@ -4,15 +4,21 @@ extends Node3D
 
 @export var planet_terrain: PlanetTerrain
 @export var min_rock_cell = 3
-@export var max_rock_cell = 7
-@export_range(0.1, 10, 0.01) var cell_size = 1.0
-@export var spawn_distance = 300
+@export var max_rock_cell = 10
+@export var chunk_radius = 1
+@export var cell_size = 300.0
+@export var spawn_distance = 1200
 @export var asset_scene: PackedScene
+
+@export var debugmesh: MeshInstance3D
 
 var rnd := RandomNumberGenerator.new()
 
 var planet: Planet
-var chunks: Dictionary[String, Node3D]
+
+var player_chunks: Dictionary[int, Array]
+var loaded_cells: Dictionary[Vector3i, Array]
+var last_cell: Vector2i
 
 var focus_positions_last = []
 
@@ -32,27 +38,46 @@ func _process(delta: float) -> void:
 	var positions = get_local_focus_positions()
 	if not positions_changed(positions): return
 	focus_positions_last = positions
-
-	for asset: Node3D in get_children():
-		if not any_near(asset.global_position, spawn_distance):
-			asset.queue_free()
-			chunks.erase(asset.name)
-				
 	
-	for pos: Vector3 in planet_terrain.focus_positions:
+	for i in planet_terrain.players_ids.size():
+		var player_id = planet_terrain.players_ids[i]
+		var pos: Vector3 = planet_terrain.focus_positions[i]
 		if pos.distance_to(planet_terrain.global_position) < (spawn_distance + planet_terrain.radius):
 			var local_pos = planet_terrain.to_local(pos)
-			#print(rounded_pos)
-			spawn(local_pos)
+			var cell := get_cell_from_position(local_pos, cell_size)
+			
+			var needed_cells = []
+			for dx in range(-chunk_radius, chunk_radius + 1):
+				for dy in range(-chunk_radius, chunk_radius + 1):
+					for dz in range(-chunk_radius, chunk_radius + 1):
+						needed_cells.push_back(cell + Vector3i(dx, dy, dz))
+			
+			player_chunks[player_id] = needed_cells
+	
+	update_world_chunks()
 
-func any_near(target_pos: Vector3, distance: float) -> bool:
-	var near = false
-	for pos: Vector3 in planet_terrain.focus_positions:
-		if pos.distance_to(target_pos) < 300:
-			near = true
+func update_world_chunks():
+	var needed_chunks = {}
+	for chunks in player_chunks.values():
+		for cell in chunks:
+			needed_chunks[cell] = true
+
+	# Spawn new ones
+	for cell in needed_chunks.keys():
+		if not loaded_cells.has(cell):
+			spawn_cell(cell)
+
+	# Despawn if nobody needs it
+	for cell in loaded_cells.keys():
+		if not needed_chunks.has(cell):
+			despawn_chunk(cell)
+
+
+func despawn_chunk(cell):
+	for asset in loaded_cells[cell]:
+		asset.queue_free()
 	
-	return near
-	
+	loaded_cells.erase(cell)
 
 func positions_changed(positions: Array) -> bool:
 	if positions.size() != focus_positions_last.size():
@@ -65,50 +90,42 @@ func positions_changed(positions: Array) -> bool:
 	
 	return false
 
-func get_cell_from_position(pos: Vector3, cell_size_deg: float) -> Vector2i:
+func spawn_cell(cell: Vector3i):
+	loaded_cells[cell] = generate_asset_in_cell(cell, rnd, cell_size)
+
+func get_cell_from_position(pos: Vector3, cell_size_deg: float) -> Vector3i:
 	var dir = pos.normalized()
-	var lat = asin(dir.y) * 180.0 / PI
-	var lon = atan2(dir.x, dir.z) * 180.0 / PI
-	return Vector2i(int(lon / cell_size_deg), int(lat / cell_size_deg))
+	var scaled = pos / cell_size_deg
+	return Vector3i(scaled)
 
-func get_seed_from_cell(cell_coords: Vector2i) -> int:
-	return int(cell_coords.x * 73856093 ^ cell_coords.y * 19349663)
+func get_seed_from_cell(cell_coords: Vector3i) -> int:
+	return int(cell_coords.x * 73856093 ^ cell_coords.y * 19349663 ^ cell_coords.z * 83492791)
 
-func generate_rocks_in_cell(cell: Vector2i, planet_radius: float, rng: RandomNumberGenerator, cell_size_deg: float):
+func generate_asset_in_cell(cell: Vector3i, rng: RandomNumberGenerator, cell_size_deg: float):
 	var seed = get_seed_from_cell(cell)
 	rng.seed = seed
 	
+	debugmesh.global_position = planet_terrain.to_global(planet_terrain.get_height(Vector3(cell + Vector3i.ONE).normalized()))
+	
 	var count = rng.randi_range(min_rock_cell, max_rock_cell) # Number of rocks in this cell
+	var nodes = []
 	for i in count:
-		var key = str(seed) + "_" + str(i)
-		if key in chunks:
-			continue
 		
-		var lat = (cell.y + rng.randf()) * cell_size_deg
-		var lon = (cell.x + rng.randf()) * cell_size_deg
-
-		# Convert spherical coords back to 3D
-		var x = cos(deg_to_rad(lat)) * sin(deg_to_rad(lon))
-		var y = sin(deg_to_rad(lat))
-		var z = cos(deg_to_rad(lat)) * cos(deg_to_rad(lon))
+		var x = (cell.x + rng.randf()) * cell_size_deg / 2
+		var y = (cell.y + rng.randf()) * cell_size_deg / 2
+		var z = (cell.z + rng.randf()) * cell_size_deg / 2
 
 		var dir = Vector3(x, y, z).normalized()
 		var pos = planet_terrain.get_height(dir)
-		
 		var asset = asset_scene.instantiate()
-		asset.name = key
 		add_child(asset, true)
-		asset.global_position = planet_terrain.transform * pos
+		asset.global_position = planet_terrain.to_global(pos)
 		
 		asset.rotation = Vector3(
 			rng.randf(),
 			rng.randf(),
 			rng.randf()
 		)
+		nodes.push_back(asset)
 		
-		chunks[key] = asset
-
-
-func spawn(pos: Vector3):
-	var cell = get_cell_from_position(pos, cell_size)
-	generate_rocks_in_cell(cell, 1, rnd, cell_size)
+	return nodes

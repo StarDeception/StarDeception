@@ -37,15 +37,30 @@ directional_shadow_max_distance = 300.0
 environment = SubResource("Environment_jp7ei")
 
 [node name="Planet" parent="." node_paths=PackedStringArray("sun") instance=ExtResource("2_jp7ei")]
+transform = Transform3D(0.947177, 0, 0.320712, 0, 1, 0, -0.320712, 0, 0.947177, 3e+07, 0, 0)
 sun = NodePath("../DirectionalLight3D")
 
 [node name="PlanetTerrain" parent="Planet" index="3"]
 transform = Transform3D(0.00882487, 0, 0.999961, 0, 1, 0, -0.999961, 0, 0.00882487, 0, 0, 0)
 
-[node name="ChrisR_01" parent="Planet/PlanetTerrain" index="0" instance=ExtResource("4_0y0hx")]
+[node name="Planet2" parent="Planet/PlanetTerrain" index="0" node_paths=PackedStringArray("sun") instance=ExtResource("2_jp7ei")]
+transform = Transform3D(0.00882487, 0, -0.999961, 0, 1, 0, 0.999961, 0, 0.00882487, -4935.32, 0, -26894)
+sun = NodePath("../../../DirectionalLight3D")
+
+[node name="PlanetTerrain" parent="Planet/PlanetTerrain/Planet2" index="3"]
+transform = Transform3D(0.00882487, 0, 0.999961, 0, 1, 0, -0.999961, 0, 0.00882487, 0, 0, 0)
+
+[node name="ChrisR_01" parent="Planet/PlanetTerrain/Planet2/PlanetTerrain" index="0" instance=ExtResource("4_0y0hx")]
 transform = Transform3D(-0.97969, -0.135679, -0.147652, -0.136974, 0.990574, -0.0014107, 0.146451, 0.0188424, -0.989038, 71260, 501063, 23224.2)
 
-[node name="PlayerSpawnPointsList" type="Node3D" parent="Planet/PlanetTerrain" index="9"]
+[node name="Atmosphere" parent="Planet/PlanetTerrain/Planet2" index="4" node_paths=PackedStringArray("sun_object")]
+transform = Transform3D(-0.322152, 0.000734965, -0.946687, 0, 0.999999, 0.000776354, 0.946688, 0.000250104, -0.322151, 0, 0, 0)
+sun_object = NodePath("../../../../DirectionalLight3D")
+
+[node name="ChrisR_01" parent="Planet/PlanetTerrain" index="1" instance=ExtResource("4_0y0hx")]
+transform = Transform3D(-0.97969, -0.135679, -0.147652, -0.136974, 0.990574, -0.0014107, 0.146451, 0.0188424, -0.989038, 71260, 501063, 23224.2)
+
+[node name="PlayerSpawnPointsList" type="Node3D" parent="Planet/PlanetTerrain" index="10"]
 transform = Transform3D(0.996346, 0, -0.085417, 0, 1, 0, 0.085417, 0, 0.996346, 0, 0, 0)
 
 [node name="PlayerSpawnPoint01" type="Marker3D" parent="Planet/PlanetTerrain/PlayerSpawnPointsList"]

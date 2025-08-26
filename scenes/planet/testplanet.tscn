@@ -1,4 +1,4 @@
-[gd_scene load_steps=35 format=3 uid="uid://rv6ugxi8n8pe"]
+[gd_scene load_steps=37 format=3 uid="uid://rv6ugxi8n8pe"]
 
 [ext_resource type="Script" uid="uid://bbnhmkthrguhh" path="res://scenes/planet/testplanet.gd" id="1_83pno"]
 [ext_resource type="Shape3D" uid="uid://w1svqnr3n3nh" path="res://scenes/planet/planet_collision.shape" id="1_lxi01"]
@@ -83,6 +83,15 @@ domain_warp_enabled = true
 domain_warp_amplitude = 3.0
 domain_warp_frequency = 0.003
 
+[sub_resource type="SphereMesh" id="SphereMesh_qugoe"]
+radius = 200.0
+height = 400.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_642k6"]
+render_priority = 4
+no_depth_test = true
+shading_mode = 0
+
 [sub_resource type="Gradient" id="Gradient_ge052"]
 offsets = PackedFloat32Array(0.503401, 0.57483)
 colors = PackedColorArray(0.0873382, 1.82897e-06, 0.450119, 1, 0, 0.791469, 0.587378, 1)
@@ -151,6 +160,7 @@ flip_faces = true
 size = Vector3(24780, 24780, 24780)
 
 [node name="Planet" type="Node3D"]
+transform = Transform3D(0.947177, 0, 0.320712, 0, 1, 0, -0.320712, 0, 0.947177, 0, 0, 0)
 script = ExtResource("1_83pno")
 planet_settings = SubResource("Resource_642k6")
 
@@ -220,20 +230,27 @@ mesh = SubResource("SphereMesh_642k6")
 skeleton = NodePath("../PlanetTerrain")
 
 [node name="PlanetTerrain" parent="." instance=ExtResource("4_2pfeq")]
-transform = Transform3D(0.724594, 0, -0.689173, 0, 1, 0, 0.689173, 0, 0.724594, 0, 0, 0)
+transform = Transform3D(0.999472, 0, -0.0324195, 0, 1, 0, 0.0324195, 0, 0.999472, 0, 0, 0)
 radius = 10000
 min_height = 3300.24
 noise_scale = 5.0
 noise = SubResource("FastNoiseLite_83pno")
 
-[node name="RockSpawner" parent="PlanetTerrain" node_paths=PackedStringArray("planet_terrain") instance=ExtResource("9_642k6")]
+[node name="RockSpawner" parent="PlanetTerrain" node_paths=PackedStringArray("planet_terrain", "debugmesh") instance=ExtResource("9_642k6")]
 transform = Transform3D(0.904889, 0, 0.425651, 0, 1, 0, -0.425651, 0, 0.904889, 0, 0, 0)
 planet_terrain = NodePath("..")
-min_rock_cell = 150
-max_rock_cell = 200
-cell_size = 5.0
+max_rock_cell = 10
+chunk_radius = 1
+cell_size = 300.0
 spawn_distance = 1200
 asset_scene = ExtResource("10_qugoe")
+debugmesh = NodePath("debug")
+
+[node name="debug" type="MeshInstance3D" parent="PlanetTerrain/RockSpawner"]
+transform = Transform3D(1, 0, 9.99201e-16, 0, 1, 0, -9.99201e-16, 0, 1, 956.013, 10655.2, 113.268)
+visible = false
+mesh = SubResource("SphereMesh_qugoe")
+surface_material_override/0 = SubResource("StandardMaterial3D_642k6")
 
 [node name="Atmosphere" parent="." instance=ExtResource("6_mv8ka")]
 transform = Transform3D(1, 0, 0, 0, -0.77332, 0.634015, 0, -0.634015, -0.77332, 0, 0, 0)
