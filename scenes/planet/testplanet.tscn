@@ -243,7 +243,7 @@ asset_scene = ExtResource("10_qugoe")
 debugmesh = NodePath("debug")
 
 [node name="debug" type="MeshInstance3D" parent="PlanetTerrain/RockSpawner"]
-transform = Transform3D(1, 0, 9.99201e-16, 0, 1, 0, -9.99201e-16, 0, 1, 6547.18, 8276.5, 1502.76)
+transform = Transform3D(1, 0, 9.99201e-16, 0, 1, 0, -9.99201e-16, 0, 1, 5768.65, 8818.15, 1770.45)
 visible = false
 mesh = SubResource("SphereMesh_qugoe")
 surface_material_override/0 = SubResource("StandardMaterial3D_642k6")

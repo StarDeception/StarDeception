@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://drqxadtx316hs"]
+[gd_scene load_steps=11 format=3 uid="uid://drqxadtx316hs"]
 
 [ext_resource type="Script" uid="uid://cj5kd1hkfvjrg" path="res://server/persistance_manager/DataPlanet.gd" id="4_88c12"]
 
@@ -7,6 +7,8 @@
 [ext_resource type="PackedScene" uid="uid://cpju4tbxmjpwc" path="res://ui/global_chat/global_chat.tscn" id="3_6wdpo"]
 [ext_resource type="PackedScene" uid="uid://bmk1yx4q5cewg" path="res://assets/models/CommemorativeBust/commemorativebust.res" id="4_0y0hx"]
 [ext_resource type="Script" uid="uid://3b53gu5cyf58" path="res://tools/spawn_points/player_spawn_point.gd" id="5_0y0hx"]
+[ext_resource type="PackedScene" uid="uid://vsepjo7bgp7v" path="res://scenes/star/star.tscn" id="6_0y0hx"]
+[ext_resource type="PackedScene" uid="uid://50boh4okyk04" path="res://ui/loading_screen/loading_screen.tscn" id="7_ma7oa"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_swxq8"]
 sky_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
@@ -20,50 +22,52 @@ background_mode = 1
 background_color = Color(0.0260417, 0.0260417, 0.0260417, 1)
 sky = SubResource("Sky_gmgav")
 tonemap_mode = 3
+glow_enabled = true
+glow_normalized = true
+glow_intensity = 0.64
+glow_blend_mode = 1
 
 [node name="SystemSandbox" type="Node3D" node_paths=PackedStringArray("spawn_points", "spawn_node")]
 script = ExtResource("1_6wdpo")
 spawn_node = NodePath("SmallProps")
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(-0.639532, -0.00709252, -0.768731, -0.021679, 0.999727, 0.00881195, 0.768459, 0.022301, -0.639511, -35252.6, 23299.4, -32548.6)
-light_color = Color(1, 0.959123, 0.80835, 1)
-shadow_enabled = true
-directional_shadow_split_1 = 0.034
-directional_shadow_split_2 = 0.105
-directional_shadow_max_distance = 300.0
+[node name="Star" parent="." instance=ExtResource("6_0y0hx")]
+custom_aabb = AABB(0, 0, 0, 0, 0, 0)
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_jp7ei")
 
-[node name="Planet" parent="." node_paths=PackedStringArray("sun") instance=ExtResource("2_jp7ei")]
-transform = Transform3D(0.947177, 0, 0.320712, 0, 1, 0, -0.320712, 0, 0.947177, 30, 0, 0)
-sun = NodePath("../DirectionalLight3D")
+[node name="Planet2" parent="." node_paths=PackedStringArray("sun") instance=ExtResource("2_jp7ei")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 39104.3, 0, 33149.1)
+sun = NodePath("../Star/DirectionalLight3D")
 
-[node name="PlanetTerrain" parent="Planet" index="3"]
+[node name="PlanetTerrain" parent="Planet2" index="3"]
 transform = Transform3D(0.00882487, 0, 0.999961, 0, 1, 0, -0.999961, 0, 0.00882487, 0, 0, 0)
 
-[node name="Planet2" parent="Planet/PlanetTerrain" index="0" node_paths=PackedStringArray("sun") instance=ExtResource("2_jp7ei")]
-transform = Transform3D(0.00882487, 0, -0.999961, 0, 1, 0, 0.999961, 0, 0.00882487, -4935.32, 0, -26894)
-sun = NodePath("../../../DirectionalLight3D")
+[node name="ChrisR_01" parent="Planet2/PlanetTerrain" index="0" instance=ExtResource("4_0y0hx")]
+transform = Transform3D(-0.97969, -0.135679, -0.147652, -0.136974, 0.990574, -0.0014107, 0.146451, 0.0188424, -0.989038, 71260, 501063, 23224.2)
 
-[node name="PlanetTerrain" parent="Planet/PlanetTerrain/Planet2" index="3"]
+[node name="debug" parent="Planet2/PlanetTerrain/RockSpawner" index="0"]
+transform = Transform3D(1, 0, 1.11022e-15, 0, 1, 0, -1.11022e-15, 0, 1, 3922.55, 7283.71, 6798.54)
+
+[node name="Atmosphere" parent="Planet2" index="4" node_paths=PackedStringArray("sun_object")]
+transform = Transform3D(-0.646634, 0, -0.7628, 0, 1, 0, 0.762801, 0, -0.646633, 0, 0, 0)
+sun_object = NodePath("../../Star/DirectionalLight3D")
+
+[node name="Planet1" parent="." node_paths=PackedStringArray("sun") instance=ExtResource("2_jp7ei")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 86077.9, 0, 0)
+sun = NodePath("../Star/DirectionalLight3D")
+
+[node name="PlanetTerrain" parent="Planet1" index="3"]
 transform = Transform3D(0.00882487, 0, 0.999961, 0, 1, 0, -0.999961, 0, 0.00882487, 0, 0, 0)
 
-[node name="ChrisR_01" parent="Planet/PlanetTerrain/Planet2/PlanetTerrain" index="0" instance=ExtResource("4_0y0hx")]
+[node name="ChrisR_01" parent="Planet1/PlanetTerrain" index="0" instance=ExtResource("4_0y0hx")]
 transform = Transform3D(-0.97969, -0.135679, -0.147652, -0.136974, 0.990574, -0.0014107, 0.146451, 0.0188424, -0.989038, 71260, 501063, 23224.2)
 
-[node name="Atmosphere" parent="Planet/PlanetTerrain/Planet2" index="4" node_paths=PackedStringArray("sun_object")]
-transform = Transform3D(-0.996452, -0.0373744, 0.0754074, 0, 0.895986, 0.44408, -0.0841614, 0.442505, -0.892807, 0, 0, 0)
-sun_object = NodePath("../../../../DirectionalLight3D")
-
-[node name="ChrisR_01" parent="Planet/PlanetTerrain" index="1" instance=ExtResource("4_0y0hx")]
-transform = Transform3D(-0.97969, -0.135679, -0.147652, -0.136974, 0.990574, -0.0014107, 0.146451, 0.0188424, -0.989038, 71260, 501063, 23224.2)
-
-[node name="PlayerSpawnPointsList" type="Node3D" parent="Planet/PlanetTerrain" index="10"]
+[node name="PlayerSpawnPointsList" type="Node3D" parent="Planet1/PlanetTerrain" index="9"]
 transform = Transform3D(0.996346, 0, -0.085417, 0, 1, 0, 0.085417, 0, 0.996346, 0, 0, 0)
 
-[node name="PlayerSpawnPoint01" type="Marker3D" parent="Planet/PlanetTerrain/PlayerSpawnPointsList"]
+[node name="PlayerSpawnPoint01" type="Marker3D" parent="Planet1/PlanetTerrain/PlayerSpawnPointsList"]
 transform = Transform3D(-0.870291, 0.381663, 0.311327, 0, 0.63209, -0.774895, -0.492535, -0.674385, -0.550102, 4931.75, 7536.77, -5802.94)
 gizmo_extents = 2.5
 script = ExtResource("5_0y0hx")
@@ -86,3 +90,5 @@ metadata/_custom_type_script = "uid://cj5kd1hkfvjrg"
 [node name="UniversDatasMultiplayerSpawner" type="MultiplayerSpawner" parent="."]
 _spawnable_scenes = PackedStringArray("uid://rv6ugxi8n8pe", "uid://cn1e5bp50weao")
 spawn_path = NodePath("..")
+
+[node name="LoadingScreen" parent="." instance=ExtResource("7_ma7oa")]
