@@ -36,9 +36,13 @@ var forced_colors := {
 }
 
 func _enter_tree() -> void:
+	if not is_multiplayer_authority(): return
+	
 	connect("visibility_changed", _on_visibility_changed)
 
 func _ready():
+	if not is_multiplayer_authority(): return
+	
 	visible = false
 	is_shown = visible
 
