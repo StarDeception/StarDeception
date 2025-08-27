@@ -1,40 +1,18 @@
-extends CharacterBody3D
 class_name Player
 
-@warning_ignore("unused_signal")
+extends CharacterBody3D
+
 signal client_action_requested(datas: Dictionary)
 
-@onready var camera = $CameraPivot/Camera3D
-
-@onready var labelx: Label = $UserInterface/Debug/LabelXValue
-@onready var labely: Label = $UserInterface/Debug/LabelYValue
-@onready var labelz: Label = $UserInterface/Debug/LabelZValue
-@onready var labelPlayerName: Label3D = %LabelPlayerName
-@onready var labelServerName: Label3D = %LabelServerName
-@onready var astronaut: Node3D = $Placeholder_Collider/Astronaut
-@onready var interact_ray: RayCast3D = $CameraPivot/Camera3D/InteractRay
-@onready var interact_label: Label = $UserInterface/HUD/InteractLabel
-@onready var camera_pivot: Node3D = $CameraPivot
-
-@onready var direct_chat: DirectChat = $UserInterface/DirectChat
-
-@onready var box4m: PackedScene = preload("res://scenes/props/testbox/box_4m.tscn")
-@onready var box50m: PackedScene = preload("res://scenes/props/testbox/box_50cm.tscn")
-@onready var isInsideBox4m: bool = false
-
-@onready var game_is_paused: bool = false
-
-@onready var clientUUID
-
 @export_group("Controls map names")
-@export var MOVE_FORWARD: String = "move_forward"
-@export var MOVE_BACK: String = "move_back"
-@export var MOVE_LEFT: String = "move_left"
-@export var MOVE_RIGHT: String = "move_right"
-@export var JUMP: String = "jump"
-@export var CROUCH: String = "crouch"
-@export var SPRINT: String = "sprint"
-@export var PAUSE: String = "pause"
+@export var move_forward: String = "move_forward"
+@export var move_back: String = "move_back"
+@export var move_left: String = "move_left"
+@export var move_right: String = "move_right"
+@export var jump: String = "jump"
+@export var crouch: String = "crouch"
+@export var sprint: String = "sprint"
+@export var pause: String = "pause"
 
 @export_group("Customizable player stats")
 @export var walk_back_speed: float = 1.5
@@ -52,6 +30,10 @@ signal client_action_requested(datas: Dictionary)
 @export_range(0.0, 0.5) var camera_start_deadzone: float = .2
 @export_range(0.0, 0.5) var camera_end_deadzone: float = .1
 
+@export var gravity = 0.0
+
+@warning_ignore("unused_signal")
+
 var player_display_name: String = ""
 
 var input_direction: Vector2
@@ -64,12 +46,32 @@ var spawn_up: Vector3 = Vector3.UP
 
 var can_interact: bool = false
 
-@export var gravity = 0.0
-
 var gravity_parents: Array[Area3D]
 
 # to disable player input when piloting vehicule/ship
 var active = true
+
+@onready var camera = $CameraPivot/Camera3D
+
+@onready var labelx: Label = $UserInterface/Debug/LabelXValue
+@onready var labely: Label = $UserInterface/Debug/LabelYValue
+@onready var labelz: Label = $UserInterface/Debug/LabelZValue
+@onready var label_player_name: Label3D = %LabelPlayerName
+@onready var label_server_name: Label3D = %LabelServerName
+@onready var astronaut: Node3D = $Placeholder_Collider/Astronaut
+@onready var interact_ray: RayCast3D = $CameraPivot/Camera3D/InteractRay
+@onready var interact_label: Label = $UserInterface/HUD/InteractLabel
+@onready var camera_pivot: Node3D = $CameraPivot
+
+@onready var direct_chat: DirectChat = $UserInterface/DirectChat
+
+@onready var box4m: PackedScene = preload("res://scenes/props/testbox/box_4m.tscn")
+@onready var box50m: PackedScene = preload("res://scenes/props/testbox/box_50cm.tscn")
+@onready var is_inside_box4m: bool = false
+
+@onready var game_is_paused: bool = false
+
+@onready var client_uuid
 
 func _enter_tree() -> void:
 	if name.begins_with("remoteplayer"):
@@ -81,20 +83,20 @@ func _enter_tree() -> void:
 func _ready() -> void:
 	if not is_multiplayer_authority():
 		return
-	
+
 	global_position = spawn_position
 	look_at(global_transform.origin + Vector3.FORWARD, spawn_up)
-	
+
 	NetworkOrchestrator.set_gameserver_name.connect(_set_gameserver_name)
 
-	clientUUID = Globals.playerUUID
-	self.set_meta("clientUUID", Globals.playerUUID)
+	client_uuid = Globals.player_uuid
+	self.set_meta("client_uuid", Globals.player_uuid)
 
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	camera.current = true
 	# hide player name label for me only
-	labelPlayerName.visible = false
-	labelServerName.visible = false
+	label_player_name.visible = false
+	label_server_name.visible = false
 	astronaut.visible = false
 	interact_label.hide()
 	connect_area_detect()
@@ -106,34 +108,42 @@ func connect_area_detect():
 func _unhandled_input(event: InputEvent) -> void:
 	if not is_multiplayer_authority(): return
 	if !active: return
-		
-	if event.is_action_pressed(JUMP) and is_on_floor():
+
+	if event.is_action_pressed(jump) and is_on_floor():
 		is_jumping = true
-	
+
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		mouse_motion = -event.relative * 0.001
-	
+
 	if event.is_action_pressed("spawn_50cmbox"):
 		var box_spawn_position: Vector3 = global_position + (-global_basis.z * 1.5) + global_basis.y * 2.0
 		emit_signal("client_action_requested", {"action": "spawn", "entity": "box50cm", "spawn_position": box_spawn_position})
-	
+
 	if event.is_action_pressed("spawn_4mbox"):
 		var box_spawn_position: Vector3 = global_position + (-global_basis.z * 3.0) + global_basis.y * 6.0
-		
+
 		var player_up = global_transform.basis.y.normalized()
 		var to_player = (global_transform.origin - box_spawn_position)
 		to_player -= to_player.dot(player_up) * player_up
 		to_player = to_player.normalized()
 		var box_basis: Basis = Basis.looking_at(to_player, player_up)
 		var box_spawn_rotation = box_basis.get_euler()
-		
-		emit_signal("client_action_requested", {"action": "spawn", "entity": "box4m", "spawn_position": box_spawn_position, "spawn_rotation": box_spawn_rotation})
-	
+
+		emit_signal(
+			"client_action_requested",
+			{
+				"action": "spawn",
+				"entity": "box4m",
+				"spawn_position": box_spawn_position,
+				"spawn_rotation": box_spawn_rotation
+			}
+		)
+
 	if Input.is_action_just_pressed("ext_cam"):
 		if $ExtCamera3D.current:
 			camera.make_current()
 			astronaut.visible = false
-		else: 
+		else:
 			astronaut.visible = true
 			$ExtCamera3D.make_current()
 
@@ -142,9 +152,9 @@ func _process(_delta: float) -> void:
 	if !active:
 		interact_label.hide()
 		return
-	
+
 	_handle_camera_motion()
-		
+
 	interact_label.hide()
 	can_interact = false
 	if interact_ray.is_colliding():
@@ -160,23 +170,23 @@ func _process(_delta: float) -> void:
 func _physics_process(delta: float) -> void:
 	if not is_multiplayer_authority(): return
 	if !active: return
-	
+
 	var dir_vect = Vector3.ZERO
 	var sprint = null
-	
+
 	if not direct_chat.can_write:
-		dir_vect = Input.get_vector(MOVE_LEFT, MOVE_RIGHT, MOVE_FORWARD, MOVE_BACK)
-		sprint = Input.is_action_pressed(SPRINT)
-	
+		dir_vect = Input.get_vector(move_left, move_right, move_forward, move_back)
+		sprint = Input.is_action_pressed(sprint)
+
 	if dir_vect:
 		input_direction = dir_vect
 	else:
 		input_direction = Vector2.ZERO
-	
+
 	var parent_gravity_area: Area3D = gravity_parents.back() if not gravity_parents.is_empty() else null
-	
+
 	if parent_gravity_area:
-		
+
 		if parent_gravity_area.gravity_point:
 			var space_state = get_world_3d().direct_space_state
 			var param = PhysicsRayQueryParameters3D.new()
@@ -187,7 +197,7 @@ func _physics_process(delta: float) -> void:
 				up_direction = result.normal
 		else:
 			up_direction = parent_gravity_area.global_basis.y
-		
+
 		gravity = parent_gravity_area.gravity
 		motion_mode = CharacterBody3D.MOTION_MODE_GROUNDED
 	else:
@@ -196,17 +206,17 @@ func _physics_process(delta: float) -> void:
 		camera_pivot.rotation.x = 0
 		motion_mode = CharacterBody3D.MOTION_MODE_FLOATING
 		var dir = Vector3(input_direction.x, 0, input_direction.y)
-		
+
 		velocity += global_basis * dir * player_thruster_force * delta
 		velocity *= 0.98
-	
+
 	var move_direction = (global_transform.basis * Vector3(input_direction.x, 0, input_direction.y)).normalized()
-	
+
 	if gravity > 0:
 		orient_player()
-	
+
 	var speed = sprint_speed if sprint else walk_speed
-	
+
 	if is_on_floor():
 		if input_direction:
 			velocity = move_direction * speed
@@ -216,16 +226,16 @@ func _physics_process(delta: float) -> void:
 		# "air" movement
 		if input_direction:
 			velocity += move_direction * speed * delta
-			
+
 	if is_on_floor() and is_jumping:
 		velocity += up_direction * jump_height * gravity
 		is_jumping = false
 	# Add the gravity.
 	elif not is_on_floor():
 		velocity -= up_direction * gravity * 2.0 * delta
-		
+
 	move_and_slide()
-	
+
 	labelx.text = str("%0.2f" % global_position[0])
 	labely.text = str("%0.2f" % global_position[1])
 	labelz.text = str("%0.2f" % global_position[2])
@@ -249,8 +259,8 @@ func orient_player():
 	global_transform = global_transform.interpolate_with(Globals.align_with_y(global_transform, up_direction), 0.3)
 
 func set_player_name(player_name):
-	labelPlayerName.text = str(player_name)
-	
+	label_player_name.text = str(player_name)
+
 func get_player_name():
 	pass
 
@@ -264,7 +274,7 @@ func _on_area_detector_area_exited(area: Area3D) -> void:
 			gravity_parents.erase(area)
 
 func _set_gameserver_name(server_name: String):
-	labelServerName.text = "(" + server_name + ")"
+	label_server_name.text = "(" + server_name + ")"
 
 func _set_player_global_position(pos, rot):
 	global_position = pos

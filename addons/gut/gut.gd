@@ -19,7 +19,7 @@ const LOG_LEVEL_FAIL_ONLY = 0
 const LOG_LEVEL_TEST_AND_FAILURES = 1
 const LOG_LEVEL_ALL_ASSERTS = 2
 const WAITING_MESSAGE = '/# waiting #/'
-const PAUSE_MESSAGE = '/# Pausing.  Press continue button...#/'
+const pause_MESSAGE = '/# Pausing.  Press continue button...#/'
 const COMPLETED = 'completed'
 
 # ---------------------------
@@ -525,7 +525,7 @@ func _setup_script(test_script, collected_script):
 # returns self so it can be integrated into the yield call.
 # ------------------------------------------------------------------------------
 func _wait_for_continue_button():
-	p(PAUSE_MESSAGE, 0)
+	p(pause_MESSAGE, 0)
 	_waiting = true
 	return self
 
@@ -858,7 +858,7 @@ func _fail(text=''):
 		var line_text = '  at line ' + str(line_number)
 		p(line_text, LOG_LEVEL_FAIL_ONLY)
 		# format for summary
-		line_text =  "\n    " + line_text
+		line_text =  "\n	" + line_text
 		var call_count_text = get_call_count_text()
 		_current_test.line_number = line_number
 		_current_test.add_fail(call_count_text + text + line_text)

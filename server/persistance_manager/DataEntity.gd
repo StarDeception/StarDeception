@@ -1,9 +1,8 @@
-extends DataObject
-
 class_name  DataEntity
 
+extends DataObject
 
-var parent: PhysicsBody3D # check is parent on arbo 
+var parent: PhysicsBody3D # check is parent on arbo
 
 var interval := 2.0
 
@@ -22,7 +21,7 @@ func serialize():
 		"rz": last_saved_rotation.z,
 		"parent": {
 			"uid": parent_obj_uid
-		}, 
+		},
 		"dgraph.type": ["Position","Entity"],
 		"type_obj": get_parent().type_name
 	}
@@ -47,7 +46,7 @@ func deserialize(data: Dictionary):
 	if parent:
 		parent.position = last_saved_position
 		parent.rotation = last_saved_rotation
-	
+
 
 func _enter_tree():
 	check_parent()
@@ -70,17 +69,17 @@ func _ready() -> void:
 					initialize_and_save()
 	else:
 		print ("data entity is instanciate on client ")
-		
+
 func start_loop(): # is depracated
 	while true:
 		await get_tree().create_timer(interval).timeout  # toutes les 2 secondes
-		Backgroud_save()
+		backgroud_save(1)
 
-func Backgroud_save():
+func backgroud_save(priority: int):
 	last_saved_position = parent.position
 	last_saved_rotation = parent.rotation
 	if not is_new_object and uid != "":
-		backgroud_save(1)
+		backgroud_save(priority)
 
 func await_parent_save():
 	# Attendre que le parent soit sauvé
@@ -112,8 +111,8 @@ func load_obj(data: Dictionary):
 	#	rz
 	# }
 	#}'''.format([data["uid"]]),loaded)
-	
-	
+
+
 func loaded(result: String):
 	print(" Data Entity is loaded")
 	var parsed = JSON.parse_string(result)

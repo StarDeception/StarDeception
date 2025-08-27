@@ -75,7 +75,7 @@ func senddata(data):
 		E = websocket.put_packet(data)
 	if E != 0:
 		print("bad senddata packet E=", E)
-	
+
 func receiveintobuffer():
 	if sslsocket != null:
 		var sslsocketstatus = sslsocket.get_status()
@@ -93,7 +93,7 @@ func receiveintobuffer():
 				var sv = sslsocket.get_data(n)
 				assert (sv[0] == 0)  # error code
 				receivedbuffer.append_array(sv[1])
-				
+
 	elif socket != null and socket.get_status() == StreamPeerTCP.STATUS_CONNECTED:
 		var E = socket.poll()
 		if E != 0:
@@ -108,12 +108,12 @@ func receiveintobuffer():
 			var sv = socket.get_data(n)
 			assert (sv[0] == 0)  # error code
 			receivedbuffer.append_array(sv[1])
-			
+
 	elif websocket != null:
 		websocket.poll()
 		while websocket.get_available_packet_count() != 0:
 			receivedbuffer.append_array(websocket.get_packet())
-	
+
 var pingticksnext0 = 0
 
 func _process(delta):
@@ -170,11 +170,11 @@ func _process(delta):
 				elif sslsocketstatus >= StreamPeerTLS.STATUS_ERROR:
 					print("bad sslsocket.connect_to_stream")
 					emit_signal("broker_connection_failed")
-				
+
 	elif brokerconnectmode == BCM_WAITING_CONNMESSAGE:
 		senddata(firstmessagetoserver())
 		brokerconnectmode = BCM_WAITING_CONNACK
-		
+
 	elif brokerconnectmode == BCM_WAITING_CONNACK or brokerconnectmode == BCM_CONNECTED:
 		receiveintobuffer()
 		while wait_msg():
@@ -291,11 +291,11 @@ func connect_to_broker(brokerprotocol, brokerserver, brokerport): #brokerurl):
 	var isssl = (brokerprotocol == "ssl://" or brokerprotocol == "wss://")
 	#var brokerport = ((DEFAULTBROKERPORT_WSS if isssl else DEFAULTBROKERPORT_WS) if iswebsocket else (DEFAULTBROKERPORT_SSL if isssl else DEFAULTBROKERPORT_TCP))
 	#if brokercomponents[3]:
-		#brokerport = int(brokercomponents[3].substr(1)) 
+		#brokerport = int(brokercomponents[3].substr(1))
 	#var brokerpath = brokercomponents[4] if brokercomponents[4] else ""
 	var brokerpath = "/"
-	 
-	common_name = null	
+
+	common_name = null
 	if iswebsocket:
 		websocket = WebSocketPeer.new()
 		websocket.supported_protocols = PackedStringArray(["mqttv3.1"])
@@ -322,7 +322,7 @@ func connect_to_broker(brokerprotocol, brokerserver, brokerport): #brokerurl):
 			common_name = brokerserver
 		else:
 			brokerconnectmode = BCM_WAITING_SOCKET_CONNECTION
-		
+
 	return true
 
 
@@ -331,12 +331,12 @@ func disconnect_from_server():
 		senddata(PackedByteArray([0xE0, 0x00]))
 		emit_signal("broker_disconnected")
 	cleanupsockets()
-	
+
 
 func publish(stopic, smsg: String, retain=false, qos=0):
 	var msg = smsg.to_utf8_buffer() if not binarymessages else smsg
 	var topic = stopic.to_ascii_buffer()
-	
+
 	var pkt = PackedByteArray()
 	pkt.append(CP_PUBLISH | (2 if qos else 0) | (1 if retain else 0));
 	pkt.append(0x00);
@@ -407,12 +407,12 @@ func wait_msg():
 	i += 1
 	if n < i + sz:
 		return false
-		
+
 	if op == CP_PINGRESP:
 		assert (sz == 0)
 		if verbose_level >= 2:
 			print("PINGRESP")
-			
+
 	elif op & 0xf0 == 0x30:
 		var topic_len = (receivedbuffer[i]<<8) + receivedbuffer[i+1]
 		var im = i + 2
@@ -424,11 +424,11 @@ func wait_msg():
 			im += 2
 		var data = receivedbuffer.slice(im, i + sz)
 		var msg = data if binarymessages else data.get_string_from_utf8()
-		
+
 		if verbose_level >= 2:
 			print("received topic=", topic, " msg=", msg)
 		emit_signal("received_message", topic, msg)
-		
+
 		if op & 6 == 2:
 			senddata(PackedByteArray([0x40, 0x02, (pid1 >> 8), (pid1 & 0xFF)]))
 		elif op & 6 == 4:

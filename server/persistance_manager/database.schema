@@ -5,9 +5,9 @@ parent: uid @reverse .                  # Relation hiérarchique enfant -> paren
 position: uid .                         # Lien vers un nœud Position
 type_obj: string .
 # ==== Champs Position ====
-x: float .                               
-y: float .                                
-z: float .                             
+x: float .
+y: float .
+z: float .
 rx: float .
 ry: float .
 rz: float .
@@ -30,6 +30,6 @@ type Entity {                             # Type générique
 type Planete {
   uuid
   name
-  <~parent> 
-  type_obj                          
+  <~parent>
+  type_obj
 }

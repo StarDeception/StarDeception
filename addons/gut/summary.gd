@@ -43,8 +43,8 @@ func _log_orphans_and_disclaimer(gut):
 	if(total_run_orphans > 0):
 		lgr.orphan(str("Total orphans in run ", total_run_orphans))
 		gut.p("Note:  This count does not include GUT objects that will be freed upon exit.")
-		gut.p("       It also does not include any orphans created by global scripts")
-		gut.p("       loaded before tests were ran.")
+		gut.p("	   It also does not include any orphans created by global scripts")
+		gut.p("	   loaded before tests were ran.")
 		gut.p(str("Total orphans = ", counter.orphan_count()))
 		gut.p('')
 

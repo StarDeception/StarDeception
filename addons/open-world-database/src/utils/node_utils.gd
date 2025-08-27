@@ -39,16 +39,16 @@ static func calculate_node_size(node: Node3D) -> float:
 		var meta = node.get_meta("_owd_last_scale")
 		if node.scale == meta:
 			return node.get_meta("_owd_last_size")
-	
+
 	# Calculate new size
 	var aabb = get_node_aabb(node, false)
 	var size = aabb.size
 	var max_size = max(size.x, max(size.y, size.z))
-	
+
 	# Cache the scale and size
 	node.set_meta("_owd_last_scale", node.scale)
 	node.set_meta("_owd_last_size", max_size)
-	
+
 	return max_size
 
 

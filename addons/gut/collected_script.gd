@@ -83,8 +83,8 @@ func has_inner_class():
 
 
 # Note:  although this no longer needs to export the inner_class names since
-#        they are pulled from metadata now, it is easier to leave that in
-#        so we don't have to cut the export down to unique script names.
+#		they are pulled from metadata now, it is easier to leave that in
+#		so we don't have to cut the export down to unique script names.
 func export_to(config_file, section):
 	config_file.set_value(section, 'path', path)
 	config_file.set_value(section, 'inner_class', inner_class_name)

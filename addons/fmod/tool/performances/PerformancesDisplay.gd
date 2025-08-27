@@ -25,12 +25,12 @@ func _enter_tree():
 	add_monitor(CORE_CPU_UPDATE_CATEGORY, func(): return performance_data.update)
 	add_monitor(CORE_CPU_CONVOLUTION_THREAD1_CATEGORY, func(): return performance_data.convolution1)
 	add_monitor(CORE_CPU_CONVOLUTION_THREAD2_CATEGORY, func(): return performance_data.convolution2)
-	
+
 	add_monitor(STUDIO_CPU_UPDATE_CATEGORY, func(): return performance_data.studio)
-	
+
 	add_monitor(MEMORY_CURRENTLY_ALLOCATED_CATEGORY, func(): return performance_data.currently_allocated)
 	add_monitor(MEMORY_MAX_ALLOCATED_CATEGORY, func(): return performance_data.max_allocated)
-	
+
 	add_monitor(FILE_SAMPLE_CATEGORY, func(): return performance_data.sample_bytes_read)
 	add_monitor(FILE_STREAM_CATEGORY, func(): return performance_data.stream_bytes_read)
 	add_monitor(FILE_OTHER_CATEGORY, func(): return performance_data.other_bytes_read)
@@ -42,12 +42,12 @@ func _exit_tree() -> void:
 	remove_monitor(CORE_CPU_UPDATE_CATEGORY)
 	remove_monitor(CORE_CPU_CONVOLUTION_THREAD1_CATEGORY)
 	remove_monitor(CORE_CPU_CONVOLUTION_THREAD2_CATEGORY)
-	
+
 	remove_monitor(STUDIO_CPU_UPDATE_CATEGORY)
-	
+
 	remove_monitor(MEMORY_CURRENTLY_ALLOCATED_CATEGORY)
 	remove_monitor(MEMORY_MAX_ALLOCATED_CATEGORY)
-	
+
 	remove_monitor(FILE_SAMPLE_CATEGORY)
 	remove_monitor(FILE_STREAM_CATEGORY)
 	remove_monitor(FILE_OTHER_CATEGORY)

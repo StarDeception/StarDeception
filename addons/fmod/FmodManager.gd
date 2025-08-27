@@ -14,6 +14,6 @@ func _exit_tree() -> void:
 
 func _process(delta):
 	FmodServer.update()
-	
+
 func _notification(what):
 	FmodServer.notification(what)

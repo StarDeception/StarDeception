@@ -5,9 +5,9 @@ var WarningsManager = load("res://addons/gut/warnings_manager.gd")
 const WARN_VALUE_PRINT_POSITION = 36
 
 var godot_default_warnings = {
-  "assert_always_false": 1,             "assert_always_true": 1,  			"confusable_identifier": 1,
-  "confusable_local_declaration": 1,    "confusable_local_usage": 1,  		"constant_used_as_function": 1,
-  "deprecated_keyword": 1,              "empty_file": 1,  					"enable": true,
+  "assert_always_false": 1,			 "assert_always_true": 1,  			"confusable_identifier": 1,
+  "confusable_local_declaration": 1,	"confusable_local_usage": 1,  		"constant_used_as_function": 1,
+  "deprecated_keyword": 1,			  "empty_file": 1,  					"enable": true,
   "exclude_addons": true, 				"function_used_as_property": 1,  	"get_node_default_without_onready": 2,
   "incompatible_ternary": 1,  			"inference_on_variant": 2,  		"inferred_declaration": 0,
   "int_as_enum_without_cast": 1,  		"int_as_enum_without_match": 1,  	"integer_division": 1,
@@ -181,10 +181,10 @@ func _setup_options():
 	Each action requires one or more Warning Level Names.
 
 	Warning Level Names:
-	    * current        The current settings for the project.
-	    * godot_default  The default settings for Godot.
-	    * gut_default    The warning settings that is used when developing GUT.
-	    * all_warn       Everything set to warn.
+		* current		The current settings for the project.
+		* godot_default  The default settings for Godot.
+		* gut_default	The warning settings that is used when developing GUT.
+		* all_warn	   Everything set to warn.
 	""".dedent()
 
 	opts.add('-h', false, 'Print this help')

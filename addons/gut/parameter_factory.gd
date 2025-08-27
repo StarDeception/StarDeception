@@ -23,7 +23,7 @@
 ## Example:
 ##[codeblock]
 ## create_named_parameters(['a', 'b'], [[1, 2], ['one', 'two']]) returns
-##    [{a:1, b:2}, {a:'one', b:'two'}]
+##	[{a:1, b:2}, {a:'one', b:'two'}]
 ##[/codeblock]
 ## [br]
 ## This allows you to increase readability of your parameterized tests:
@@ -31,7 +31,7 @@
 ##[codeblock]
 ## var params = create_named_parameters(['a', 'b'], [[1, 2], ['one', 'two']])
 ## func test_foo(p = use_parameters(params)):
-##    assert_eq(p.a, p.b)
+##	assert_eq(p.a, p.b)
 ##[/codeblock]
 ## [br]
 ## Parameters:[br]

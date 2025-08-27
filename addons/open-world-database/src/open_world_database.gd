@@ -27,7 +27,7 @@ var is_loading: bool = false
 func _ready() -> void:
 	if Engine.is_editor_hint():
 		get_tree().auto_accept_quit = false
-		
+
 	reset()
 	is_loading = true
 	database.load_database()
@@ -42,29 +42,29 @@ func reset():
 	database = Database.new(self)
 	setup_listeners(self)
 	is_loading = false
-	
+
 func setup_listeners(node: Node):
 	if not node.child_entered_tree.is_connected(_on_child_entered_tree):
 		node.child_entered_tree.connect(_on_child_entered_tree)
-	
+
 	if not node.child_exiting_tree.is_connected(_on_child_exiting_tree):
 		node.child_exiting_tree.connect(_on_child_exiting_tree)
 
 
 func _on_child_entered_tree(node: Node):
 	call_deferred("setup_listeners", node)
-	
+
 	if is_loading or node.scene_file_path == "" or !self.is_ancestor_of(node):
 		return
-	
+
 	# Only set UID if node doesn't have one
 	if not node.has_meta("_owd_uid"):
 		var uid = node.name + '-' + NodeUtils.generate_uid()
 		node.set_meta("_owd_uid", uid)
 		node.name = uid
-	
+
 	var uid = node.get_meta("_owd_uid")
-	
+
 	# Check if another node exists anywhere under self with this UID as its name
 	var existing_node = find_node_with_uid(uid, node)
 	if existing_node != null:
@@ -72,12 +72,12 @@ func _on_child_entered_tree(node: Node):
 		var new_uid = node.name.split('-')[0] + '-' + NodeUtils.generate_uid()
 		node.set_meta("_owd_uid", new_uid)
 		node.name = new_uid
-		
-		
+
+
 	if node is Node3D:
 		# Update node monitor
 		node_monitor.update_stored_node(node)
-		
+
 		# Add to chunk lookup
 		var node_size = NodeUtils.calculate_node_size(node)
 		add_to_chunk_lookup(uid, node.global_position, node_size)
@@ -90,17 +90,17 @@ func _search_for_uid_recursive(parent: Node, uid: String, exclude_node: Node) ->
 	for child in parent.get_children():
 		if child != exclude_node and child.name == uid:
 			return child
-		
+
 		var found = _search_for_uid_recursive(child, uid, exclude_node)
 		if found != null:
 			return found
-	
+
 	return null
 
 func _on_child_exiting_tree(node: Node):
 	if is_loading or node.scene_file_path == "":
 		return
-	
+
 	# Just mark for later processing
 	if node.has_meta("_owd_uid"):
 		call_deferred("_check_node_removal", node)
@@ -129,19 +129,19 @@ func get_node_by_uid(uid: String) -> Node:
 func add_to_chunk_lookup(uid: String, position: Vector3, size: float):
 	var size_cat = get_size_category(size)
 	var chunk_pos = get_chunk_position(position, size_cat)
-	
+
 	if not chunk_lookup.has(size_cat):
 		chunk_lookup[size_cat] = {}
 	if not chunk_lookup[size_cat].has(chunk_pos):
 		chunk_lookup[size_cat][chunk_pos] = []
-	
+
 	if uid not in chunk_lookup[size_cat][chunk_pos]:
 		chunk_lookup[size_cat][chunk_pos].append(uid)
 
 func remove_from_chunk_lookup(uid: String, position: Vector3, size: float):
 	var size_cat = get_size_category(size)
 	var chunk_pos = get_chunk_position(position, size_cat)
-	
+
 	if chunk_lookup.has(size_cat) and chunk_lookup[size_cat].has(chunk_pos):
 		chunk_lookup[size_cat][chunk_pos].erase(uid)
 		if chunk_lookup[size_cat][chunk_pos].is_empty():

@@ -11,4 +11,4 @@ func _ready() -> void:
 func _on_button_pressed(button_id: String) -> void:
 	match button_id:
 		"return":
-			GameOrchestrator.change_game_state(GameOrchestrator.GAME_STATES.HOME_MENU)
+			GameOrchestrator.change_game_state(GameOrchestrator.GameStates.HOME_MENU)

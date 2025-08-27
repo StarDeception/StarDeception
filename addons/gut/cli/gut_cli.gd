@@ -67,7 +67,7 @@ class OptionResolver:
 			to_return += str(key, "\n")
 			to_return += str('  default: ', _nvl(base_opts[key], 'NULL'), "\n")
 			to_return += str('  config:  ', _nvl(config_opts[key], ' --'), "\n")
-			to_return += str('  cmd:     ', _nvl(cmd_opts[key], ' --'), "\n")
+			to_return += str('  cmd:	 ', _nvl(cmd_opts[key], ' --'), "\n")
 			to_return += str('  final:   ', _nvl(resolved[key], 'NULL'), "\n")
 
 		return to_return
@@ -97,8 +97,8 @@ To generate a .gutconfig.json file you can use -gprint_gutconfig_sample
 To see the effective values of a CLI command and a gutconfig use -gpo
 
 Values for options can be supplied using:
-    option=value    # no space around "="
-    option value    # a space between option and value w/o =
+	option=value	# no space around "="
+	option value	# a space between option and value w/o =
 
 Options whose values are lists/arrays can be specified multiple times:
 	-gdir=a,b
