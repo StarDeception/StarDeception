@@ -72,15 +72,20 @@ var gravity_parents: Array[Area3D]
 var active = false
 
 func _enter_tree() -> void:
+	$UserInterface/LoadingScreen.hide()
+	
 	if name.begins_with("remoteplayer"):
 		set_multiplayer_authority(1)
 		global_position = spawn_position
+		
 	else:
 		NetworkOrchestrator.set_player_global_position.connect(_set_player_global_position)
 
 func _ready() -> void:
 	if not is_multiplayer_authority():
 		return
+	
+	$UserInterface/LoadingScreen.show()
 	
 	global_position = spawn_position
 	look_at(global_transform.origin + Vector3.FORWARD, spawn_up)
@@ -100,16 +105,12 @@ func _ready() -> void:
 	interact_label.hide()
 	connect_area_detect()
 	active = false
-
-func handle_spawn():
-	if not is_multiplayer_authority(): return
 	
+	await get_tree().create_timer(5).timeout
 	active = true
-	camera.current = true
 	
-	await get_tree().create_timer(1).timeout
-	Server.spawn_ship.rpc_id(1)
-	
+	$UserInterface/LoadingScreen.hide()
+
 
 
 func connect_area_detect():
@@ -142,10 +143,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		
 		emit_signal("client_action_requested", {"action": "spawn", "entity": "box4m", "spawn_position": box_spawn_position, "spawn_rotation": box_spawn_rotation})
 	
-<<<<<<< HEAD
-=======
-
->>>>>>> ca4d3f7 (Add atmo addon + update terrain)
 	if Input.is_action_just_pressed("ext_cam"):
 		if $ExtCamera3D.current:
 			camera.make_current()

@@ -70,6 +70,9 @@ func _physics_process(_delta: float) -> void:
 		_send_props_to_sdo()
 
 func start_server(receveid_universe_scene: Node, receveid_player_spawn_node: Node) -> void:
+	Engine.physics_ticks_per_second = 30
+	Engine.max_fps = 30
+	
 	universe_scene = receveid_universe_scene
 	entities_spawn_node = receveid_player_spawn_node
 	var server_peer = ENetMultiplayerPeer.new()

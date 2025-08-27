@@ -1,5 +1,5 @@
 @tool
-extends Node3D
+extends StaticBody3D
 
 class_name PlanetTerrain
 
@@ -60,22 +60,22 @@ func _ready() -> void:
 	print(lod_levels)
 	if Engine.is_editor_hint(): return
 	
-	if multiplayer.is_server():
-		print("Setting planet lod for server")
-		lod_levels = [
-			{ "distance": 500000, "resolution": 2 },
-			{ "distance": 300000, "resolution": 2 },
-			{ "distance": 100000, "resolution": 2 },
-			{ "distance": 50000, "resolution": 2 },
-			{ "distance": 20000, "resolution": 2 },
-			{ "distance": 10000, "resolution": 2 },
-			{ "distance": 5000, "resolution": 2 },
-			{ "distance": 3000, "resolution": 2 },
-			{ "distance": 2000, "resolution": 2 },
-		 	{ "distance": 1000, "resolution": floor(resolution * 0.4) },
-		]
-	else:
-		print("keep default lods for players", lod_levels)
+	#if multiplayer.is_server():
+		#print("Setting planet lod for server")
+		#lod_levels = [
+			#{ "distance": 500000, "resolution": 2 },
+			#{ "distance": 300000, "resolution": 2 },
+			#{ "distance": 100000, "resolution": 2 },
+			#{ "distance": 50000, "resolution": 2 },
+			#{ "distance": 20000, "resolution": 2 },
+			#{ "distance": 10000, "resolution": 2 },
+			#{ "distance": 5000, "resolution": 2 },
+			#{ "distance": 3000, "resolution": 2 },
+			#{ "distance": 2000, "resolution": 2 },
+		 	#{ "distance": 1000, "resolution": floor(resolution * 0.4) },
+		#]
+	#else:
+		#print("keep default lods for players", lod_levels)
 
 func get_adapted_lod(depth: int) -> Dictionary:
 	var lod = lod_levels[depth]

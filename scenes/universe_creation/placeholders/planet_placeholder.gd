@@ -6,6 +6,13 @@ extends MeshInstance3D
 	set(value):
 		real_coordinates = value * 100.0
 
+@export var radius: float = 10
+
+@export var real_radius: float = 0.0:
+	set(value):
+		real_radius = value * 100.0
+
+
 var _last_position: Vector3 = real_coordinates
 
 @warning_ignore("native_method_override")
@@ -17,6 +24,13 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	if Engine.is_editor_hint():
+		
+		if mesh:
+			mesh.radius = radius
+			mesh.height = radius * 2.0
+		
+		real_radius = radius
+		
 		if _last_position != global_position:
 			print("Changement dans les coordonnées")
 			_last_position = global_position

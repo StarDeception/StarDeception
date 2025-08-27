@@ -42,7 +42,7 @@ noise = SubResource("FastNoiseLite_xntnt")
 metadata/_custom_type_script = "uid://d0532xwig15xf"
 
 [sub_resource type="SphereOccluder3D" id="SphereOccluder3D_xntnt"]
-radius = 5000.0
+radius = 5600.0
 
 [sub_resource type="SphereMesh" id="SphereMesh_25nq4"]
 

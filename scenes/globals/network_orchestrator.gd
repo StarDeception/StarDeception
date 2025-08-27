@@ -498,11 +498,11 @@ func _create_local_player_not_exists_in_universe(uuid, playerName, spawn_point, 
 	var spawn_up: Vector3 = Vector3.UP
 	if spawn_point >= 0 and spawn_point < GameOrchestrator.SPAWN_POINTS_LIST.size():
 		var spawn_point_node_path: String = GameOrchestrator.SPAWN_POINTS_LIST[spawn_point]["node_path"]
-		if spawn_point_node_path == "":
-			var parent_entity_spawn_position: Vector3 = universe_scene.get_node("PlanetA").global_position if randf() < 0.5 else universe_scene.get_node("PlanetB").global_position
-			spawn_position = random_spawn_on_planet(parent_entity_spawn_position, 2000.0)
-			spawn_up = (spawn_position - parent_entity_spawn_position).normalized()
-		elif spawn_point_node_path.contains("PlayerSpawnPointsList"):
+		#if spawn_point_node_path == "":
+			#var parent_entity_spawn_position: Vector3 = universe_scene.get_node("PlanetA").global_position if randf() < 0.5 else universe_scene.get_node("PlanetB").global_position
+			#spawn_position = random_spawn_on_planet(parent_entity_spawn_position, 2000.0)
+			#spawn_up = (spawn_position - parent_entity_spawn_position).normalized()
+		if spawn_point_node_path.contains("PlayerSpawnPointsList"):
 			spawn_position = universe_scene.get_node(spawn_point_node_path).global_position
 			if spawn_point_node_path.contains("PlanetA"):
 				spawn_up = (spawn_position - universe_scene.get_node("PlanetA").global_position).normalized()
@@ -511,9 +511,11 @@ func _create_local_player_not_exists_in_universe(uuid, playerName, spawn_point, 
 			elif spawn_point_node_path.contains("StationA"):
 				spawn_up = universe_scene.get_node(spawn_point_node_path).transform.basis.y.normalized()
 		else:
-			var parent_entity_spawn_position: Vector3 = universe_scene.get_node(spawn_point_node_path).global_position
-			spawn_position = random_spawn_on_planet(parent_entity_spawn_position, 2000.0)
-			spawn_up = (spawn_position - parent_entity_spawn_position).normalized()
+			push_error("Invalid spawn point node path: ", spawn_point_node_path)
+		#else:
+			#var parent_entity_spawn_position: Vector3 = universe_scene.get_node(spawn_point_node_path).global_position
+			#spawn_position = random_spawn_on_planet(parent_entity_spawn_position, 2000.0)
+			#spawn_up = (spawn_position - parent_entity_spawn_position).normalized()
 
 	small_props_spawner_node.spawn({
 		"entity": "player",
@@ -743,8 +745,10 @@ func spawn_planet(planet_datas: Dictionary) -> void:
 	var spawnable_planet_instance: Node3D = spawnable_planet_scene.instantiate()
 	spawnable_planet_instance.spawn_position = planet_datas["coordinates"]
 	spawnable_planet_instance.name = planet_datas["name"]
-	if spawnable_planet_instance.name == "PlanetB":
-		spawnable_planet_instance.material_path = "res://scenes/planet/planet_orange.material"
+	
+	#if spawnable_planet_instance.name == "PlanetB":
+		#spawnable_planet_instance.material_path = "res://scenes/planet/planet_orange.material"
+		
 	universe_datas_spawner_node.get_node(universe_datas_spawner_node.spawn_path).call_deferred("add_child", spawnable_planet_instance, true)
 	network_agent.spawn_data_processed(spawnable_planet_instance)
 

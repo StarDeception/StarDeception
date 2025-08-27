@@ -34,7 +34,6 @@ func get_local_focus_positions():
 	return local_positions
 
 func _process(delta: float) -> void:
-	if not planet.synced: return
 	var positions = get_local_focus_positions()
 	if not positions_changed(positions): return
 	focus_positions_last = positions

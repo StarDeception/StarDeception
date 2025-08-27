@@ -32,15 +32,8 @@ var distinguish_instances: Dictionary = {
 	}
 
 const SPAWN_POINTS_LIST: Array[Dictionary] = [
-	{"label" : "Random", "node_path" : ""},
-	{"label" : "PlanetA / Random", "node_path" : "PlanetA"},
-	{"label" : "PlanetA / SpawnPoint1", "node_path" : "PlanetA/PlayerSpawnPointsList/PlayerSpawnPoint01"},
-	{"label" : "PlanetA / SpawnPoint2", "node_path" : "PlanetA/PlayerSpawnPointsList/PlayerSpawnPoint02"},
-	{"label" : "PlanetA / SpawnPoint3", "node_path" : "PlanetA/PlayerSpawnPointsList/PlayerSpawnPoint03"},
-	{"label" : "PlanetB / Random", "node_path" : "PlanetB"},
-	{"label" : "PlanetB / SpawnPoint1", "node_path" : "PlanetB/PlayerSpawnPointsList/PlayerSpawnPoint01"},
-	{"label" : "PlanetB / SpawnPoint2", "node_path" : "PlanetB/PlayerSpawnPointsList/PlayerSpawnPoint02"},
-	{"label" : "PlanetB / SpawnPoint3", "node_path" : "PlanetB/PlayerSpawnPointsList/PlayerSpawnPoint03"},
+	{"label" : "PlanetA / SpawnPoint1", "node_path" : "PlanetA/PlanetTerrain/PlayerSpawnPointsList/PlayerSpawnPoint01"},
+	{"label" : "PlanetB / SpawnPoint1", "node_path" : "PlanetB/PlanetTerrain/PlayerSpawnPointsList/PlayerSpawnPoint01"},
 	{"label" : "StationA / SpawnPoint1", "node_path" : "StationA/PadGroup1/PlayerSpawnPointsList/PlayerSpawnPoint01"},
 	{"label" : "StationB / SpawnPoint1", "node_path" : "StationB/PadGroup1/PlayerSpawnPointsList/PlayerSpawnPoint01"},
 ]

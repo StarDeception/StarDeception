@@ -22,12 +22,7 @@ script = ExtResource("2_e8616")
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(-0.015552, -0.00709238, -0.999854, -0.022409, 0.999726, -0.00674292, 0.999628, 0.0223008, -0.0157066, 0, 0, 0)
 light_color = Color(1, 0.959123, 0.80835, 1)
-light_energy = 0.5
 shadow_enabled = true
 directional_shadow_split_1 = 0.034
 directional_shadow_split_2 = 0.105
 directional_shadow_max_distance = 300.0
-
-[node name="OmniLight3D" type="OmniLight3D" parent="."]
-omni_range = 5e+07
-omni_attenuation = 0.0
