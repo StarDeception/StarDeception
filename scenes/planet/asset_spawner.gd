@@ -104,7 +104,8 @@ func generate_asset_in_cell(cell: Vector3i, rng: RandomNumberGenerator, cell_siz
 	var seed = get_seed_from_cell(cell)
 	rng.seed = seed
 	
-	debugmesh.global_position = planet_terrain.to_global(planet_terrain.get_height(Vector3(cell + Vector3i.ONE).normalized()))
+	if debugmesh.visible:
+		debugmesh.global_position = planet_terrain.to_global(planet_terrain.get_height(Vector3(cell + Vector3i.ONE).normalized()))
 	
 	var count = rng.randi_range(min_rock_cell, max_rock_cell) # Number of rocks in this cell
 	var nodes = []

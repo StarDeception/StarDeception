@@ -4,21 +4,19 @@ shader_type spatial;
 render_mode blend_mix, depth_draw_opaque, cull_back, diffuse_burley, specular_schlick_ggx;
 
 uniform sampler2D texture_albedo : source_color, filter_linear_mipmap, repeat_enable;
-uniform ivec2 albedo_texture_size;
-uniform float point_size : hint_range(0.1, 128.0, 0.1);
 
 uniform float roughness : hint_range(0.0, 1.0);
-uniform sampler2D texture_metallic : hint_default_white, filter_linear_mipmap, repeat_enable;
-uniform vec4 metallic_texture_channel;
+
 uniform sampler2D texture_roughness : hint_roughness_r, filter_linear_mipmap, repeat_enable;
+uniform sampler2D sand_roughness : hint_roughness_r, filter_linear_mipmap, repeat_enable;
 
 uniform float specular : hint_range(0.0, 1.0, 0.01);
-uniform float metallic : hint_range(0.0, 1.0, 0.01);
 
 uniform sampler2D texture_normal : hint_roughness_normal, filter_linear_mipmap, repeat_enable;
-uniform float normal_scale : hint_range(-16.0, 16.0);
+uniform float normal_scale : hint_range(-16.0, 16.0) = 1.0;
 varying vec3 uv1_triplanar_pos;
 varying vec3 uv2_triplanar_pos;
+uniform sampler2D sand_normal : hint_roughness_normal, filter_linear_mipmap, repeat_enable;
 
 uniform float uv1_blend_sharpness : hint_range(0.0, 150.0, 0.001);
 varying vec3 uv1_power_normal;
@@ -35,17 +33,13 @@ uniform vec3 albedo_var: source_color;
 
 uniform sampler2D noise_c_variation: source_color, filter_linear_mipmap, repeat_enable;
 uniform float noise_c_scale = 10.0;
-varying float vertical_amount;
-varying vec3 normal;
 
 instance uniform vec3 offset_pos;
 
 
 
 void vertex() {
-	normal = NORMAL;
-	vec3 global_normal = normalize(VERTEX + offset_pos);
-	vertical_amount = dot(global_normal, normal);
+	vec3 normal = NORMAL;
 
 
 	TANGENT = vec3(0.0, 0.0, -1.0) * abs(normal.x);
@@ -118,34 +112,38 @@ vec3 triplanar_texture_notile(sampler2D p_sampler, vec3 p_weights, vec3 p_tripla
 	return samp;
 }
 
-
-
+vec3 blend_normals(vec3 a, vec3 b) {
+	return vec3(a.xy + b.xy - 0.5, a.z);
+}
 
 void fragment() {
-
-	//vec3 n = normalize(vert);
-    //float u = atan(n.z, n.x) / (2.0 * PI) + 0.5;
-    //float v = acos(n.y) / PI;
-    //vec2 uv = vec2(u, v) * 3.0;
-//
-    //vec3 base_col = texture(noise_c_variation, uv).rgb;
-
-
 	vec3 albedo = triplanar_texture(noise_c_variation, uv1_power_normal, uv1_triplanar_pos * noise_c_scale / 10000.0).rgb;
 
-
-	float var = log(vertical_amount * 1.3);
-
-	//vec3 albedo_tex = triplanar_texture_notile(texture_albedo, uv1_power_normal, uv2_triplanar_pos);
-	ALBEDO = albedo.rgb; //mix(albedo.rgb * albedo_tex.r, albedo_var.rgb, clamp(var, 0.0, 1.0));
-
-	SPECULAR = specular;
+	vec3 rock_normal_tex = triplanar_texture_notile(texture_normal, uv1_power_normal, uv1_triplanar_pos).rgb;
+	vec3 sand_normal_tex = triplanar_texture_notile(sand_normal, uv1_power_normal, uv1_triplanar_pos * 0.05).rgb;
+	
+	float offset = 0.9;
+	float fade = 0.1;
+	
+	//vec3 rock_normal = rock_normal_tex * 2.0 - 1.0;
+	//rock_normal.z = sqrt(1.0 - rock_normal.x * rock_normal.x - rock_normal.y * rock_normal.y);
+	//vec3 normal_applied = rock_normal.x * TANGENT + rock_normal.y * BINORMAL + rock_normal.z * NORMAL;
+	
+	vec3 up_vector_viewspace = mat3(VIEW_MATRIX) * normalize(offset_pos);
+	float dot_product = dot(up_vector_viewspace, NORMAL);
+	float mask = smoothstep(offset - fade, offset + fade, dot_product);
+	
+	
+	//float mask_var = mask * (1.0 - pow(triplanar_texture(noise, uv1_power_normal, uv1_triplanar_pos * 0.0002).x, 0.5));
 
 	vec3 roughness_texture_channel = vec3(1.0, 0.0, 0.0);
-	float roughness_tex = dot(triplanar_texture_notile(texture_roughness, uv1_power_normal, uv2_triplanar_pos), roughness_texture_channel);
-	ROUGHNESS = roughness_tex * roughness;
+	float roughness_tex = triplanar_texture_notile(texture_roughness, uv1_power_normal, uv1_triplanar_pos).r;
+	float sand_roughness_tex = triplanar_texture_notile(sand_roughness, uv1_power_normal, uv1_triplanar_pos).r * 1.5;
 
-	// Normal Map: Enabled
-	NORMAL_MAP = triplanar_texture_notile(texture_normal, uv1_power_normal, uv2_triplanar_pos).rgb;
+	
+	ALBEDO = albedo.rgb;
+	SPECULAR = specular;
+	ROUGHNESS = mix(roughness_tex * roughness, sand_roughness_tex, mask);
+	NORMAL_MAP = mix(rock_normal_tex, sand_normal_tex, mask);
 	NORMAL_MAP_DEPTH = normal_scale;
 }
