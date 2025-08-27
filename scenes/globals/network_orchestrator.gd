@@ -94,7 +94,7 @@ func start_server(changed_scene) -> Node:
 
 	small_props_spawner_node.spawn_function = Callable(self, "_spawn_entity")
 
-	preload_small_props(small_props_spawner_node)
+	_preload_small_props(small_props_spawner_node)
 	small_spawnable_props_entry_point = small_props_spawner_node.get_node(small_props_spawner_node.get_spawn_path())
 	network_agent.start_server(changed_scene, small_spawnable_props_entry_point)
 	return network_agent
@@ -111,7 +111,7 @@ func start_client(changed_scene, ip = "127.0.0.1", port = 7051, server_changes: 
 		multiplayer.connected_to_server.connect(_client_connected_to_server)
 		multiplayer.server_disconnected.connect(_client_disconnected_server)
 
-		preload_small_props(small_props_spawner_node)
+		_preload_small_props(small_props_spawner_node)
 		small_spawnable_props_entry_point = small_props_spawner_node.get_node(small_props_spawner_node.get_spawn_path())
 	network_agent.start_client(changed_scene, ip, port)
 	return network_agent
@@ -144,7 +144,7 @@ func load_server_config():
 	metrics_verbose_level = config.get_value("metrics", "verbose_level")
 
 
-func preload_small_props(small_props_spawner: Node) -> void:
+func _preload_small_props(small_props_spawner: Node) -> void:
 	var small_props_number: int = small_props_spawner.get_spawnable_scene_count()
 	for i in range(small_props_number):
 		small_spawnable_props.append(load(small_props_spawner.get_spawnable_scene(i)))
@@ -663,7 +663,7 @@ func _search_another_server_for_coordinates(x, y, z):
 			return s
 	return null
 
-func publish_sdo_newprop(proptype, uuid, position, rotation):
+func _publish_sdo_newprop(proptype, uuid, position, rotation):
 	var data = ""
 	var box_data = {
 		"type": proptype,
@@ -702,8 +702,6 @@ func _on_mqtt_metrics_connected():
 func _on_mqtt_metrics_connection_failed():
 	print("Connection to the Metrics fail :/")
 
-func publish_data():
-	pass
 
 #########################
 # Spawns				#
@@ -738,7 +736,7 @@ func spawn_prop(proptype,data: Dictionary ) -> void: #spawn_position: Vector3 = 
 	network_agent.props_list[proptype][uuid] = prop_instance
 	network_agent.props_list_last_movement[proptype][uuid] = spawn_position
 	network_agent.props_list_last_rotation[proptype][uuid] = Vector3.ZERO
-	publish_sdo_newprop(proptype, uuid, spawn_position, spawn_rotation)
+	_publish_sdo_newprop(proptype, uuid, spawn_position, spawn_rotation)
 
 	# specal case for box50cm
 	if proptype == "box50cm" and is_inside_box4m:
@@ -773,12 +771,10 @@ func spawn_station(station_datas: Dictionary) -> void:
 
 @rpc("any_peer", "call_remote", "reliable")
 func spawn_player(_player_scene_path: String = "", _spawn_point: int = 0):
-	var senderid = universe_scene.multiplayer.get_remote_sender_id()
+	# var senderid = universe_scene.multiplayer.get_remote_sender_id()
 
 	if not multiplayer.is_server():
 		return
-
-	# small_props_spawner_node.spawn({"entity": "player", "player_scene_path": player_scene_path, "player_name": "Player_" + str(senderid), "player_spawn_position": spawn_position, "player_spawn_up": spawn_up, "authority_peer_id": senderid})
 
 func random_spawn_on_planet(planet_position: Vector3, radius: float) -> Vector3:
 	var theta = randf() * TAU					# Angle azimutal

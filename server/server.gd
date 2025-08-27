@@ -320,7 +320,11 @@ func _spawn_prop_remote_add(prop):
 	NetworkOrchestrator.props_list[prop.type][uuid] = prop_instance
 	prop_instance.spawn_position = Vector3(float(prop.x), float(prop.y), float(prop.z))
 	prop_instance.set_physics_process(false)
-	NetworkOrchestrator.small_props_spawner_node.get_node(NetworkOrchestrator.small_props_spawner_node.spawn_path).call_deferred("add_child", prop_instance, true)
+	NetworkOrchestrator.small_props_spawner_node.get_node(NetworkOrchestrator.small_props_spawner_node.spawn_path).call_deferred(
+		"add_child",
+		prop_instance,
+		true
+	)
 	NetworkOrchestrator.props_list[prop.type][uuid] = prop_instance
 
 func _spawn_prop_remote_update(prop):

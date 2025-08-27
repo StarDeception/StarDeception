@@ -74,7 +74,7 @@ func _unhandled_input(event):
 			mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 		if event.is_action_pressed("pause"):
-			GameOrchestrator.change_game_state(GameOrchestrator.GameStates.pause_MENU)
+			GameOrchestrator.change_game_state(GameOrchestrator.GameStates.PAUSE_MENU)
 
 		if not can_write:
 			if event.is_action_pressed("write_in_chat"):

@@ -1,4 +1,4 @@
-class_name box50cm
+class_name Box50cm
 
 extends RigidBody3D
 

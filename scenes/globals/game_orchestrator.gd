@@ -3,8 +3,8 @@ extends Node
 enum ChangeStateReturns {OK, ERROR, NO_CHANGE}
 
 enum NetworkRole {PLAYER, SERVER}
-enum GameStates {HOME_MENU, UNIVERSE_MENU, GAME_MENU, pause_MENU, PLAYING, SERVER_UNIVERS_CREATION,
-				 SERVER_PLAYING, TROLL}
+enum GameStates {HOME_MENU, UNIVERSE_MENU, GAME_MENU, PAUSE_MENU, PLAYING, SERVER_UNIVERS_CREATION,
+				SERVER_PLAYING, TROLL}
 enum PlayingLevels {SYSTEM_SANDBOX}
 
 const MAX_USERNAME_LENGTH: int = 32
@@ -16,7 +16,7 @@ const GAME_STATES_SCENES_PATHS: Dictionary = {
 	GameStates.HOME_MENU : "res://ui/login_page/login_page.tscn",
 	GameStates.UNIVERSE_MENU : "res://ui/main_page/main_page.tscn",
 	GameStates.GAME_MENU : "",
-	GameStates.pause_MENU : "",
+	GameStates.PAUSE_MENU : "",
 	GameStates.PLAYING : "res://levels/system-sandbox/system_sandbox.tscn",
 	GameStates.SERVER_UNIVERS_CREATION : "res://scenes/universe_creation/universe_map.tscn",
 	GameStates.SERVER_PLAYING : "res://levels/system-sandbox/system_sandbox.tscn",
@@ -91,72 +91,64 @@ func change_game_state(new_state) -> int:
 	if new_state == current_state:
 		return ChangeStateReturns.NO_CHANGE
 
+	var return_state = ChangeStateReturns.OK
+
 	match new_state:
 		GameStates.TROLL:
 			current_state = new_state
 			get_tree().call_deferred("change_scene_to_file", GAME_STATES_SCENES_PATHS[GameStates.TROLL])
-			return ChangeStateReturns.OK
 		GameStates.HOME_MENU:
 			current_state = new_state
 			get_tree().call_deferred("change_scene_to_file", GAME_STATES_SCENES_PATHS[GameStates.HOME_MENU])
-			return ChangeStateReturns.OK
 		GameStates.SERVER_UNIVERS_CREATION:
 			current_state = new_state
 			NetworkOrchestrator.create_server()
 			get_tree().call_deferred("change_scene_to_file", GAME_STATES_SCENES_PATHS[GameStates.SERVER_UNIVERS_CREATION])
-			return ChangeStateReturns.OK
 		GameStates.SERVER_PLAYING:
 			current_state = new_state
 			get_tree().call_deferred("change_scene_to_file", GAME_STATES_SCENES_PATHS[GameStates.SERVER_PLAYING])
-			return ChangeStateReturns.OK
 		GameStates.UNIVERSE_MENU:
 			current_state = new_state
 			get_tree().call_deferred("change_scene_to_file", GAME_STATES_SCENES_PATHS[GameStates.UNIVERSE_MENU])
-			return ChangeStateReturns.OK
 		GameStates.PLAYING:
 			match current_state:
-				GameStates.pause_MENU:
+				GameStates.PAUSE_MENU:
 					current_state = new_state
 					Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-					return ChangeStateReturns.OK
 				_:
 					if GameOrchestrator.GAME_STATES_SCENES_PATHS[GameOrchestrator.GameStates.PLAYING]:
 						current_state = new_state
 						NetworkOrchestrator.create_client()
 						get_tree().call_deferred("change_scene_to_file",GAME_STATES_SCENES_PATHS[GameStates.PLAYING])
-						return ChangeStateReturns.OK
 
 					printerr(error_string(ERR_FILE_BAD_PATH) + " (Aucune scène de jeu à ouvrir game_orchestrator.gd)")
-					return ChangeStateReturns.ERROR
-		GameStates.pause_MENU:
+					return_state = ChangeStateReturns.ERROR
+		GameStates.PAUSE_MENU:
 			match  current_state:
 				GameStates.PLAYING:
 					Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 					current_state = new_state
-					return ChangeStateReturns.OK
 				_:
-					return ChangeStateReturns.NO_CHANGE
+					return_state = ChangeStateReturns.NO_CHANGE
 		_:
-			return ChangeStateReturns.ERROR
+			return_state = ChangeStateReturns.ERROR
+	return return_state
 
 func _on_scene_changed(changed_scene: Node) -> void:
 	var scene_path: String = changed_scene.scene_file_path
 
-	match scene_path:
-		GAME_STATES_SCENES_PATHS[GameStates.PLAYING]:
-			match current_network_role:
-				NetworkRole.SERVER:
-					login_player_name = "AlfredThaddeusCranePennyworth"
-					var server_instance =  NetworkOrchestrator.start_server(changed_scene)
-					server_instance.connect("populated_universe", _on_populated_universe)
-					server_instance.populate_universe(univers_creation_entities)
-				NetworkRole.PLAYER:
-					NetworkOrchestrator.start_client(changed_scene)
-		GAME_STATES_SCENES_PATHS[GameStates.SERVER_UNIVERS_CREATION]:
-			changed_scene.connect("universe_data_retrieved", _on_universe_data_retrieved)
-			changed_scene.retrieve_universe_datas()
-		_:
-			pass
+	if scene_path == GAME_STATES_SCENES_PATHS[GameStates.PLAYING]:
+		match current_network_role:
+			NetworkRole.SERVER:
+				login_player_name = "AlfredThaddeusCranePennyworth"
+				var server_instance =  NetworkOrchestrator.start_server(changed_scene)
+				server_instance.connect("populated_universe", _on_populated_universe)
+				server_instance.populate_universe(univers_creation_entities)
+			NetworkRole.PLAYER:
+				NetworkOrchestrator.start_client(changed_scene)
+	elif scene_path == GAME_STATES_SCENES_PATHS[GameStates.SERVER_UNIVERS_CREATION]:
+		changed_scene.connect("universe_data_retrieved", _on_universe_data_retrieved)
+		changed_scene.retrieve_universe_datas()
 
 func _on_universe_data_retrieved(datas: Dictionary) -> void:
 	univers_creation_entities = datas

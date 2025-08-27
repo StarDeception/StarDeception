@@ -1,4 +1,4 @@
-class_name box4m
+class_name Box4m
 
 extends RigidBody3D
 
