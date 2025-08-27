@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://2e1cf4ehx8s5" path="res://scenes/grid/grid.gd" id="2_c1vqx"]
 [ext_resource type="Script" uid="uid://cnf71va5eumrg" path="res://scenes/planet/planet_settings.gd" id="2_l6ihg"]
 [ext_resource type="Material" uid="uid://degky8mc31ncp" path="res://scenes/planet/terrain_mat.tres" id="3_7o858"]
-[ext_resource type="PackedScene" uid="uid://bcer07jbu28y1" path="res://scenes/planet/planet.tscn" id="4_2pfeq"]
+[ext_resource type="PackedScene" uid="uid://bcer07jbu28y1" path="res://scenes/planet/planet_terrain.tscn" id="4_2pfeq"]
 [ext_resource type="Script" uid="uid://7pymoxifok1q" path="res://tools/spawn_points/player_spawn_points_list.gd" id="5_6x306"]
 [ext_resource type="PackedScene" uid="uid://dtcsox8hfg83s" path="res://assets/models/spawn_kiosk/spawn_kiosk.tscn" id="5_mv8ka"]
 [ext_resource type="PackedScene" uid="uid://bb0fma643hacs" path="res://addons/extremely_fast_atmosphere/atmosphere/atmosphere.tscn" id="6_mv8ka"]

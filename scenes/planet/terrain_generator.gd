@@ -381,7 +381,6 @@ func _process(_delta):
 	mutex.unlock()
 
 func update_chunks():
-	#var maxlod = planet.lod_levels.size() - 1
 	# Initialize the quadtree by creating the root chunk
 	var bounds = AABB(Vector3(0, 0, 0), Vector3(2,2,2))
 	quadtree = QuadtreeChunk.new(bounds, 0, max_chunk_depth, planet, normal, axisA, axisB)
@@ -430,7 +429,3 @@ func any_player_near(shape: CollisionShape3D, distance = 1000):
 func disable_col(chunk_id):
 	if chunk_id in chunks_col_list:
 		chunks_col_list[chunk_id].disabled = true
-		
-		#if not any_player_near(chunks_col_list[chunk_id]):
-			#chunks_col_list[chunk_id].queue_free.call_deferred()
-	
