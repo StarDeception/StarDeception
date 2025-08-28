@@ -5,16 +5,13 @@ class_name PlanetTerrain
 
 @export_tool_button("update") var on_update = trigger_update
 
+## Base radius of the planet
 @export var radius: int
 
-@export var elev_scale: float = 100.0
 @export var min_height: float = 10000.0
 @export var max_height: float
-@export var noise_scale: float = 1.0
-@export var noise: FastNoiseLite
-@export var noise_micro: FastNoiseLite
 
-@export var noise_maps: Array[NoiseParam]
+@export var terrain_settings: PlanetTerrainSettings
 
 @export var terrain_material: Material
 
@@ -63,17 +60,19 @@ func norm(value: float):
 func get_height(point) -> Vector3:
 	var elev = 0.0
 	
+	for n_param in terrain_settings.noise_params:
+		if n_param.noise_type == "macro":
+			elev += clamp(norm(terrain_settings.noise.get_noise_3dv(point * 400.0 * terrain_settings.noise_scale)) * n_param.amplitude, n_param.clamp_min, n_param.clamp_max)
+		elif n_param.noise_type == "micro":
+			elev += clamp(norm(terrain_settings.noise_micro.get_noise_3dv(point * 300 * terrain_settings.noise_scale)) * n_param.amplitude, n_param.clamp_min, n_param.clamp_max)
+	
 	# plateau
-	elev += clamp(norm(noise.get_noise_3dv(point * 400.0 * noise_scale)) * 0.3, 0.3, 0.35) #* (1.0 + norm(noise_micro.get_noise_3dv(point * 100.0)) * 0.05)
-	#for noise_map in noise_maps:
-		#elev += norm(noise_map.noise.get_noise_3dv(point * 100.0)) * noise_map.amplitude
+	#elev += clamp(norm(noise.get_noise_3dv(point * 400.0 * noise_scale)) * 300, 300, 350)
+	#
+	## some mountains
+	#elev += clamp(norm(noise.get_noise_3dv(point * 400.0 * noise_scale)) * 270, 350, 500)
+	#
+	## micro detail elevations
+	#elev += norm(noise_micro.get_noise_3dv(point * 300 * noise_scale)) * 10
 	
-	# some mountains
-	elev += clamp(norm(noise.get_noise_3dv(point * 400.0 * noise_scale)) * 0.27, 0.35, 0.5) #* (1.0 + norm(noise_micro.get_noise_3dv(point * 100.0)) * 0.05)
-	
-	# micro detail elevations
-	elev += norm(noise_micro.get_noise_3dv(point * 300 * noise_scale)) * 0.01 #* (1.0 + norm(noise_micro.get_noise_3dv(point * 100.0)) * 0.05)
-	
-	#elev -= clamp(noise.get_noise_3dv(point * 100.0) * 0.3, 0.3, 1.0)
-	
-	return point * (radius + (elev * elev_scale))
+	return point * (radius + (elev * terrain_settings.elev_scale))

@@ -35,7 +35,7 @@ func update_planet():
 	
 	planet_terrain.radius = planet_settings.radius
 	planet_terrain.terrain_material = planet_settings.terrain_material
-	
+	planet_terrain.terrain_settings = planet_settings.terrain_settings
 	
 	atmosphere.atmosphere_height = planet_settings.atmosphere_height
 	atmosphere.planet_radius = planet_settings.radius + 600
