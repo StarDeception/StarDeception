@@ -119,7 +119,13 @@ func start_client(changed_scene, ip = "127.0.0.1", port = 7051, serverChanges: b
 ## Load configuration from server.ini file
 func loadServerConfig():
 	var config = ConfigFile.new()
-	config.load("server.ini")
+	var server_ini = "server.ini"
+	for argument in OS.get_cmdline_args():
+		if argument.contains("srvini="):
+			var key_value = argument.split("=")
+			server_ini = key_value[1]
+	print("Load server config file: " + server_ini)
+	config.load(server_ini)
 	ServerIP = config.get_value("server", "ip_public")
 	ServerPort = config.get_value("server", "port")
 	ServerName = config.get_value("server", "name")
