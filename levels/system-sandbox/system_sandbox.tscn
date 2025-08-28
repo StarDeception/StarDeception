@@ -1,7 +1,8 @@
-[gd_scene load_steps=6 format=3 uid="uid://drqxadtx316hs"]
+[gd_scene load_steps=7 format=3 uid="uid://drqxadtx316hs"]
 
 [ext_resource type="Script" uid="uid://de1e8utjyqtod" path="res://levels/system-sandbox/system_sandbox.gd" id="1_6wdpo"]
 [ext_resource type="Script" uid="uid://cj5kd1hkfvjrg" path="res://server/persistance_manager/DataPlanet.gd" id="4_88c12"]
+[ext_resource type="PackedScene" uid="uid://vsepjo7bgp7v" path="res://scenes/star/star.tscn" id="6_0y0hx"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_swxq8"]
 sky_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
@@ -12,17 +13,20 @@ sky_material = SubResource("ProceduralSkyMaterial_swxq8")
 
 [sub_resource type="Environment" id="Environment_jp7ei"]
 background_mode = 1
-background_color = Color(0.101563, 0.101563, 0.101563, 1)
+background_color = Color(0.0260417, 0.0260417, 0.0260417, 1)
 sky = SubResource("Sky_gmgav")
-tonemap_mode = 2
+tonemap_mode = 3
+glow_enabled = true
+glow_normalized = true
+glow_intensity = 0.64
+glow_blend_mode = 1
 
 [node name="SystemSandbox" type="Node3D" node_paths=PackedStringArray("spawn_node")]
 script = ExtResource("1_6wdpo")
 spawn_node = NodePath("SmallProps")
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(-0.866023, -0.433016, 0.250001, 0, 0.499998, 0.866027, -0.500003, 0.749999, -0.43301, 0, 0, 0)
-shadow_enabled = true
+[node name="Star" parent="." instance=ExtResource("6_0y0hx")]
+custom_aabb = AABB(0, 0, 0, 0, 0, 0)
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_jp7ei")

@@ -20,11 +20,16 @@ var gravity_area: Area3D
 var pilot: Player = null
 var pause_mode = false
 
+var gravity_parents: Array[Area3D]
+var last_basis: Basis
+
 func _ready() -> void:
 	global_position = spawn_position
 	global_rotation = spawn_rotation
 	$StaticBody3D.add_collision_exception_with(self)
 	ship_console.interacted.connect(on_ship_console_interact)
+	
+	update_last_basis()
 
 func on_ship_console_interact(interactor: Node):
 	if interactor is Player and not multiplayer.is_server():
@@ -53,7 +58,7 @@ func steer_ship_mouse(dir: Vector2) -> void:
 	apply_torque_impulse(-global_transform.basis.y * dir.x * mouse_sensitivity * force_multiplier)
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	if not is_multiplayer_authority(): return
 	
 	if MenuConfig.is_shown: return
@@ -76,6 +81,7 @@ func _process(delta: float) -> void:
 			Input.get_axis("move_forward", "move_back"),
 		)
 		
+		
 		roll = Vector3(0, 0, -Input.get_axis("roll_left", "roll_right"))
 
 
@@ -87,16 +93,48 @@ func _process(delta: float) -> void:
 	
 	var roll_force = roll * roll_speed * force_multiplier * delta
 	apply_torque(global_transform.basis * roll_force)
+	
+func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
+	#apply_parent_movement(state)
+	
+	update_last_basis()
+	
+func get_current_gravity_parent() -> Node3D:
+	if gravity_parents.is_empty(): return null
+	return gravity_parents.back()
+
+func apply_parent_movement(state: PhysicsDirectBodyState3D) -> void:
+	var gravity_parent = get_current_gravity_parent()
+	if !gravity_parent: return
+	if !last_basis: return
+	
+	var current_basis = gravity_parent.global_transform.basis
+	var delta_rot = current_basis * last_basis.inverse()
+
+	var local_pos = state.transform.origin - gravity_parent.global_position
+	var rotated = delta_rot * local_pos
+
+	
+	state.transform.basis = delta_rot * state.transform.basis
+	state.transform.origin = gravity_parent.global_position + rotated
+	
+
+
+func update_last_basis() -> void:
+	var gravity_parent = get_current_gravity_parent()
+	if !gravity_parent: return
+	
+	last_basis = gravity_parent.global_transform.basis
+
 
 func _on_collision_area_entered(area: Area3D) -> void:
 	if area.is_in_group("gravity"):
-		gravity_area = area
-		print("enter planet")
+		gravity_parents.push_back(area)
 
 func _on_collision_area_exited(area: Area3D) -> void:
 	if area.is_in_group("gravity"):
-		gravity_area = null
-		print("exit planet")
+		if gravity_parents.has(area):
+			gravity_parents.erase(area)
 
 func _on_gravity_area_body_entered(body: PhysicsBody3D) -> void:
 	add_collision_exception_with(body)

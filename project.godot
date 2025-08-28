@@ -66,7 +66,7 @@ project/assembly_name="StarDeception"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/fmod/plugin.cfg", "res://addons/gut/plugin.cfg", "res://addons/open-world-database/plugin.cfg", "res://addons/uuid/plugin.cfg")
+enabled=PackedStringArray("res://addons/fmod/plugin.cfg", "res://addons/extremely_fast_atmosphere/plugin.cfg", "res://addons/gut/plugin.cfg", "res://addons/open-world-database/plugin.cfg", "res://addons/uuid/plugin.cfg")
 
 [file_customization]
 
@@ -80,6 +80,7 @@ folder_colors={
 
 gravity=""
 containable=""
+player=""
 
 [input]
 
@@ -193,11 +194,12 @@ locale/translations=PackedStringArray("res://tools/localization/localisation.en.
 
 [physics]
 
-common/physics_ticks_per_second=30
 3d/physics_engine="Jolt Physics"
 3d/default_gravity=0.0
 
 [rendering]
 
 renderer/rendering_method.mobile="gl_compatibility"
+anti_aliasing/quality/msaa_3d=1
 environment/defaults/default_clear_color=Color(0, 0, 0, 1)
+occlusion_culling/use_occlusion_culling=true

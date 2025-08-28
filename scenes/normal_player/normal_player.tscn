@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://ccme8rxijtf2s"]
+[gd_scene load_steps=17 format=3 uid="uid://ccme8rxijtf2s"]
 
 [ext_resource type="Script" uid="uid://b3ifoxj2c0cjt" path="res://scenes/normal_player/normal_player.gd" id="1_ll2l8"]
 [ext_resource type="PackedScene" uid="uid://vv063vdbl0aa" path="res://assets/models/astronaut/astronaut.res" id="2_rulc8"]
@@ -11,6 +11,7 @@
 [ext_resource type="Script" uid="uid://bwj71lom8cof6" path="res://scenes/normal_player/label_universe_number_players.gd" id="7_82eon"]
 [ext_resource type="PackedScene" uid="uid://dk4le3cck03bg" path="res://ui/direct_chat/direct_chat.tscn" id="8_ikqc6"]
 [ext_resource type="PackedScene" uid="uid://c77xahaiy4r4r" path="res://ui/pause_page/pause_page.tscn" id="11_82eon"]
+[ext_resource type="PackedScene" uid="uid://50boh4okyk04" path="res://ui/loading_screen/loading_screen.tscn" id="12_edphc"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_2jk7f"]
 radius = 0.26542
@@ -41,7 +42,7 @@ font_size = 24
 outline_size = 2
 outline_color = Color(0, 0, 0, 1)
 
-[node name="NormalPlayer" type="CharacterBody3D" groups=["containable"]]
+[node name="NormalPlayer" type="CharacterBody3D" groups=["containable", "player"]]
 script = ExtResource("1_ll2l8")
 walk_speed = 5.0
 sprint_speed = 10.0
@@ -58,8 +59,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.9, 0)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6541, 0)
 
 [node name="Camera3D" type="Camera3D" parent="CameraPivot"]
-near = 0.1
-far = 40000.0
+far = 1e+08
 
 [node name="InteractRay" type="RayCast3D" parent="CameraPivot/Camera3D"]
 target_position = Vector3(0, 0, -3)
@@ -309,5 +309,7 @@ mouse_filter = 1
 visible = false
 layout_mode = 1
 mouse_filter = 2
+
+[node name="LoadingScreen" parent="UserInterface" instance=ExtResource("12_edphc")]
 
 [connection signal="draw" from="UserInterface/HUD/CrosshairContainer/Crosshair" to="UserInterface" method="_on_crosshair_draw"]

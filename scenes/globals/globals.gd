@@ -27,3 +27,10 @@ func align_with_y(xform: Transform3D, new_y: Vector3) -> Transform3D:
 	xform.basis.x = -xform.basis.z.cross(new_y)
 	xform.basis = xform.basis.orthonormalized()
 	return xform
+
+func log(message: String):
+	 
+	var header = "[color=green][lb]client[rb][/color]"
+	if multiplayer and multiplayer.is_server():
+		header = "[color=teal][lb]server[rb][/color]: "
+	print_rich(header + message)

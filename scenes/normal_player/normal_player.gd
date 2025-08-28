@@ -68,13 +68,19 @@ var can_interact: bool = false
 
 var gravity_parents: Array[Area3D]
 
+var last_basis: Basis
+
+
 # to disable player input when piloting vehicule/ship
-var active = true
+var active = false
 
 func _enter_tree() -> void:
+	$UserInterface/LoadingScreen.hide()
+	
 	if name.begins_with("remoteplayer"):
 		set_multiplayer_authority(1)
 		global_position = spawn_position
+		
 	else:
 		NetworkOrchestrator.set_player_global_position.connect(_set_player_global_position)
 
@@ -82,6 +88,9 @@ func _ready() -> void:
 	if not is_multiplayer_authority():
 		return
 	
+	$UserInterface/LoadingScreen.show()
+	
+		
 	global_position = spawn_position
 	look_at(global_transform.origin + Vector3.FORWARD, spawn_up)
 	
@@ -91,17 +100,55 @@ func _ready() -> void:
 	self.set_meta("clientUUID", Globals.playerUUID)
 
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-	camera.current = true
+	camera.current = false
+	$ExtCamera3D.current = false
 	# hide player name label for me only
 	labelPlayerName.visible = false
 	labelServerName.visible = false
 	astronaut.visible = false
 	interact_label.hide()
 	connect_area_detect()
+	active = false
+	
+	await get_tree().create_timer(5).timeout
+	
+	update_last_basis()
+	
+	active = true
+	
+	$UserInterface/LoadingScreen.hide()
+
 
 func connect_area_detect():
 	$AreaDetector.area_entered.connect(_on_area_detector_area_entered)
 	$AreaDetector.area_exited.connect(_on_area_detector_area_exited)
+
+func get_current_gravity_parent() -> Node3D:
+	if gravity_parents.is_empty(): return null
+	return gravity_parents.back()
+
+func apply_parent_movement() -> void:
+	var gravity_parent = get_current_gravity_parent()
+	if !gravity_parent: return
+	
+	var current_basis = gravity_parent.global_transform.basis
+	var delta_rot = current_basis * last_basis.inverse()
+	
+	# rotate the position with the planet
+	var local_pos = global_position - gravity_parent.global_position
+	global_position = gravity_parent.global_position + delta_rot * local_pos
+
+	# rotate the orientation too
+	global_transform.basis = delta_rot * global_transform.basis
+	
+	#print(surface_motion)
+
+
+func update_last_basis() -> void:
+	var gravity_parent = get_current_gravity_parent()
+	if !gravity_parent: return
+	
+	last_basis = gravity_parent.global_transform.basis
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not is_multiplayer_authority(): return
@@ -133,7 +180,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if $ExtCamera3D.current:
 			camera.make_current()
 			astronaut.visible = false
-		else: 
+		else:
 			astronaut.visible = true
 			$ExtCamera3D.make_current()
 
@@ -164,6 +211,8 @@ func _physics_process(delta: float) -> void:
 	var dir_vect = Vector3.ZERO
 	var sprint = null
 	
+	#apply_parent_movement()
+	
 	if not direct_chat.can_write:
 		dir_vect = Input.get_vector(MOVE_LEFT, MOVE_RIGHT, MOVE_FORWARD, MOVE_BACK)
 		sprint = Input.is_action_pressed(SPRINT)
@@ -178,13 +227,7 @@ func _physics_process(delta: float) -> void:
 	if parent_gravity_area:
 		
 		if parent_gravity_area.gravity_point:
-			var space_state = get_world_3d().direct_space_state
-			var param = PhysicsRayQueryParameters3D.new()
-			param.from = global_position
-			param.to = parent_gravity_area.global_position
-			var result = space_state.intersect_ray(param)
-			if result:
-				up_direction = result.normal
+			up_direction = parent_gravity_area.global_position.direction_to(global_position)
 		else:
 			up_direction = parent_gravity_area.global_basis.y
 		
@@ -202,9 +245,6 @@ func _physics_process(delta: float) -> void:
 	
 	var move_direction = (global_transform.basis * Vector3(input_direction.x, 0, input_direction.y)).normalized()
 	
-	if gravity > 0:
-		orient_player()
-	
 	var speed = sprint_speed if sprint else walk_speed
 	
 	if is_on_floor():
@@ -216,7 +256,8 @@ func _physics_process(delta: float) -> void:
 		# "air" movement
 		if input_direction:
 			velocity += move_direction * speed * delta
-			
+
+	
 	if is_on_floor() and is_jumping:
 		velocity += up_direction * jump_height * gravity
 		is_jumping = false
@@ -225,6 +266,7 @@ func _physics_process(delta: float) -> void:
 		velocity -= up_direction * gravity * 2.0 * delta
 		
 	move_and_slide()
+	update_last_basis()
 	
 	labelx.text = str("%0.2f" % global_position[0])
 	labely.text = str("%0.2f" % global_position[1])
