@@ -100,7 +100,7 @@ func get_cell_from_position(pos: Vector3, cell_size_deg: float) -> Vector3i:
 func get_seed_from_cell(cell_coords: Vector3i) -> int:
 	return int(cell_coords.x * 73856093 ^ cell_coords.y * 19349663 ^ cell_coords.z * 83492791)
 
-func generate_asset_in_cell(cell: Vector3i, rng: RandomNumberGenerator, cell_size_deg: float):
+func generate_asset_in_cell(cell: Vector3i, rng: RandomNumberGenerator, cell_size_value: float):
 	var seed = get_seed_from_cell(cell)
 	rng.seed = seed
 	
@@ -109,23 +109,29 @@ func generate_asset_in_cell(cell: Vector3i, rng: RandomNumberGenerator, cell_siz
 	
 	var count = rng.randi_range(min_asset_cell, max_asset_cell) # Number of assets in this cell
 	var nodes = []
+	
 	for i in count:
 		
-		var x = (cell.x + rng.randf()) * cell_size_deg / 2
-		var y = (cell.y + rng.randf()) * cell_size_deg / 2
-		var z = (cell.z + rng.randf()) * cell_size_deg / 2
+		var x = (cell.x + rng.randf() * 0.5) * cell_size_value
+		var y = (cell.y + rng.randf() * 0.5) * cell_size_value
+		var z = (cell.z + rng.randf() * 0.5) * cell_size_value
 
-		var dir = Vector3(x, y, z).normalized()
-		var pos = planet_terrain.get_height(dir)
-		var asset = asset_scenes[rng.randi() % asset_scenes.size()].instantiate()
-		add_child(asset, true)
-		asset.global_position = planet_terrain.to_global(pos)
-		
-		asset.rotation = Vector3(
-			rng.randf(),
-			rng.randf(),
-			rng.randf()
-		)
+		var asset = spawn_asset_at(rng, Vector3(x, y, z))
 		nodes.push_back(asset)
 		
 	return nodes
+
+func spawn_asset_at(rng: RandomNumberGenerator, position: Vector3) -> Node3D:
+	var dir = position.normalized()
+	var pos = planet_terrain.get_height(dir)
+	var asset = asset_scenes[rng.randi() % asset_scenes.size()].instantiate()
+	add_child(asset, true)
+	asset.global_position = planet_terrain.to_global(pos)
+	
+	asset.rotation = Vector3(
+		rng.randf(),
+		rng.randf(),
+		rng.randf()
+	)
+	
+	return asset

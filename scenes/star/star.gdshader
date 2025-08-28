@@ -15,7 +15,7 @@ void vertex() {
 			MAIN_CAM_INV_VIEW_MATRIX[2],
 			MODEL_MATRIX[3]);
 	MODELVIEW_NORMAL_MATRIX = mat3(MODELVIEW_MATRIX);
-	
+
 	// Fixed Size: Enabled
 	if (PROJECTION_MATRIX[3][3] != 0.0) {
 		// Orthogonal matrix; try to do about the same with viewport size.
@@ -41,6 +41,6 @@ float circle(vec2 uv, float radius, float fade) {
 
 void fragment() {
 	vec2 uv = UV;
-	
+
 	ALBEDO = vec3(circle(uv, sun_size * 0.01, sun_fade) * sun_color.rgb * sun_brightness);
 }

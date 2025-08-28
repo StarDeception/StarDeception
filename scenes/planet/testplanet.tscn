@@ -1,4 +1,4 @@
-[gd_scene load_steps=39 format=3 uid="uid://rv6ugxi8n8pe"]
+[gd_scene load_steps=41 format=3 uid="uid://rv6ugxi8n8pe"]
 
 [ext_resource type="Script" uid="uid://bbnhmkthrguhh" path="res://scenes/planet/testplanet.gd" id="1_83pno"]
 [ext_resource type="Script" uid="uid://2e1cf4ehx8s5" path="res://scenes/grid/grid.gd" id="2_c1vqx"]
@@ -11,7 +11,9 @@
 [ext_resource type="Shader" uid="uid://dsu80023m2ier" path="res://addons/extremely_fast_atmosphere/atmosphere/atmosphere_fbcosentino.gdshader" id="7_l6ihg"]
 [ext_resource type="PackedScene" uid="uid://br2b6gumt3gyn" path="res://scenes/planet/asset_spawner.tscn" id="9_642k6"]
 [ext_resource type="Script" uid="uid://3b53gu5cyf58" path="res://tools/spawn_points/player_spawn_point.gd" id="9_xk4jg"]
-[ext_resource type="PackedScene" uid="uid://4i1746c4272f" path="res://scenes/props/rock/rock.tscn" id="10_qugoe"]
+[ext_resource type="PackedScene" uid="uid://bebxtf0bt3hrm" path="res://scenes/props/rock/rock_small.tscn" id="10_nqw6u"]
+[ext_resource type="PackedScene" uid="uid://4i1746c4272f" path="res://scenes/props/rock/rock_medium.tscn" id="10_qugoe"]
+[ext_resource type="PackedScene" uid="uid://ckogdailxd1jo" path="res://scenes/props/rock/rock_large.tscn" id="12_yhksb"]
 
 [sub_resource type="Resource" id="Resource_642k6"]
 script = ExtResource("2_l6ihg")
@@ -187,7 +189,7 @@ metadata/_custom_type_script = "uid://3b53gu5cyf58"
 transform = Transform3D(0.904889, 0, 0.425651, 0, 1, 0, -0.425651, 0, 0.904889, 0, 0, 0)
 planet_terrain = NodePath("..")
 cell_size = 200.0
-asset_scenes = Array[PackedScene]([ExtResource("10_qugoe")])
+asset_scenes = Array[PackedScene]([ExtResource("10_nqw6u"), ExtResource("10_qugoe"), ExtResource("12_yhksb")])
 debugmesh = NodePath("debug")
 
 [node name="debug" type="MeshInstance3D" parent="PlanetTerrain/RockSpawner"]
