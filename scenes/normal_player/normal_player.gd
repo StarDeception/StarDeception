@@ -172,11 +172,11 @@ func _physics_process(delta: float) -> void:
 	if !active: return
 
 	var dir_vect = Vector3.ZERO
-	var sprint = null
+	var do_sprint = null
 
 	if not direct_chat.can_write:
 		dir_vect = Input.get_vector(move_left, move_right, move_forward, move_back)
-		sprint = Input.is_action_pressed(sprint)
+		do_sprint = Input.is_action_pressed(sprint)
 
 	if dir_vect:
 		input_direction = dir_vect
@@ -215,7 +215,7 @@ func _physics_process(delta: float) -> void:
 	if gravity > 0:
 		orient_player()
 
-	var speed = sprint_speed if sprint else walk_speed
+	var speed = sprint_speed if do_sprint else walk_speed
 
 	if is_on_floor():
 		if input_direction:
