@@ -1,11 +1,11 @@
 # {
 #   instance_id_or_path1:{
-#       method1:[ [p1, p2], [p1, p2] ],
-#       method2:[ [p1, p2], [p1, p2] ]
+#	   method1:[ [p1, p2], [p1, p2] ],
+#	   method2:[ [p1, p2], [p1, p2] ]
 #   },
 #   instance_id_or_path1:{
-#       method1:[ [p1, p2], [p1, p2] ],
-#       method2:[ [p1, p2], [p1, p2] ]
+#	   method1:[ [p1, p2], [p1, p2] ],
+#	   method2:[ [p1, p2], [p1, p2] ]
 #   },
 # }
 var _calls = {}

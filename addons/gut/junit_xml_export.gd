@@ -78,7 +78,7 @@ func _export_scripts(exp_results):
 		to_return += add_attr("time", _sum_test_time(s.tests, key) )
 		to_return += ">\n"
 
-		to_return += indent(_export_tests(s.tests, key), "    ")
+		to_return += indent(_export_tests(s.tests, key), "	")
 
 		to_return += "</testsuite>\n"
 

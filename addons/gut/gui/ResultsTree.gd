@@ -169,7 +169,7 @@ func _add_script_tree_item(script_path, script_json):
 
 
 func _add_assert_item(text, icon, parent_item):
-	# print('        * adding assert')
+	# print('		* adding assert')
 	var assert_item = _ctrls.tree.create_item(parent_item)
 	assert_item.set_icon_max_width(0, _max_icon_width)
 	assert_item.set_text(0, text)
@@ -181,7 +181,7 @@ func _add_assert_item(text, icon, parent_item):
 
 
 func _add_test_tree_item(test_name, test_json, script_item):
-	# print('    * adding test ', test_name)
+	# print('	* adding test ', test_name)
 	var no_orphans_to_show = !_show_orphans or (_show_orphans and test_json.orphans == 0)
 	if(_hide_passing and test_json['status'] == 'pass' and no_orphans_to_show):
 		return

@@ -1,6 +1,8 @@
+class_name ErrorMessage
+
 extends CanvasLayer
 
-class_name ErrorMessage
+signal exited
 
 @export var title: String
 @export var message: String
@@ -12,9 +14,6 @@ class_name ErrorMessage
 @onready var title_label: Label = $ErrorMessage/VBox/Panel/VBoxContainer/Title
 @onready var message_label: Label = $ErrorMessage/VBox/Panel/VBoxContainer/Message
 @onready var exit_btn: Button = $ErrorMessage/VBox/ExitBtn
-
-
-signal exited
 
 func _ready() -> void:
 	title_label.text = title
@@ -32,7 +31,7 @@ func show_message(_title: String = "", _message: String = ""):
 		title_label.text = _title
 	if _message != "":
 		message_label.text = _message
-	
+
 	show()
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	var tw = create_tween()

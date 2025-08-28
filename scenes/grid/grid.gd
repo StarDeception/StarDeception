@@ -1,6 +1,6 @@
-extends Area3D
-
 class_name PhysicsGrid
+
+extends Area3D
 
 # TODO: implement translation/rotation of nodes detected by area based on parent
 

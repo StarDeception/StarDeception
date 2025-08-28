@@ -68,8 +68,8 @@
 ## to change it.
 ##
 ## Values for options can be supplied on the command line with or without an "=":
-##	option=value    # no space around "="
-##	option value    # a space between option and value w/o =
+##	option=value	# no space around "="
+##	option value	# a space between option and value w/o =
 ## There is no way to escape "=" at this time.
 ##
 ## Array options can be specified multiple times and/or set from a comma delimited
@@ -558,7 +558,7 @@ func get_value(name: String):
 ## This can be useful when providing an order of precedence to your values.
 ## For example if
 ## [codeblock]
-##     default value < config file < command line
+##	 default value < config file < command line
 ## [/codeblock]
 ## then you do not want to get the default value for a command line option or
 ## it will overwrite the value in a config file.

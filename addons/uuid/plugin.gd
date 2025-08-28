@@ -1,4 +1,4 @@
-@tool 
+@tool
 extends EditorPlugin
 
 const AUTOLOAD_NAME = 'uuid'

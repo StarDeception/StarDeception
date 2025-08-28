@@ -36,7 +36,7 @@ func print_orphans(name, lgr):
 		lgr.orphan(str(count, ' new ', o, ' in ', name, '.'))
 
 func print_all():
-	var msg = str("Total Orphans ", orphan_count(), "\n", JSON.stringify(_counters, "    "))
+	var msg = str("Total Orphans ", orphan_count(), "\n", JSON.stringify(_counters, "	"))
 	print(msg)
 
 

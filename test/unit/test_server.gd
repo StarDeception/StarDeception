@@ -51,7 +51,7 @@ func before_all():
 		"coordinate_z_end": 55,
 		"is_free": 0.0,
 	}
-	
+
 	# servers list
 	GameOrchestrator._game_server.ServersSDOList = [
 		{

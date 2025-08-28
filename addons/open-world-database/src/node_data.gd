@@ -19,7 +19,7 @@ class_name NodeData
 func node_data_to_string(node_data: NodeData) -> String:
 	if node_data == null:
 		return "null"
-	
+
 	var result = "NodeData {\n"
 	result += "  uid: \"" + str(node_data.uid) + "\"\n"
 	result += "  scene: \"" + str(node_data.scene) + "\"\n"
@@ -33,5 +33,5 @@ func node_data_to_string(node_data: NodeData) -> String:
 	result += "  loaded: " + str(node_data.loaded) + "\n"
 	result += "  loaded_instance: " + str(node_data.loaded_instance) + "\n"
 	result += "}"
-	
+
 	return result

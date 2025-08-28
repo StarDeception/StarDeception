@@ -1,5 +1,5 @@
 var _strutils = GutUtils.Strutils.new()
-const INDENT = '    '
+const INDENT = '	'
 var _max_to_display = 30
 const ABSOLUTE_MAX_DISPLAYED = 10000
 const UNLIMITED = -1

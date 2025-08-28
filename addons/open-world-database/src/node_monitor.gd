@@ -9,7 +9,7 @@ var baseline_props :Array = []
 
 func _init(open_world_database: OpenWorldDatabase):
 	owdb = open_world_database
-	
+
 	# Get custom properties
 	var baseline_node = Node3D.new()
 	baseline_props = []
@@ -19,7 +19,7 @@ func _init(open_world_database: OpenWorldDatabase):
 	baseline_props.append("metadata/_owd_last_scale")
 	baseline_props.append("metadata/_owd_last_size")
 	baseline_node.free()
-	
+
 func create_node_info(node: Node3D) -> Dictionary:
 	var info = {
 		"uid": node.get_meta("_owd_uid", ""),
@@ -31,17 +31,17 @@ func create_node_info(node: Node3D) -> Dictionary:
 		"parent_uid": "",
 		"properties": {}
 	}
-	
+
 	# Get parent UID
 	var parent = node.get_parent()
 	if parent and parent.has_meta("_owd_uid"):
 		info.parent_uid = parent.get_meta("_owd_uid")
-	
+
 	for prop in node.get_property_list():
 		if prop.name not in baseline_props and not prop.name.begins_with("_") \
 		   and (prop.usage & PROPERTY_USAGE_STORAGE):
 			info.properties[prop.name] = node.get(prop.name)
-	
+
 	return info
 
 func update_stored_node(node: Node3D):

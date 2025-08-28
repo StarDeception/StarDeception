@@ -1,8 +1,10 @@
 extends StaticBody3D
 
-var spawn_position: Vector3 = Vector3.ZERO
-@onready var planet_meshinstance: MeshInstance3D = $Planet
 @export_file("*.tres", "*.material") var material_path : String
+
+var spawn_position: Vector3 = Vector3.ZERO
+
+@onready var planet_meshinstance: MeshInstance3D = $Planet
 
 func _enter_tree() -> void:
 	pass

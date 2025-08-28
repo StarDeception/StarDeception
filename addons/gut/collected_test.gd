@@ -104,7 +104,7 @@ func get_status():
 
 
 func to_s():
-	var pad = '     '
+	var pad = '	 '
 	var to_return = str(name, "[", get_status_text(), "]\n")
 
 	for i in range(fail_texts.size()):
