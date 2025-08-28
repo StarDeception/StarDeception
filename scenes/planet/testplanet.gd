@@ -7,7 +7,7 @@ var spawn_position: Vector3 = Vector3.ZERO
 
 @export_tool_button("update") var on_update = update_planet
 
-@onready var planet_gravity: PhysicsGrid = $PlanetGravity
+@onready var planet_gravity: PhysicsGrid = $PlanetTerrain/PlanetGravity
 @onready var planet_terrain: PlanetTerrain = $PlanetTerrain
 @onready var atmosphere: ExtremelyFastAtmpsphere = $Atmosphere
 @onready var water_surface: MeshInstance3D = $WaterSurface

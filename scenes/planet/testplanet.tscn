@@ -22,14 +22,11 @@ sea_level = 680
 has_ocean = false
 metadata/_custom_type_script = "uid://cnf71va5eumrg"
 
-[sub_resource type="SphereShape3D" id="SphereShape3D_6wdpo"]
-radius = 11200.0
-
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_c1vqx"]
-properties/0/path = NodePath(".:position")
+properties/0/path = NodePath("PlanetTerrain:rotation")
 properties/0/spawn = true
 properties/0/replication_mode = 0
-properties/1/path = NodePath(".:rotation")
+properties/1/path = NodePath(".:position")
 properties/1/spawn = true
 properties/1/replication_mode = 0
 
@@ -41,6 +38,9 @@ fractal_type = 2
 domain_warp_enabled = true
 domain_warp_amplitude = 3.0
 domain_warp_frequency = 0.003
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_6wdpo"]
+radius = 11200.0
 
 [sub_resource type="SphereMesh" id="SphereMesh_qugoe"]
 radius = 200.0
@@ -72,8 +72,8 @@ uv1_scale = Vector3(0.05, 0.05, 0.05)
 uv1_triplanar = true
 
 [sub_resource type="SphereMesh" id="SphereMesh_642k6"]
-radius = 5680.0
-height = 11360.0
+radius = 10680.0
+height = 21360.0
 
 [sub_resource type="Gradient" id="Gradient_ge052"]
 offsets = PackedFloat32Array(0.503401, 0.57483)
@@ -146,18 +146,6 @@ size = Vector3(24780, 24780, 24780)
 script = ExtResource("1_83pno")
 planet_settings = SubResource("Resource_642k6")
 
-[node name="PlanetGravity" type="Area3D" parent="." groups=["gravity"]]
-collision_mask = 3
-gravity_space_override = 2
-gravity_point = true
-gravity_point_unit_distance = 10000.0
-gravity_point_center = Vector3(0, 0, 0)
-gravity_direction = Vector3(0, 0, 0)
-script = ExtResource("2_c1vqx")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="PlanetGravity"]
-shape = SubResource("SphereShape3D_6wdpo")
-
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
 replication_config = SubResource("SceneReplicationConfig_c1vqx")
 
@@ -169,6 +157,18 @@ radius = 10000
 noise_scale = 5.0
 noise = SubResource("FastNoiseLite_xk4jg")
 
+[node name="PlanetGravity" type="Area3D" parent="PlanetTerrain" groups=["gravity"]]
+collision_mask = 3
+gravity_space_override = 2
+gravity_point = true
+gravity_point_unit_distance = 10000.0
+gravity_point_center = Vector3(0, 0, 0)
+gravity_direction = Vector3(0, 0, 0)
+script = ExtResource("2_c1vqx")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="PlanetTerrain/PlanetGravity"]
+shape = SubResource("SphereShape3D_6wdpo")
+
 [node name="SpawnKiosk01" parent="PlanetTerrain" instance=ExtResource("5_mv8ka")]
 transform = Transform3D(0.0192737, -0.363338, 0.931458, 8.67362e-19, 0.931631, 0.363405, -0.999814, -0.00700417, 0.017956, -4920.53, 9452.58, 60.1234)
 
@@ -178,7 +178,7 @@ script = ExtResource("5_6x306")
 metadata/_custom_type_script = "uid://7pymoxifok1q"
 
 [node name="PlayerSpawnPoint01" type="Marker3D" parent="PlanetTerrain/PlayerSpawnPointsList"]
-transform = Transform3D(0.0192737, -0.327725, 0.944576, 0, 0.944752, 0.327787, -0.999813, -0.00631764, 0.0182089, -4912.08, 9459.52, 60.2864)
+transform = Transform3D(0.0192737, -0.327725, 0.944576, 0, 0.944752, 0.327787, -0.999813, -0.00631764, 0.0182089, -4912.47, 9460.65, 60.2788)
 gizmo_extents = 2.5
 script = ExtResource("9_xk4jg")
 metadata/_custom_type_script = "uid://3b53gu5cyf58"
@@ -186,7 +186,8 @@ metadata/_custom_type_script = "uid://3b53gu5cyf58"
 [node name="RockSpawner" parent="PlanetTerrain" node_paths=PackedStringArray("planet_terrain", "debugmesh") instance=ExtResource("9_642k6")]
 transform = Transform3D(0.904889, 0, 0.425651, 0, 1, 0, -0.425651, 0, 0.904889, 0, 0, 0)
 planet_terrain = NodePath("..")
-asset_scene = ExtResource("10_qugoe")
+cell_size = 200.0
+asset_scenes = Array[PackedScene]([ExtResource("10_qugoe")])
 debugmesh = NodePath("debug")
 
 [node name="debug" type="MeshInstance3D" parent="PlanetTerrain/RockSpawner"]

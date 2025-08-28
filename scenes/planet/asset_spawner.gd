@@ -3,12 +3,12 @@ extends Node3D
 
 
 @export var planet_terrain: PlanetTerrain
-@export var min_rock_cell = 3
-@export var max_rock_cell = 10
+@export var min_asset_cell = 3
+@export var max_asset_cell = 10
 @export var chunk_radius = 1
 @export var cell_size = 300.0
 @export var spawn_distance = 1200
-@export var asset_scene: PackedScene
+@export var asset_scenes: Array[PackedScene]
 
 @export var debugmesh: MeshInstance3D
 
@@ -104,10 +104,10 @@ func generate_asset_in_cell(cell: Vector3i, rng: RandomNumberGenerator, cell_siz
 	var seed = get_seed_from_cell(cell)
 	rng.seed = seed
 	
-	if debugmesh.visible:
+	if debugmesh and debugmesh.visible:
 		debugmesh.global_position = planet_terrain.to_global(planet_terrain.get_height(Vector3(cell + Vector3i.ONE).normalized()))
 	
-	var count = rng.randi_range(min_rock_cell, max_rock_cell) # Number of rocks in this cell
+	var count = rng.randi_range(min_asset_cell, max_asset_cell) # Number of assets in this cell
 	var nodes = []
 	for i in count:
 		
@@ -117,7 +117,7 @@ func generate_asset_in_cell(cell: Vector3i, rng: RandomNumberGenerator, cell_siz
 
 		var dir = Vector3(x, y, z).normalized()
 		var pos = planet_terrain.get_height(dir)
-		var asset = asset_scene.instantiate()
+		var asset = asset_scenes[rng.randi() % asset_scenes.size()].instantiate()
 		add_child(asset, true)
 		asset.global_position = planet_terrain.to_global(pos)
 		
