@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://dtcsox8hfg83s"]
+[gd_scene load_steps=12 format=3 uid="uid://dtcsox8hfg83s"]
 
 [ext_resource type="Script" uid="uid://s8pbsagvb7ix" path="res://assets/models/spawn_kiosk/spawn_kiosk.gd" id="1_1t3ni"]
 [ext_resource type="ArrayMesh" uid="uid://2udj7wjyt5fu" path="res://assets/models/spawn_kiosk/kiosk_body.mesh" id="1_hh7gi"]
@@ -14,6 +14,9 @@ size = Vector3(1.5, 1.75, 0.6)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_1t3ni"]
 size = Vector3(1, 1.75, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_bompr"]
+size = Vector3(4, 4, 9)
 
 [node name="SpawnKiosk" type="StaticBody3D"]
 script = ExtResource("1_1t3ni")
@@ -42,3 +45,17 @@ label = "[F] Request your ship"
 [node name="CollisionShape3D" type="CollisionShape3D" parent="KioskInteractionArea"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.875, 0)
 shape = SubResource("BoxShape3D_1t3ni")
+
+[node name="SpawnArea" type="Area3D" parent="."]
+transform = Transform3D(6.12323e-17, 0, 1, 0, 1, 0, -1, 0, 6.12323e-17, 0, 2, -5)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="SpawnArea"]
+shape = SubResource("BoxShape3D_bompr")
+
+[node name="SpawnResponseLabel" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
+billboard = 2
+
+[node name="Timer" type="Timer" parent="SpawnResponseLabel"]
+wait_time = 2.0
+one_shot = true

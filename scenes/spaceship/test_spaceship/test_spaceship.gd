@@ -3,6 +3,7 @@ class_name Spaceship
 
 @onready var pilot_seat: RemoteTransform3D = $PilotSeat
 @onready var ship_console: Interactable = $ShipConsole
+@onready var ship_physic_grid: PhysicsGrid = $ShipPhysicsGrid
 
 @export var speed = 300
 @export var roll_speed = 100
@@ -20,11 +21,14 @@ var gravity_area: Area3D
 var pilot: Player = null
 var pause_mode = false
 
-func _ready() -> void:
+func _enter_tree() -> void:
 	global_position = spawn_position
 	global_rotation = spawn_rotation
+
+func _ready() -> void:
 	$StaticBody3D.add_collision_exception_with(self)
 	ship_console.interacted.connect(on_ship_console_interact)
+	var spawn_area_rotation = get_tree().get_root().get_node("SystemSandbox/PlanetA/SpawnKiosk01/SpawnArea").global_rotation
 
 func on_ship_console_interact(interactor: Node):
 	if interactor is Player and not multiplayer.is_server():
@@ -35,12 +39,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	
 	if not is_multiplayer_authority(): return
-		
-	#if pause_mode and event is InputEventMouseButton:
-		#Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-		#pause_mode = false
-	
-	#if pilot.direct_chat.is_shown: return
 	
 	if Input.is_action_just_pressed("exit"):
 		pilot.emit_signal("client_action_requested", {"action": "release_control", "entity": "ship", "entity_node": self})
@@ -89,14 +87,14 @@ func _process(delta: float) -> void:
 	apply_torque(global_transform.basis * roll_force)
 
 func _on_collision_area_entered(area: Area3D) -> void:
+	if not is_multiplayer_authority(): return
+	
 	if area.is_in_group("gravity"):
 		gravity_area = area
-		print("enter planet")
 
 func _on_collision_area_exited(area: Area3D) -> void:
 	if area.is_in_group("gravity"):
 		gravity_area = null
-		print("exit planet")
 
 func _on_gravity_area_body_entered(body: PhysicsBody3D) -> void:
 	add_collision_exception_with(body)

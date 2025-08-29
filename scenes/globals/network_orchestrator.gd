@@ -514,19 +514,21 @@ func _create_local_player_not_exists_in_universe(uuid, playerName, spawn_point, 
 				spawn_up = (spawn_position - universe_scene.get_node("PlanetA").global_position).normalized()
 			elif spawn_point_node_path.contains("PlanetB"):
 				spawn_up = (spawn_position - universe_scene.get_node("PlanetB").global_position).normalized()
-			elif spawn_point_node_path.contains("StationA"):
+			elif spawn_point_node_path.contains("StationA") or spawn_point_node_path.contains("StationB"):
 				spawn_up = universe_scene.get_node(spawn_point_node_path).transform.basis.y.normalized()
 		else:
 			var parent_entity_spawn_position: Vector3 = universe_scene.get_node(spawn_point_node_path).global_position
 			spawn_position = random_spawn_on_planet(parent_entity_spawn_position, 2000.0)
 			spawn_up = (spawn_position - parent_entity_spawn_position).normalized()
-
+	
+	spawn_position = _apply_small_variation(spawn_position, spawn_up)
+	
 	small_props_spawner_node.spawn({
 		"entity": "player",
 		"player_scene_path": player_scene_path,
 		"player_name": playerName,
 		"player_spawn_position": spawn_position,
-		"player_spawn_up": Vector3.UP,
+		"player_spawn_up": spawn_up,
 		"authority_peer_id": id,
 		"uuid": uuid
 	})
@@ -591,6 +593,18 @@ func _create_local_player_not_exists_in_universe(uuid, playerName, spawn_point, 
 	# 	"y": 0.0000329,
 	# 	"z": 2154.9038085938
 	# }
+
+func _apply_small_variation(original_spawn_position: Vector3, spawn_up: Vector3) -> Vector3:
+	const variation: float = 3.0
+	var new_spawn_position: Vector3 = original_spawn_position
+	
+	var random_vector = Vector3(randf() * 2.0 - 1.0, randf() * 2.0 - 1.0, randf() * 2.0 - 1.0)
+	var tangent = (random_vector - spawn_up * random_vector.dot(spawn_up)).normalized()
+	var distance = variation * randf()
+	
+	new_spawn_position += tangent * distance
+	
+	return new_spawn_position
 
 func _create_local_player_come_from_another_server(uuid, playerName, id):
 	network_agent.PlayersListCurrentlyInTransfert[uuid] = true
@@ -723,6 +737,7 @@ func spawn_prop(proptype,data: Dictionary ) -> void: #spawn_position: Vector3 = 
 	var spawn_position = Vector3(data["x"],data["y"],data["z"])
 	var spawn_rotation = Vector3(data["rx"],data["ry"],data["rz"])
 	prop_instance.spawn_position = spawn_position
+	prop_instance.spawn_rotation = spawn_rotation
 	if data.has("uid"):
 		if prop_instance.has_node("DataEntity"):
 			prop_instance.get_node("DataEntity").load_obj(data)
@@ -835,6 +850,8 @@ func notify_client_connected():
 
 @rpc("any_peer", "call_local", "unreliable")
 func set_player_uuid(uuid, playerName, spawn_point: int = 0, id = null):
+	if not multiplayer.is_server():
+		return
 	if Globals.isGUTRunning == false:
 		id = universe_scene.multiplayer.get_remote_sender_id()
 	network_agent.PlayersListCurrentlyInTransfert[uuid] = id

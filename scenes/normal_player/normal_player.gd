@@ -72,17 +72,26 @@ var gravity_parents: Array[Area3D]
 var active = true
 
 func _enter_tree() -> void:
+	
 	if name.begins_with("remoteplayer"):
 		set_multiplayer_authority(1)
 		global_position = spawn_position
 	else:
+		if not is_multiplayer_authority():
+			return
 		NetworkOrchestrator.set_player_global_position.connect(_set_player_global_position)
+		global_position = spawn_position
+		global_transform.basis.y = spawn_up
+		var forward = -global_transform.basis.z.normalized()
+		var right = forward.cross(spawn_up).normalized()
+		forward = spawn_up.cross(right).normalized()
+		global_transform.basis = Basis(right, spawn_up, -forward)
+		up_direction = spawn_up
 
 func _ready() -> void:
 	if not is_multiplayer_authority():
 		return
 	
-	global_position = spawn_position
 	look_at(global_transform.origin + Vector3.FORWARD, spawn_up)
 	
 	NetworkOrchestrator.set_gameserver_name.connect(_set_gameserver_name)
@@ -203,7 +212,8 @@ func _physics_process(delta: float) -> void:
 	var move_direction = (global_transform.basis * Vector3(input_direction.x, 0, input_direction.y)).normalized()
 	
 	if gravity > 0:
-		orient_player()
+		pass
+		#orient_player()
 	
 	var speed = sprint_speed if sprint else walk_speed
 	
@@ -267,5 +277,6 @@ func _set_gameserver_name(server_name: String):
 	labelServerName.text = "(" + server_name + ")"
 
 func _set_player_global_position(pos, rot):
+	Globals.print_rich_distinguished("Dans _set_player_global_position", [])
 	global_position = pos
 	global_rotation =rot
