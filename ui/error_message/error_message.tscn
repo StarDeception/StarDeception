@@ -1,9 +1,8 @@
-[gd_scene load_steps=10 format=3 uid="uid://e3f2wl711yep"]
+[gd_scene load_steps=9 format=3 uid="uid://e3f2wl711yep"]
 
 [ext_resource type="Script" uid="uid://dpe7pqce1r38d" path="res://ui/error_message/error_message.gd" id="1_5vj24"]
 [ext_resource type="FontFile" uid="uid://gshjh75aeopi" path="res://assets/fonts/Iceland/Iceland-Regular.ttf" id="1_cusoq"]
 [ext_resource type="Texture2D" uid="uid://disurq6a4omve" path="res://assets/textures/explosion-rays.svg" id="2_05o8w"]
-[ext_resource type="PackedScene" uid="uid://b7aajb2l3gvg5" path="res://ui/login_page/login_page.tscn" id="2_cfbt7"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_05o8w"]
 bg_color = Color(0.25, 0.0525, 0.0525, 0.937255)
@@ -53,7 +52,6 @@ script = ExtResource("1_5vj24")
 title = "ERROR 1337"
 message = "SERVER CONNECTION FAILED"
 exit_button_label = "BACK TO MENU"
-exit_scene = ExtResource("2_cfbt7")
 
 [node name="ErrorMessage" type="Control" parent="."]
 layout_mode = 3
