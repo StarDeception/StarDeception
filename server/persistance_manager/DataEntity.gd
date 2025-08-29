@@ -53,23 +53,8 @@ func _enter_tree():
 	check_parent()
 
 func _ready() -> void:
-	if OS.has_feature("dedicated_server"):
-		check_parent()
-		PersitDataBridge.setup_persistence_manager(_on_client_ready)
-		if is_new_object:
-			last_saved_position = parent.position
-			last_saved_rotation = parent.rotation
-			if parent.get_parent() != null && parent.get_parent().has_node("DataPlanet"):
-				parent_obj_uid = parent.get_parent().get_node("DataPlanet").uid
-				print("Parent UID: ", parent_obj_uid)
-				if parent_obj_uid.is_empty():
-					print("⏳ Waiting for parent to be saved...")
-					# Créer un timer ou attendre le signal de sauvegarde du parent
-					await_parent_save()
-				else:
-					initialize_and_save()
-	else:
-		print ("data entity is instanciate on client ")
+	super._ready()
+	check_parent()
 		
 func start_loop(): # is depracated
 	while true:
@@ -127,3 +112,21 @@ func check_parent():
 
 func  _on_client_ready():
 	print("🚀 Signal ClientReady Persist Physic Data !")
+
+func _on_parent_ready() -> void:
+	if OS.has_feature("dedicated_server"):
+		PersitDataBridge.setup_persistence_manager(_on_client_ready)
+		if is_new_object:
+			last_saved_position = parent.position
+			last_saved_rotation = parent.rotation
+			if parent.get_parent() != null && parent.get_parent().has_node("DataPlanet"):
+				parent_obj_uid = parent.get_parent().get_node("DataPlanet").uid
+				print("Parent UID: ", parent_obj_uid)
+				if parent_obj_uid.is_empty():
+					print("⏳ Waiting for parent to be saved...")
+					# Créer un timer ou attendre le signal de sauvegarde du parent
+					await_parent_save()
+				else:
+					initialize_and_save()
+	else:
+		print ("data entity is instanciate on client ")

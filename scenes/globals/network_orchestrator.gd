@@ -725,6 +725,7 @@ func spawn_prop(proptype,data: Dictionary ) -> void: #spawn_position: Vector3 = 
 	prop_instance.spawn_position = spawn_position
 	if data.has("uid"):
 		if prop_instance.has_node("DataEntity"):
+			prop_instance.set_freeze_enabled(true)
 			prop_instance.get_node("DataEntity").load_obj(data)
 		
 	var uuid = uuid_util.v4()
